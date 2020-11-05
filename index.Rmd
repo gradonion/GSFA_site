@@ -49,19 +49,20 @@ source(paste0(wkdir, "reports/analytics_functions.R"))
 
 # Data Settings
 
-CROP-seq data are from this paper: [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
+CROP-seq data source:   
+[On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
 
 Cells:    
 MCF10A cells (normal human breast epithelial cells) with or without exposure to a DNA damaging agent, doxorubicin;
 
 Perturbations:    
-Knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control.
+CRISPR knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control.
 
 ## Doxorubicin-treated expression data
 
 There are 5584 cells with nonzero gRNA count.
 
-```{r load gene expression}
+```{r load gene expression, eval=FALSE, include=FALSE}
 feature.names <- data.frame(fread(paste0(wkdir, 'data/GSE108699_cs.d.genes.tsv.gz'),
                                   header = FALSE), stringsAsFactors = FALSE)
 barcode.names <- data.frame(fread(paste0(wkdir, 'data/GSE108699_cs.d.barcodes.tsv.gz'),
@@ -72,7 +73,7 @@ colnames(dm) <- barcode.names$V1
 dm.cells_w_gRNA <- dm[, dox_metadata$cell_barcode]
 ```
 
-```{r gene_detection, fig.width=6, fig.height=5}
+```{r gene_detection, eval=FALSE, fig.height=5, fig.width=6, include=FALSE}
 gene_detection <- rowMeans(dm.cells_w_gRNA > 0)
 qplot(gene_detection, bins = 50, xlab = "Gene Detection Rate")
 ```
@@ -106,13 +107,14 @@ knitr::include_graphics(paste0(wkdir, "figs/umap_KO_patterns.png"))
 
 ### Wilcoxon Differential Expression Test
 
-Number of genes that pass pval_adjust < 0.2:
+Number of genes that pass pval_adjust < 0.2 under each perturbation:
 ```{r wilcox_DE}
 DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
-sapply(DE_list, function(x){filter(x, p_val_adj < 0.2) %>% nrow()})
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < 0.2) %>% nrow()})
+print(DE_signif_counts)
 ```
 
-```{r pval_FC_plot, fig.width=9}
+```{r pval_FC_plot, fig.width=9, fig.height=7}
 p1 <- ggplot(DE_list$TP53, aes(x = avg_logFC, y = -log10(p_val))) +
   geom_point(size = 1) +
   labs(x = "Average logFC", y = "-log10(P value)", title = "TP53")
@@ -131,7 +133,7 @@ grid.arrange(p1, p2, p3, p4, nrow = 2)
 ## Potential confounding factors
 
 Positive correlation between number of guides and cell library size:
-```{r libsize_confound, fig.height=7}
+```{r libsize_confound, fig.height=5}
 lm_coefficients <- summary(lm(dox_metadata$total_umis ~ dox_metadata$guide_count))$coefficients
 ggplot(dox_metadata, aes(x = factor(guide_count), y = total_umis)) +
   geom_boxplot() +
@@ -159,11 +161,17 @@ Only cells with gRNA readout were kept.
 
 We tried two ways to filter the genes.
 
-# 1) Only the top 8K most variable genes were kept.
+# Factor Analysis on Expression Data
 
-[GSFA all markers result](topvar_gsfa_all_markers_report.html).
+## Using top 8K most variable genes
 
-# 2) Only genes detected in > 10% of cells were kept.
+[GSFA all markers result](topvar_gsfa_all_markers_report.html);
+
+Unguided G=0 result;
+
+FLASH result.
+
+## Using genes detected in > 10% of cells
 
 [GSFA all markers result](gsfa_all_markers_report.html);
 
@@ -178,20 +186,18 @@ scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_top10k_var.mat
 scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_genes_0.1.corrected_lib_size.rds'))
 ```
 
-## Single Marker (TP53 Knock-out)
+### Single Marker (TP53 Knock-out) Results
 
-$G$ matrix being TP53 KO condition across cells:
+Method: Guided Sparse Factor Analysis (GSFA), with $G$ matrix being TP53 KO condition across cells.
 
 ```{r}
 dox_metadata <- dox_metadata %>% filter(guide_count > 0)
 G_mat <- dox_metadata %>% select(total_umis, TP53) %>% mutate(TP53 = TP53 * 1) %>% as.matrix()
 ```
 
-Method: Guided Sparse Factor Analysis (GSFA)
+We specified 20 factors and 1000 iterations per run; posterior estimates were averaged over the last 100 iterations.
 
-20 Factors, 1000 iterations, posterior estimates were averaged over the last 100 iterations.
-
-### SVD Initialization, Guided
+* SVD Initialization, Guided
 ```{r}
 gibbs_PM <-
   readRDS(paste0(wkdir, "gsfa_output/TP53.corrected.gibbs_obj_k20.svd.PM.rds"))
@@ -199,7 +205,7 @@ gibbs_res_tb <- make_gibbs_res_tb(gibbs_PM, G_mat)
 pander::pander(gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, Guided by TP53)")
 ```
 
-### Random Initialization, Guided
+* Random Initialization, Guided
 ```{r}
 rand_1.gibbs_PM <-
   readRDS(paste0(wkdir, "gsfa_output/TP53.corrected.gibbs_obj_k20.rand_01.PM.rds"))
@@ -208,7 +214,7 @@ rand_1.gibbs_PM <-
 # pander::pander(rand_1.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (Randomly Initialized, Guided by TP53)")
 ```
 
-### SVD Initialization, G = 0
+* SVD Initialization, G = 0
 ```{r}
 G0.gibbs_PM <-
   readRDS(paste0(wkdir, "gsfa_output/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
@@ -216,7 +222,7 @@ G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, G_mat)
 pander::pander(G0.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, G=0)")
 ```
 
-### Difference btw Methods in Factor Estimation
+* Difference btw Methods in Factor Estimation
 
 For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
 
