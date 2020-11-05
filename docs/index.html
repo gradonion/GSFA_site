@@ -27,6 +27,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -319,11 +320,227 @@ CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting cont
 <p><img src="index_files/figure-html/load%20meta%20data-1.png" width="864" style="display: block; margin: auto;" /><img src="index_files/figure-html/load%20meta%20data-2.png" width="864" style="display: block; margin: auto;" /></p>
 <div id="distribution-of-knock-out-perturbations" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Distribution of Knock-out Perturbations</h3>
-<p><img src="/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/figs/umap_KO_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="figs/umap_KO_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="wilcoxon-differential-expression-test" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> Wilcoxon Differential Expression Test</h3>
-<p>Number of genes that pass pval_adjust &lt; 0.2 under each perturbation: APC ARID1A ARID1B ATM BAP1 1 1 1 0 0 BID BRCA1 BRCA2 CASP8 CDH1 0 1 0 0 0 CDKN1B CDKN2A CHEK1 CTCF GATA3 0 0 0 0 0 MLH1 MLL2 MLL3 NCOR1 NF1 0 0 0 1 0 NONTARGETING PTEN PTPN22 PTPRD RAD51 0 1 1 1 1 RB1 RUNX1 SETD2 STK11 TP53 33 0 1 34 3476</p>
+Number of genes that pass pval_adjust &lt; 0.2 under each perturbation:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+NONTARGETING
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+33
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+34
+</td>
+<td style="text-align:left;">
+3476
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <p><img src="index_files/figure-html/pval_FC_plot-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 </div>
@@ -331,7 +548,7 @@ CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting cont
 <h2><span class="header-section-number">1.3</span> Potential confounding factors</h2>
 <p>Positive correlation between number of guides and cell library size: <img src="index_files/figure-html/libsize_confound-1.png" width="768" style="display: block; margin: auto;" /></p>
 <p>Cell cycle effects:</p>
-<p><img src="/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/figs/umap_cell_cycle_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="figs/umap_cell_cycle_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="preprocessing-of-rna-count-matrix" class="section level2">
 <h2><span class="header-section-number">1.4</span> Preprocessing of RNA count matrix:</h2>

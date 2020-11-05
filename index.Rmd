@@ -102,7 +102,7 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
 ### Distribution of Knock-out Perturbations
 
 ```{r umap_KO, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/umap_KO_patterns.png"))
+knitr::include_graphics("figs/umap_KO_patterns.png")
 ```
 
 ### Wilcoxon Differential Expression Test
@@ -111,7 +111,13 @@ Number of genes that pass pval_adjust < 0.2 under each perturbation:
 ```{r wilcox_DE}
 DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < 0.2) %>% nrow()})
-print(DE_signif_counts)
+DE_signif_counts <- t(data.frame(KO = names(DE_signif_counts),
+                                 DE_genes = DE_signif_counts,
+                                 row.names = NULL))
+knitr::kable(rbind(DE_signif_counts[, 1:10],
+                   DE_signif_counts[, 11:20],
+                   DE_signif_counts[, 21:30])) %>%
+  kable_styling() %>% scroll_box(width = '100%')
 ```
 
 ```{r pval_FC_plot, fig.width=9, fig.height=7}
@@ -148,7 +154,7 @@ ggplot(dox_metadata, aes(x = factor(guide_count), y = total_umis)) +
 Cell cycle effects:
 
 ```{r umap_cell_cycle, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/umap_cell_cycle_patterns.png"))
+knitr::include_graphics("figs/umap_cell_cycle_patterns.png")
 ```
 
 ## Preprocessing of RNA count matrix:
