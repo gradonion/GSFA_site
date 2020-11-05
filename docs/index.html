@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
+
+<meta name="date" content="2020-11-05" />
+
+<title>Factor Analysis on MCF10A CROP-seq Data</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">GSFA</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Intro</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Factor Analysis on MCF10A CROP-seq Data</h1>
+<h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
+<h4 class="date"><em>2020-11-05</em></h4>
+
+</div>
+
+
+<div id="data-settings" class="section level1">
+<h1><span class="header-section-number">1</span> Data Settings</h1>
+<p>CROP-seq data are from this paper: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
+<p>Cells:<br />
+MCF10A cells (normal human breast epithelial cells) with or without exposure to a DNA damaging agent, doxorubicin;</p>
+<p>Perturbations:<br />
+Knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control.</p>
+<div id="doxorubicin-treated-expression-data" class="section level2">
+<h2><span class="header-section-number">1.1</span> Doxorubicin-treated expression data</h2>
+<p>There are 5584 cells with nonzero gRNA count.</p>
+<p><img src="index_files/figure-html/gene_detection-1.png" width="576" style="display: block; margin: auto;" /></p>
+</div>
+<div id="perturbations" class="section level2">
+<h2><span class="header-section-number">1.2</span> Perturbations</h2>
+<p><img src="index_files/figure-html/load%20meta%20data-1.png" width="864" style="display: block; margin: auto;" /><img src="index_files/figure-html/load%20meta%20data-2.png" width="864" style="display: block; margin: auto;" /></p>
+<div id="distribution-of-knock-out-perturbations" class="section level3">
+<h3><span class="header-section-number">1.2.1</span> Distribution of Knock-out Perturbations</h3>
+<p><img src="/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/umap_KO_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="wilcoxon-differential-expression-test" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> Wilcoxon Differential Expression Test</h3>
+<p>Number of genes that pass pval_adjust &lt; 0.2: APC ARID1A ARID1B ATM BAP1 1 1 1 0 0 BID BRCA1 BRCA2 CASP8 CDH1 0 1 0 0 0 CDKN1B CDKN2A CHEK1 CTCF GATA3 0 0 0 0 0 MLH1 MLL2 MLL3 NCOR1 NF1 0 0 0 1 0 NONTARGETING PTEN PTPN22 PTPRD RAD51 0 1 1 1 1 RB1 RUNX1 SETD2 STK11 TP53 33 0 1 34 3476</p>
+<p><img src="index_files/figure-html/pval_FC_plot-1.png" width="864" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="potential-confounding-factors" class="section level2">
+<h2><span class="header-section-number">1.3</span> Potential confounding factors</h2>
+<p>Positive correlation between number of guides and cell library size: <img src="index_files/figure-html/libsize_confound-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Cell cycle effects:</p>
+<p><img src="/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/umap_cell_cycle_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="preprocessing-of-rna-count-matrix" class="section level2">
+<h2><span class="header-section-number">1.4</span> Preprocessing of RNA count matrix:</h2>
+<p>Seurat “LogNormalize”: log(count per <span class="math inline">\(10^4\)</span> + 1).</p>
+<p><em>Library size was regressed out, and the residuals were used as input.</em></p>
+<p>Only cells with gRNA readout were kept.</p>
+<p>We tried two ways to filter the genes.</p>
+</div>
+</div>
+<div id="only-the-top-8k-most-variable-genes-were-kept." class="section level1">
+<h1><span class="header-section-number">2</span> 1) Only the top 8K most variable genes were kept.</h1>
+<p><a href="topvar_gsfa_all_markers_report.html">GSFA all markers result</a>.</p>
+</div>
+<div id="only-genes-detected-in-10-of-cells-were-kept." class="section level1">
+<h1><span class="header-section-number">3</span> 2) Only genes detected in &gt; 10% of cells were kept.</h1>
+<p><a href="gsfa_all_markers_report.html">GSFA all markers result</a>;</p>
+<p><a href="unguided_report.html">Unguided G=0 result</a>;</p>
+<p><a href="flash_report.html">FLASH result</a>.</p>
+<div id="single-marker-tp53-knock-out" class="section level2">
+<h2><span class="header-section-number">3.1</span> Single Marker (TP53 Knock-out)</h2>
+<p><span class="math inline">\(G\)</span> matrix being TP53 KO condition across cells:</p>
+<p>Method: Guided Sparse Factor Analysis (GSFA)</p>
+<p>20 Factors, 1000 iterations, posterior estimates were averaged over the last 100 iterations.</p>
+<div id="svd-initialization-guided" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> SVD Initialization, Guided</h3>
+<table>
+<caption>20 Factors ~ TP53 KO + Library Size (SVD Initialized, Guided by TP53)</caption>
+<colgroup>
+<col width="7%" />
+<col width="8%" />
+<col width="9%" />
+<col width="11%" />
+<col width="20%" />
+<col width="14%" />
+<col width="16%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">index</th>
+<th align="center">pi</th>
+<th align="center">sum_var</th>
+<th align="center">beta_pm-1</th>
+<th align="center">beta_reg-total_umis</th>
+<th align="center">beta_reg-TP53</th>
+<th align="center">pval-total_umis</th>
+<th align="center">pval-TP53</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="center">0.847</td>
+<td align="center">136.2</td>
+<td align="center">-0.1747</td>
+<td align="center">6.463e-08</td>
+<td align="center">-0.1954</td>
+<td align="center">0.983</td>
+<td align="center">9.133e-05</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="center">0.8892</td>
+<td align="center">95.01</td>
+<td align="center">1.013</td>
+<td align="center">9.103e-08</td>
+<td align="center">1.102</td>
+<td align="center">0.9771</td>
+<td align="center">5.047e-103</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">0.6521</td>
+<td align="center">73.34</td>
+<td align="center">-1.516</td>
+<td align="center">-2.111e-07</td>
+<td align="center">-1.654</td>
+<td align="center">0.9488</td>
+<td align="center">1.255e-223</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="center">0.7092</td>
+<td align="center">45.67</td>
+<td align="center">0.3592</td>
+<td align="center">1.658e-07</td>
+<td align="center">0.3935</td>
+<td align="center">0.9565</td>
+<td align="center">3.282e-15</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="center">0.6742</td>
+<td align="center">41.3</td>
+<td align="center">-0.4578</td>
+<td align="center">-1.366e-07</td>
+<td align="center">-0.4915</td>
+<td align="center">0.9639</td>
+<td align="center">3.509e-23</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="center">0.7183</td>
+<td align="center">31.63</td>
+<td align="center">0.8313</td>
+<td align="center">1.676e-07</td>
+<td align="center">0.8876</td>
+<td align="center">0.956</td>
+<td align="center">4.364e-72</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="center">0.6003</td>
+<td align="center">16.34</td>
+<td align="center">-0.4224</td>
+<td align="center">-2.984e-07</td>
+<td align="center">-0.4608</td>
+<td align="center">0.9187</td>
+<td align="center">8.088e-22</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="center">0.6632</td>
+<td align="center">13.61</td>
+<td align="center">0.02563</td>
+<td align="center">-2.662e-08</td>
+<td align="center">0.02044</td>
+<td align="center">0.9924</td>
+<td align="center">0.6592</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="center">0.7321</td>
+<td align="center">13.05</td>
+<td align="center">-0.4462</td>
+<td align="center">-1.94e-07</td>
+<td align="center">-0.4927</td>
+<td align="center">0.9457</td>
+<td align="center">5.559e-26</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="center">0.4742</td>
+<td align="center">12.02</td>
+<td align="center">-0.512</td>
+<td align="center">-4.653e-07</td>
+<td align="center">-0.5465</td>
+<td align="center">0.8727</td>
+<td align="center">1.712e-30</td>
+</tr>
+<tr class="odd">
+<td align="center">11</td>
+<td align="center">0.4997</td>
+<td align="center">9.546</td>
+<td align="center">0.4417</td>
+<td align="center">4.08e-07</td>
+<td align="center">0.4785</td>
+<td align="center">0.8864</td>
+<td align="center">1.862e-24</td>
+</tr>
+<tr class="even">
+<td align="center">12</td>
+<td align="center">0.3889</td>
+<td align="center">8.103</td>
+<td align="center">0.226</td>
+<td align="center">9.853e-08</td>
+<td align="center">0.2355</td>
+<td align="center">0.9723</td>
+<td align="center">4.492e-07</td>
+</tr>
+<tr class="odd">
+<td align="center">13</td>
+<td align="center">0.478</td>
+<td align="center">9.667</td>
+<td align="center">0.05369</td>
+<td align="center">-8.903e-09</td>
+<td align="center">0.05506</td>
+<td align="center">0.9975</td>
+<td align="center">0.241</td>
+</tr>
+<tr class="even">
+<td align="center">14</td>
+<td align="center">0.1952</td>
+<td align="center">11.12</td>
+<td align="center">-0.03522</td>
+<td align="center">1.382e-08</td>
+<td align="center">-0.03318</td>
+<td align="center">0.9963</td>
+<td align="center">0.4988</td>
+</tr>
+<tr class="odd">
+<td align="center">15</td>
+<td align="center">0.4271</td>
+<td align="center">8.34</td>
+<td align="center">0.8556</td>
+<td align="center">7.251e-07</td>
+<td align="center">0.9315</td>
+<td align="center">0.8029</td>
+<td align="center">3.986e-87</td>
+</tr>
+<tr class="even">
+<td align="center">16</td>
+<td align="center">0.3369</td>
+<td align="center">6.527</td>
+<td align="center">0.1887</td>
+<td align="center">7.181e-08</td>
+<td align="center">0.2032</td>
+<td align="center">0.9797</td>
+<td align="center">1.286e-05</td>
+</tr>
+<tr class="odd">
+<td align="center">17</td>
+<td align="center">0.3244</td>
+<td align="center">6.527</td>
+<td align="center">0.01464</td>
+<td align="center">-6.2e-09</td>
+<td align="center">0.01713</td>
+<td align="center">0.9982</td>
+<td align="center">0.713</td>
+</tr>
+<tr class="even">
+<td align="center">18</td>
+<td align="center">0.2236</td>
+<td align="center">4.6</td>
+<td align="center">0.1364</td>
+<td align="center">3.3e-07</td>
+<td align="center">0.1494</td>
+<td align="center">0.9063</td>
+<td align="center">0.001231</td>
+</tr>
+<tr class="odd">
+<td align="center">19</td>
+<td align="center">0.2328</td>
+<td align="center">6.29</td>
+<td align="center">-0.2145</td>
+<td align="center">-2.555e-08</td>
+<td align="center">-0.238</td>
+<td align="center">0.9929</td>
+<td align="center">4.858e-07</td>
+</tr>
+<tr class="even">
+<td align="center">20</td>
+<td align="center">0.2953</td>
+<td align="center">4.12</td>
+<td align="center">0.181</td>
+<td align="center">4.797e-07</td>
+<td align="center">0.1851</td>
+<td align="center">0.8619</td>
+<td align="center">4.625e-05</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="random-initialization-guided" class="section level3">
+<h3><span class="header-section-number">3.1.2</span> Random Initialization, Guided</h3>
+</div>
+<div id="svd-initialization-g-0" class="section level3">
+<h3><span class="header-section-number">3.1.3</span> SVD Initialization, G = 0</h3>
+<table>
+<caption>20 Factors ~ TP53 KO + Library Size (SVD Initialized, G=0)</caption>
+<colgroup>
+<col width="7%" />
+<col width="8%" />
+<col width="9%" />
+<col width="11%" />
+<col width="20%" />
+<col width="14%" />
+<col width="16%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">index</th>
+<th align="center">pi</th>
+<th align="center">sum_var</th>
+<th align="center">beta_pm-1</th>
+<th align="center">beta_reg-total_umis</th>
+<th align="center">beta_reg-TP53</th>
+<th align="center">pval-total_umis</th>
+<th align="center">pval-TP53</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1</td>
+<td align="center">0.8401</td>
+<td align="center">134.3</td>
+<td align="center">-0.003691</td>
+<td align="center">-2.829e-08</td>
+<td align="center">-0.2864</td>
+<td align="center">0.9926</td>
+<td align="center">1.363e-08</td>
+</tr>
+<tr class="even">
+<td align="center">2</td>
+<td align="center">0.8904</td>
+<td align="center">97.06</td>
+<td align="center">5.01e-05</td>
+<td align="center">8.143e-09</td>
+<td align="center">1.106</td>
+<td align="center">0.9978</td>
+<td align="center">1.588e-114</td>
+</tr>
+<tr class="odd">
+<td align="center">3</td>
+<td align="center">0.6747</td>
+<td align="center">73.26</td>
+<td align="center">-0.2216</td>
+<td align="center">1.383e-08</td>
+<td align="center">-1.449</td>
+<td align="center">0.9964</td>
+<td align="center">3.541e-195</td>
+</tr>
+<tr class="even">
+<td align="center">4</td>
+<td align="center">0.7069</td>
+<td align="center">44.64</td>
+<td align="center">-0.07664</td>
+<td align="center">8.453e-08</td>
+<td align="center">0.3302</td>
+<td align="center">0.9773</td>
+<td align="center">1.349e-11</td>
+</tr>
+<tr class="odd">
+<td align="center">5</td>
+<td align="center">0.664</td>
+<td align="center">43.45</td>
+<td align="center">0.08445</td>
+<td align="center">-1.832e-08</td>
+<td align="center">-0.5076</td>
+<td align="center">0.9951</td>
+<td align="center">3.682e-25</td>
+</tr>
+<tr class="even">
+<td align="center">6</td>
+<td align="center">0.7214</td>
+<td align="center">31.19</td>
+<td align="center">-0.05411</td>
+<td align="center">-4.472e-08</td>
+<td align="center">0.6968</td>
+<td align="center">0.988</td>
+<td align="center">5.763e-47</td>
+</tr>
+<tr class="odd">
+<td align="center">7</td>
+<td align="center">0.5947</td>
+<td align="center">17.13</td>
+<td align="center">0.1226</td>
+<td align="center">1.007e-07</td>
+<td align="center">0.01233</td>
+<td align="center">0.9724</td>
+<td align="center">0.7974</td>
+</tr>
+<tr class="even">
+<td align="center">8</td>
+<td align="center">0.6526</td>
+<td align="center">12.81</td>
+<td align="center">-0.06435</td>
+<td align="center">-2.113e-08</td>
+<td align="center">-0.1382</td>
+<td align="center">0.9941</td>
+<td align="center">0.003259</td>
+</tr>
+<tr class="odd">
+<td align="center">9</td>
+<td align="center">0.7294</td>
+<td align="center">12.33</td>
+<td align="center">-0.1006</td>
+<td align="center">6.292e-08</td>
+<td align="center">-0.2902</td>
+<td align="center">0.9822</td>
+<td align="center">3.82e-10</td>
+</tr>
+<tr class="even">
+<td align="center">10</td>
+<td align="center">0.5023</td>
+<td align="center">10.88</td>
+<td align="center">-0.1125</td>
+<td align="center">-1.566e-08</td>
+<td align="center">-0.3305</td>
+<td align="center">0.9956</td>
+<td align="center">2.294e-12</td>
+</tr>
+<tr class="odd">
+<td align="center">11</td>
+<td align="center">0.4849</td>
+<td align="center">8.318</td>
+<td align="center">0.1487</td>
+<td align="center">-4.097e-08</td>
+<td align="center">0.3549</td>
+<td align="center">0.9883</td>
+<td align="center">1.348e-14</td>
+</tr>
+<tr class="even">
+<td align="center">12</td>
+<td align="center">0.399</td>
+<td align="center">8.477</td>
+<td align="center">-0.142</td>
+<td align="center">6.242e-09</td>
+<td align="center">0.1756</td>
+<td align="center">0.9982</td>
+<td align="center">0.0001652</td>
+</tr>
+<tr class="odd">
+<td align="center">13</td>
+<td align="center">0.4699</td>
+<td align="center">10.17</td>
+<td align="center">-0.1081</td>
+<td align="center">1.507e-08</td>
+<td align="center">0.009754</td>
+<td align="center">0.9958</td>
+<td align="center">0.8353</td>
+</tr>
+<tr class="even">
+<td align="center">14</td>
+<td align="center">0.196</td>
+<td align="center">11.08</td>
+<td align="center">0.08966</td>
+<td align="center">8.645e-09</td>
+<td align="center">-0.006444</td>
+<td align="center">0.9976</td>
+<td align="center">0.894</td>
+</tr>
+<tr class="odd">
+<td align="center">15</td>
+<td align="center">0.4577</td>
+<td align="center">8.147</td>
+<td align="center">-0.1448</td>
+<td align="center">-1.433e-08</td>
+<td align="center">0.6128</td>
+<td align="center">0.9959</td>
+<td align="center">3.085e-40</td>
+</tr>
+<tr class="even">
+<td align="center">16</td>
+<td align="center">0.3293</td>
+<td align="center">6.173</td>
+<td align="center">0.1098</td>
+<td align="center">-1.89e-08</td>
+<td align="center">-0.02523</td>
+<td align="center">0.9947</td>
+<td align="center">0.588</td>
+</tr>
+<tr class="odd">
+<td align="center">17</td>
+<td align="center">0.3284</td>
+<td align="center">7.409</td>
+<td align="center">-0.05914</td>
+<td align="center">-9.599e-09</td>
+<td align="center">0.09621</td>
+<td align="center">0.9973</td>
+<td align="center">0.03939</td>
+</tr>
+<tr class="even">
+<td align="center">18</td>
+<td align="center">0.2254</td>
+<td align="center">4.551</td>
+<td align="center">-0.2116</td>
+<td align="center">4.979e-08</td>
+<td align="center">0.02682</td>
+<td align="center">0.9857</td>
+<td align="center">0.5596</td>
+</tr>
+<tr class="odd">
+<td align="center">19</td>
+<td align="center">0.2435</td>
+<td align="center">6.641</td>
+<td align="center">0.08643</td>
+<td align="center">1.266e-10</td>
+<td align="center">-0.1855</td>
+<td align="center">1</td>
+<td align="center">8.925e-05</td>
+</tr>
+<tr class="even">
+<td align="center">20</td>
+<td align="center">0.2799</td>
+<td align="center">4.097</td>
+<td align="center">-0.1149</td>
+<td align="center">-3.562e-08</td>
+<td align="center">0.05868</td>
+<td align="center">0.9897</td>
+<td align="center">0.1967</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="difference-btw-methods-in-factor-estimation" class="section level3">
+<h3><span class="header-section-number">3.1.4</span> Difference btw Methods in Factor Estimation</h3>
+<p>For a pair of <span class="math inline">\(Z\)</span> estimations from 2 inference methods, <span class="math inline">\(Z_1, Z_2\)</span>, we quantify the pairwise estimation difference as <span class="math inline">\(||Z_1Z_1^T - Z_2Z_2^T||_1/N^2\)</span>, where <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
+<p>Difference btw Guided SVD and Random: 0.608</p>
+<p>Difference btw Guided SVD and Unguided SVD: 0.38</p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
