@@ -101,7 +101,7 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
 ### Distribution of Knock-out Perturbations
 
 ```{r umap_KO, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "umap_KO_patterns.png"))
+knitr::include_graphics(paste0(wkdir, "figs/umap_KO_patterns.png"))
 ```
 
 ### Wilcoxon Differential Expression Test
@@ -146,7 +146,7 @@ ggplot(dox_metadata, aes(x = factor(guide_count), y = total_umis)) +
 Cell cycle effects:
 
 ```{r umap_cell_cycle, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "umap_cell_cycle_patterns.png"))
+knitr::include_graphics(paste0(wkdir, "figs/umap_cell_cycle_patterns.png"))
 ```
 
 ## Preprocessing of RNA count matrix:
