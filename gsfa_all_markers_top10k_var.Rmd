@@ -1,0 +1,155 @@
+---
+title: "Guided Factor Analysis on MCF10A Treated"
+subtitle: "-- Genes Filtered by Variability"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
+```
+
+```{r}
+source(paste0(wkdir, "reports/analytics_functions.R"))
+```
+
+# Single cell expression data
+
+CROP-seq data are from this paper: [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
+
+Perturbations:    
+Knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control.
+
+Cells:    
+MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin.   
+Only cells with gRNA readout were kept, resulted in 5584 cells.
+
+Genes:    
+**Only the top 10K variable genes by vst (also detected in at least 10 cells) were kept.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Library size was regressed out, and the residuals were used as input.**
+
+```{r eval=FALSE, include=FALSE}
+## Normalized expression:
+scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_top10k_var.corrected_lib_size.rds'))
+```
+
+```{r load meta data, fig.width=9}
+metadata <- data.frame(fread(paste0(wkdir, 'data/GSE108699_cs.cell_metadata.tsv.gz'),
+                             header = T, sep = '\t'), check.names = F)
+dox_metadata <- metadata %>%
+  filter(sample == "singles_dox_100nm_SI-3A-A6")
+dox_metadata$cell_barcode <- sapply(strsplit(dox_metadata$cell, split = "_"),
+                                    function(x){x[1]})
+dox_metadata$guide_count[is.na(dox_metadata$guide_count)] <- 0
+dox_metadata <- dox_metadata %>% filter(guide_count > 0)
+```
+
+# Factor correlation results
+
+Guided sparse factor analysis, with the $G$ matrix being 30 types of KO conditions across cells.
+
+```{r}
+all_KOs.G_mat <- as.matrix(dox_metadata[, 17:46] * 1)
+```
+
+## SVD Initialization
+```{r}
+All_KOs.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.svd.PM.rds"))
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat)
+```
+
+```{r fig.width=10}
+heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+ntc_inx <- which(colnames(heatmap_matrix) == "NONTARGETING")
+heatmap_matrix <- heatmap_matrix[, c(colnames(heatmap_matrix)[ntc_inx],
+                                     colnames(heatmap_matrix)[-ntc_inx])]
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = All_KOs.gibbs_res_tb$pi)
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
+```
+
+## Random Initialization
+
+## Difference btw Methods in Factor Estimation
+
+## Correlation btw Factors
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat = All_KOs.gibbs_PM$Z.pm, corr_type = "pearson",
+                           name = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
+```
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat = (All_KOs.gibbs_PM$F.pm > 0.5) * 1, corr_type = "jaccard",
+                           name = "Pairwise Correlation in Binarized Gene Loadings - F (GSFA)")
+```
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat = All_KOs.gibbs_PM$W.pm, corr_type = "pearson",
+                           name = "Pairwise Correlation in Gene Loadings - W (GSFA)")
+```
+
+# Gene Ontology Enrichment Analysis
+
+Genes w/ non-zero loadings vs all genes selected for factor analysis.
+
+GO category: Biological Process.
+
+## PIP cutoff at 0.5
+
+GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
+```{r}
+gsfa.go_enrich <-
+  readRDS(paste0(wkdir, "gsfa_output_top10k_var/enrich_res/All_KOs.corrected.k20_svd.go_enrich.cutoff_0.5.rds"))
+signif_num <- print_enrich_tb(gsfa.go_enrich)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10],
+                   signif_num.df[, 11:20])) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```

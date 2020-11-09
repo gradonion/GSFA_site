@@ -203,14 +203,27 @@ plot_PIP_hist_grid <- function(PIP_mat, cutoff = 0.5){
   do.call(grid.arrange, args)
 }
 
-print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05){
+print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
+  signif_num <- rep(0, length(enrich_list))
   for (i in 1:length(enrich_list)){
+    tg_ratio <- enrich_list[[i]] %>% pull(GeneRatio)
+    tg_mat <- do.call(rbind, strsplit(tg_ratio, split = "/"))
+    enrich_list[[i]]$tg_1 <- as.numeric(tg_mat[, 1])
+    enrich_list[[i]]$tg_2 <- as.numeric(tg_mat[, 2])
+    
+    bg_ratio <- enrich_list[[i]] %>% pull(BgRatio)
+    bg_mat <- do.call(rbind, strsplit(bg_ratio, split = "/"))
+    enrich_list[[i]]$bg_1 <- as.numeric(bg_mat[, 1])
+    enrich_list[[i]]$bg_2 <- as.numeric(bg_mat[, 2])
+    
+    enrich_list[[i]] <- enrich_list[[i]] %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
     signif_tb <- enrich_list[[i]] %>% filter(qvalue < qvalue_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, pvalue, qvalue)
-    # signif_tb$pvalue <- format.pval(signif_tb$pvalue, digits = 3)
-    # signif_tb$qvalue <- format.pval(signif_tb$qvalue, digits = 3)
-    signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
+      filter(FoldChange >= FC_cutoff) %>%
+      select(ID, Description, GeneRatio, BgRatio, FoldChange, qvalue)
+    signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
     signif_tb$qvalue <- format(signif_tb$qvalue, digits = 3)
+    
+    signif_num[i] <- nrow(signif_tb)
     if (nrow(signif_tb) > 0){
       print(kable(signif_tb,
                   caption = paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")) %>%
@@ -218,4 +231,5 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05){
               scroll_box(width = '100%', height = '400px'))
     }
   }
+  return(signif_num)
 }
