@@ -115,9 +115,9 @@ summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP
 
 ```{r eval=FALSE, include=FALSE}
 rand_1.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_detect_005/All_KOs.corrected.gibbs_obj_k20.rand_01.PM.rds"))
+                                  "gsfa_output_detect_005/All.corrected.gibbs_obj_k20.rand_01.PM.rds"))
 rand_2.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_detect_005/All_KOs.corrected.gibbs_obj_k20.rand_02.PM.rds"))
+                                  "gsfa_output_detect_005/All.corrected.gibbs_obj_k20.rand_02.PM.rds"))
 G0.gibbs_PM <-  readRDS(paste0(wkdir,
                                "gsfa_output_detect_005/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
 ```

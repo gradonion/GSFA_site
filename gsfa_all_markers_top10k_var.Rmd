@@ -114,7 +114,50 @@ summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP
 
 ## Random Initialization
 
+```{r}
+rand_1.gibbs_PM <- readRDS(paste0(wkdir,
+                                  "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.rand_01.PM.rds"))
+rand_2.gibbs_PM <- readRDS(paste0(wkdir,
+                                  "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.rand_02.PM.rds"))
+G0.gibbs_PM <-  readRDS(paste0(wkdir,
+                               "gsfa_output_top10k_var/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
+```
+
+```{r fig.width=10}
+rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
+rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_1.gibbs_res_tb$index
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+ntc_inx <- which(colnames(heatmap_matrix) == "NONTARGETING")
+heatmap_matrix <- heatmap_matrix[, c(colnames(heatmap_matrix)[ntc_inx],
+                                     colnames(heatmap_matrix)[-ntc_inx])]
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = rand_1.gibbs_res_tb$pi)
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
+```
+
 ## Difference btw Methods in Factor Estimation
+
+For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
+
+```{r}
+cat("Guided SVD vs Rand_01:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z.pm, rand_1.gibbs_PM$Z.pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Guided SVD vs Rand_02:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z.pm, rand_2.gibbs_PM$Z.pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Rand_01 vs Rand_02:",
+    ZZT_mean_diff(rand_1.gibbs_PM$Z.pm, rand_2.gibbs_PM$Z.pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Guided SVD vs Unguided:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z.pm, G0.gibbs_PM$Z.pm) %>% signif(digits = 3))
+cat("\n\n")
+```
 
 ## Correlation btw Factors
 
@@ -142,6 +185,7 @@ GO category: Biological Process.
 ## PIP cutoff at 0.5
 
 GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
+
 ```{r}
 gsfa.go_enrich <-
   readRDS(paste0(wkdir, "gsfa_output_top10k_var/enrich_res/All_KOs.corrected.k20_svd.go_enrich.cutoff_0.5.rds"))
