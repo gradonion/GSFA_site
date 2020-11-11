@@ -117,6 +117,9 @@ Genes w/ non-zero loadings vs all genes selected for factor analysis.
 GO category: Biological Process.
 
 ## lfsr cutoff at 0.05
+
+GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
+
 ```{r}
 flash.go_enrich <- readRDS(paste0(wkdir,
                                  "flash_output/enrich_res/detect_0.05.corrected.flash_k20.go_enrich.rds"))

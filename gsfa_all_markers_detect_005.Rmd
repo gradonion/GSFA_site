@@ -182,6 +182,9 @@ Genes w/ non-zero loadings vs all genes selected for factor analysis.
 GO category: Biological Process.
 
 ## PIP cutoff at 0.5
+
+GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
+
 ```{r}
 gsfa.go_enrich <-
   readRDS(paste0(wkdir, "gsfa_output_detect_005/enrich_res/All_KOs.corrected.k20_svd.go_enrich.cutoff_0.5.rds"))

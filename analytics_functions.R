@@ -133,7 +133,8 @@ summ_pvalues <- function(pvalues, title_text = NULL){
   requireNamespace("gridExtra", quietly = TRUE)
   # distribution histogram
   plot1 <- histogram(pvalues, col = 'grey', type = "count",
-                     xlim = c(0, 1), breaks = 50, main = "p value distribution")
+                     xlim = c(0, 1), breaks = 50,
+                     main = "p value distribution", xlab = "P value", ylab = "Count")
   # uniform qq-plot
   plot2 <- qqunif.plot(pvalues, main = "p value qq-plot")
   gridExtra::grid.arrange(plot1, plot2, ncol = 2, top = title_text)
@@ -232,4 +233,51 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
     }
   }
   return(signif_num)
+}
+
+permute_pval <- function(Z_pm, G_mat, num_perm = 1000){
+  # G_mat: sample by condition
+  # Z_pm: sample by factor
+  pval_list <- list()
+  for (i in 1:num_perm){
+    if (i %% 100 == 0){
+      print(i)
+    }
+    rand_order <- sample(1:nrow(Z_pm), size = nrow(Z_pm))
+    rand_conditions <- G_mat[rand_order, ]
+    pval_list[[i]] <- factor_matrix_regression(Z_pm, rand_conditions)$pval
+  }
+  return(pval_list)
+}
+
+plot_pval_list_grid <- function(pval_list, plot_by = "factor"){
+  plot.lst <- list()
+  if (plot_by == "factor"){
+    K <- nrow(pval_list[[1]])
+    for (k in 1:K){
+      pval_vec <- unlist(lapply(pval_list, function(x){ x[k, ] }))
+      pval_df <- data.frame(pval = pval_vec)
+      plot.lst[[k]] <- ggplot(pval_df, aes_string("pval")) +
+        geom_histogram(bins = 100) +
+        labs(title = paste("Factor", k)) +
+        theme(axis.title = element_blank())
+    }
+  } else if (plot_by == "marker"){
+    K <- ncol(pval_list[[1]])
+    if (is.null(colnames(pval_list[[1]]))){
+      colnames(pval_list[[1]]) <- 1:K
+    }
+    for (k in 1:K){
+      pval_vec <- unlist(lapply(pval_list, function(x){ x[k, ] }))
+      pval_df <- data.frame(pval = pval_vec)
+      plot.lst[[k]] <- ggplot(pval_df, aes_string("pval")) +
+        geom_histogram(bins = 100) +
+        labs(title = paste("Condition", colnames(pval_list[[1]])[k])) +
+        theme(axis.title = element_blank())
+    }
+  } else {
+    stop("Please provide a value for \'plot_by\', (coulde be either \'factor\' or \'marker\'.)")
+  }
+  args <- c(plot.lst, list(nrow = 5, left = "Count", bottom = "P value"))
+  do.call(grid.arrange, args)
 }

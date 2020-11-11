@@ -107,7 +107,7 @@ knitr::include_graphics("figs/umap_KO_patterns.png")
 
 ### Wilcoxon Differential Expression Test
 
-Number of genes that pass pval_adjust < 0.2 under each perturbation:
+Number of genes that passed pval_adjust < 0.2 under each perturbation:
 ```{r wilcox_DE}
 DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < 0.2) %>% nrow()})
@@ -206,7 +206,7 @@ We specified 20 factors and 1000 iterations per run; posterior estimates were av
 * SVD Initialization, Guided
 ```{r}
 gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output/TP53.corrected.gibbs_obj_k20.svd.PM.rds"))
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/TP53.corrected.gibbs_obj_k20.svd.PM.rds"))
 gibbs_res_tb <- make_gibbs_res_tb(gibbs_PM, G_mat)
 pander::pander(gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, Guided by TP53)")
 ```
@@ -214,7 +214,7 @@ pander::pander(gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD
 * Random Initialization, Guided
 ```{r}
 rand_1.gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output/TP53.corrected.gibbs_obj_k20.rand_01.PM.rds"))
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/TP53.corrected.gibbs_obj_k20.rand_01.PM.rds"))
 # rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, G_mat)
 # rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
 # pander::pander(rand_1.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (Randomly Initialized, Guided by TP53)")
@@ -223,7 +223,7 @@ rand_1.gibbs_PM <-
 * SVD Initialization, G = 0
 ```{r}
 G0.gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
 G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, G_mat)
 pander::pander(G0.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, G=0)")
 ```
@@ -240,3 +240,8 @@ cat("Difference btw Guided SVD and Unguided SVD:",
     ZZT_mean_diff(gibbs_PM$Z.pm, G0.gibbs_PM$Z.pm) %>% signif(digits = 3))
 cat("\n\n")
 ```
+
+
+## Permutation test on associations
+
+[Permutation results for all methods](permutation.html).
