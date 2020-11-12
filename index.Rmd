@@ -177,6 +177,14 @@ We tried two ways to filter the genes.
 
 [FLASH result](flash_top10k_var.html).
 
+## Using top 8K most variable genes
+
+[GSFA all markers result](gsfa_all_markers_top8k_var.html);
+
+Unguided G=0 result;
+
+[FLASH result](flash_top8k_var.html).
+
 ## Using genes detected in > 5% of cells
 
 [GSFA all markers result](gsfa_all_markers_detect_005.html);
@@ -187,61 +195,18 @@ We tried two ways to filter the genes.
 
 ## Using genes detected in > 10% of cells
 
-```{r eval=FALSE, include=FALSE}
-## Normalized expression:
-scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_genes_0.1.corrected_lib_size.rds'))
-```
+[GSFA all markers result](gsfa_all_markers_detect_01.html);
 
-### Single Marker (TP53 Knock-out) Results
+[Unguided G=0 result](unguided_detect_01.html);
 
-Method: Guided Sparse Factor Analysis (GSFA), with $G$ matrix being TP53 KO condition across cells.
-
-```{r}
-dox_metadata <- dox_metadata %>% filter(guide_count > 0)
-G_mat <- dox_metadata %>% select(total_umis, TP53) %>% mutate(TP53 = TP53 * 1) %>% as.matrix()
-```
-
-We specified 20 factors and 1000 iterations per run; posterior estimates were averaged over the last 100 iterations.
-
-* SVD Initialization, Guided
-```{r}
-gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output_detect_01/TP53.corrected.gibbs_obj_k20.svd.PM.rds"))
-gibbs_res_tb <- make_gibbs_res_tb(gibbs_PM, G_mat)
-pander::pander(gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, Guided by TP53)")
-```
-
-* Random Initialization, Guided
-```{r}
-rand_1.gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output_detect_01/TP53.corrected.gibbs_obj_k20.rand_01.PM.rds"))
-# rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, G_mat)
-# rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
-# pander::pander(rand_1.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (Randomly Initialized, Guided by TP53)")
-```
-
-* SVD Initialization, G = 0
-```{r}
-G0.gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output_detect_01/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
-G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, G_mat)
-pander::pander(G0.gibbs_res_tb, caption = "20 Factors ~ TP53 KO + Library Size (SVD Initialized, G=0)")
-```
-
-* Difference btw Methods in Factor Estimation
-
-For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
-
-```{r}
-cat("Difference btw Guided SVD and Random:",
-    ZZT_mean_diff(gibbs_PM$Z.pm, rand_1.gibbs_PM$Z.pm) %>% signif(digits = 3))
-cat("\n\n")
-cat("Difference btw Guided SVD and Unguided SVD:",
-    ZZT_mean_diff(gibbs_PM$Z.pm, G0.gibbs_PM$Z.pm) %>% signif(digits = 3))
-cat("\n\n")
-```
-
+[FLASH result](flash_detect_01.html).
 
 ## Permutation test on associations
 
 [Permutation results for all methods](permutation.html).
+
+## Gene discovery comparison using local false sign rate
+
+For each factor analysis result, we estimated the KO effect on genes using the local false sign rate (LFSR), and compared the result with that from Wilcoxon DGE.
+
+[LFSR result comparison](lfsr.html).

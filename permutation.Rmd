@@ -159,3 +159,25 @@ P value distribution by each factor:
 ```{r fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
+
+# SCTransform Normalization
+
+Instead of logCPM normalization on the raw count matrix, we also tried sctransform on the data before our factor analysis.
+
+However, the inflation in factor ~ KO association seems to be worse.
+
+## GSFA Detection > 10% (8046 genes)
+
+```{r fig.width=10, fig.height=5}
+pval_list <- readRDS(paste0(wkdir, "gsfa_output_sctran_detect_01/",
+                            "permutation/All.gibbs_k20_svd.pval_list.rds"))
+summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 10% Genes\n(20 Factors, 30 KOs)")
+```
+
+## GSFA on Top 8K Variable Genes
+
+```{r fig.width=10, fig.height=5}
+pval_list <- readRDS(paste0(wkdir, "gsfa_output_sctran_top8k_var/",
+                            "permutation/All.gibbs_k20_svd.pval_list.rds"))
+summ_pvalues(unlist(pval_list), title_text = "GSFA Top 8K Variable Genes\n(20 Factors, 30 KOs)")
+```

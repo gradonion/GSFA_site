@@ -1,0 +1,135 @@
+---
+title: "Local False Sign Rate Estimate of KO Effect on Genes"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
+```
+
+```{r}
+source(paste0(wkdir, "reports/analytics_functions.R"))
+```
+
+For each factor analysis result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of $\beta$ and $W$.
+
+For gene $j$ and KO condition $m$,
+$$lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}$$
+Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a simple Wilcoxon DGE analysis.
+
+Conclusion:
+
+```{r}
+dge_cutoff <- 0.05
+lfsr_cutoff_1 <- 0.05
+lfsr_cutoff_2 <- 0.05/20
+```
+
+```{r wilcox_DE}
+DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < dge_cutoff) %>% nrow()})
+DE_signif_counts <- t(data.frame(KO = names(DE_signif_counts),
+                                 DE_genes = DE_signif_counts,
+                                 row.names = NULL))
+knitr::kable(rbind(DE_signif_counts[, 1:10],
+                   DE_signif_counts[, 11:20],
+                   DE_signif_counts[, 21:30]),
+             caption = paste0("Wilcoxon DGE, FDR cutoff: ", dge_cutoff)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+```{r}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Effect_genes = signif_num,
+                             row.names = NULL))
+  knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
+               caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%')
+}
+```
+
+# Genes Filtered by Detection Rate
+
+## GSFA Detection > 10% (8046 genes)
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/",
+                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
+                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_1))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
+                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_2))
+```
+
+## GSFA Detection > 5% (9895 genes)
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_005/",
+                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
+                     paste0("GSFA Detection > 5% Genes, lfsr cutoff: ", lfsr_cutoff_1))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
+                     paste0("GSFA Detection > 5% Genes, lfsr cutoff: ", lfsr_cutoff_2))
+```
+
+# Genes Filtered by Variance
+
+## GSFA on Top 8K Variable Genes
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_top8k_var/",
+                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
+                     paste0("GSFA Top 8K Variable Genes, lfsr cutoff: ", lfsr_cutoff_1))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
+                     paste0("GSFA Top 8K Variable Genes, lfsr cutoff: ", lfsr_cutoff_2))
+```
+
+## GSFA on Top 10K Variable Genes
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
+                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
+                     paste0("GSFA Top 10K Variable Genes, lfsr cutoff: ", lfsr_cutoff_1))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
+                     paste0("GSFA Top 10K Variable Genes, lfsr cutoff: ", lfsr_cutoff_2))
+```
