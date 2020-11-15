@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2020-11-10" />
+<meta name="date" content="2020-11-15" />
 
 <title>Guided Factor Analysis on MCF10A Treated</title>
 
@@ -299,7 +299,7 @@ div.tocify {
 <h1 class="title toc-ignore">Guided Factor Analysis on MCF10A Treated</h1>
 <h3 class="subtitle"><em>– Genes Filtered by Variability</em></h3>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2020-11-10</em></h4>
+<h4 class="date"><em>2020-11-15</em></h4>
 
 </div>
 
@@ -323,16 +323,21 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Guided sparse factor analysis, with the <span class="math inline">\(G\)</span> matrix being 30 types of KO conditions across cells.</p>
 <div id="svd-initialization" class="section level2">
 <h2><span class="header-section-number">2.1</span> SVD Initialization</h2>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/svd_heatmap-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/svd_pval-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
-<div id="random-initialization" class="section level2">
-<h2><span class="header-section-number">2.2</span> Random Initialization</h2>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-9-1.png" width="960" style="display: block; margin: auto;" /></p>
+<div id="random-initialization-1" class="section level2">
+<h2><span class="header-section-number">2.2</span> Random Initialization – 1</h2>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/rand_1_heatmap-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/rand_1_pval-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="random-initialization-2" class="section level2">
+<h2><span class="header-section-number">2.3</span> Random Initialization – 2</h2>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/rand_2_heatmap-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/rand_2_pval-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="difference-btw-methods-in-factor-estimation" class="section level2">
-<h2><span class="header-section-number">2.3</span> Difference btw Methods in Factor Estimation</h2>
+<h2><span class="header-section-number">2.4</span> Difference btw Methods in Factor Estimation</h2>
 <p>For a pair of <span class="math inline">\(Z\)</span> estimations from 2 inference methods, <span class="math inline">\(Z_1, Z_2\)</span>, we quantify the pairwise estimation difference as <span class="math inline">\(||Z_1Z_1^T - Z_2Z_2^T||_1/N^2\)</span>, where <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
 <p>Guided SVD vs Rand_01: 1.15</p>
 <p>Guided SVD vs Rand_02: 0.893</p>
@@ -340,10 +345,10 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Guided SVD vs Unguided: 0.351</p>
 </div>
 <div id="correlation-btw-factors" class="section level2">
-<h2><span class="header-section-number">2.4</span> Correlation btw Factors</h2>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-12-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<h2><span class="header-section-number">2.5</span> Correlation btw Factors</h2>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="gsfa_all_markers_top10k_var_files/figure-html/unnamed-chunk-8-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="gene-ontology-enrichment-analysis" class="section level1">

@@ -68,7 +68,7 @@ Seurat "LogNormalize": log(count per 10K + 1).
 
 ```{r eval=FALSE, include=FALSE}
 ## Normalized expression:
-scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_genes_0.1.corrected_lib_size.rds'))
+scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_detect_01.corrected_lib_size.rds'))
 ```
 
 ```{r load meta data, fig.width=9}
