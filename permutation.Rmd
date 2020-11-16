@@ -63,7 +63,7 @@ Conclusion:
 
 ## GSFA Detection > 10% (8046 genes)
 
-```{r fig.width=10, fig.height=5}
+```{r detect_01, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_detect_01/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 10% Genes\n(20 Factors, 30 KOs)")
@@ -71,13 +71,13 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 10% Genes\n(20 Fa
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r detect_01_byb_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## FLASH Detection > 10%
 
-```{r fig.width=10, fig.height=5}
+```{r flash_detect_01, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "flash_output/permutation/",
                             "detect_0.1.All_flash_k20.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "FLASH Detection > 10% Genes\n(20 Factors, 30 KOs)")
@@ -85,7 +85,7 @@ summ_pvalues(unlist(pval_list), title_text = "FLASH Detection > 10% Genes\n(20 F
 
 ## GSFA Detection > 5% (9895 genes)
 
-```{r fig.width=10, fig.height=5}
+```{r detect_005, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_detect_005/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 5% Genes\n(20 Factors, 30 KOs)")
@@ -93,7 +93,7 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 5% Genes\n(20 Fac
 
 ## FLASH Detection > 5%
 
-```{r fig.width=10, fig.height=5}
+```{r flash_detect_005, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "flash_output/permutation/",
                             "detect_0.05.All_flash_k20.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "FLASH Detection > 5% Genes\n(20 Factors, 30 KOs)")
@@ -105,7 +105,7 @@ summ_pvalues(unlist(pval_list), title_text = "FLASH Detection > 5% Genes\n(20 Fa
 
 ## GSFA on Top 8K Variable Genes
 
-```{r fig.width=10, fig.height=5}
+```{r top8k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_top8k_var/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Top 8K Variable Genes\n(20 Factors, 30 KOs)")
@@ -113,13 +113,13 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Top 8K Variable Genes\n(20 Fa
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r top8k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## FLASH on Top 8K Variable Genes
 
-```{r fig.height=5, fig.width=10}
+```{r flash_top8k, fig.height=5, fig.width=10}
 pval_list <- readRDS(paste0(wkdir, "flash_output/permutation/",
                             "top8k_var.All_flash_k20.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "FLASH Top 8K Variable Genes\n(20 Factors, 30 KOs)")
@@ -127,13 +127,13 @@ summ_pvalues(unlist(pval_list), title_text = "FLASH Top 8K Variable Genes\n(20 F
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r flash_top8k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## GSFA on Top 10K Variable Genes (SVD Init)
 
-```{r fig.width=10, fig.height=5}
+```{r top10k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(SVD Init)")
@@ -141,13 +141,13 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(SVD 
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r top10k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## GSFA on Top 10K Variable Genes (Random Init 1)
 
-```{r fig.width=10, fig.height=5}
+```{r rand1_top10k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
                             "permutation/All.gibbs_k20_rand_01.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Random Init 1)")
@@ -155,13 +155,13 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Rand
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r rand1_top10k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## GSFA on Top 10K Variable Genes (Random Init 2)
 
-```{r fig.width=10, fig.height=5}
+```{r rand2_top10k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
                             "permutation/All.gibbs_k20_rand_02.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Random Init 2)")
@@ -169,13 +169,13 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Rand
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r rand2_top10k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
 ## FLASH on Top 10K Variable Genes
 
-```{r fig.width=10, fig.height=5}
+```{r flash_top10k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "flash_output/permutation/",
                             "top10k_var.All_flash_k20.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "FLASH Top 10K Variable Genes\n(20 Factors, 30 KOs)")
@@ -183,7 +183,7 @@ summ_pvalues(unlist(pval_list), title_text = "FLASH Top 10K Variable Genes\n(20 
 
 P value distribution by each factor:
 
-```{r fig.width=12, fig.height=10}
+```{r flash_top10k_by_factor, fig.width=12, fig.height=10}
 plot_pval_list_grid(pval_list)
 ```
 
@@ -195,7 +195,7 @@ However, the inflation in factor ~ KO association seems to be worse.
 
 ## GSFA Detection > 10% (8046 genes)
 
-```{r fig.width=10, fig.height=5}
+```{r sctran_detect_01, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_sctran_detect_01/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 10% Genes\n(20 Factors, 30 KOs)")
@@ -203,7 +203,7 @@ summ_pvalues(unlist(pval_list), title_text = "GSFA Detection > 10% Genes\n(20 Fa
 
 ## GSFA on Top 8K Variable Genes
 
-```{r fig.width=10, fig.height=5}
+```{r sctran_top8k, fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_sctran_top8k_var/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
 summ_pvalues(unlist(pval_list), title_text = "GSFA Top 8K Variable Genes\n(20 Factors, 30 KOs)")
