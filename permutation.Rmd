@@ -131,12 +131,12 @@ P value distribution by each factor:
 plot_pval_list_grid(pval_list)
 ```
 
-## GSFA on Top 10K Variable Genes
+## GSFA on Top 10K Variable Genes (SVD Init)
 
 ```{r fig.width=10, fig.height=5}
 pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
                             "permutation/All.gibbs_k20_svd.pval_list.rds"))
-summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(20 Factors, 30 KOs)")
+summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(SVD Init)")
 ```
 
 P value distribution by each factor:
@@ -145,6 +145,33 @@ P value distribution by each factor:
 plot_pval_list_grid(pval_list)
 ```
 
+## GSFA on Top 10K Variable Genes (Random Init 1)
+
+```{r fig.width=10, fig.height=5}
+pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
+                            "permutation/All.gibbs_k20_rand_01.pval_list.rds"))
+summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Random Init 1)")
+```
+
+P value distribution by each factor:
+
+```{r fig.width=12, fig.height=10}
+plot_pval_list_grid(pval_list)
+```
+
+## GSFA on Top 10K Variable Genes (Random Init 2)
+
+```{r fig.width=10, fig.height=5}
+pval_list <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
+                            "permutation/All.gibbs_k20_rand_02.pval_list.rds"))
+summ_pvalues(unlist(pval_list), title_text = "GSFA Top 10K Variable Genes\n(Random Init 2)")
+```
+
+P value distribution by each factor:
+
+```{r fig.width=12, fig.height=10}
+plot_pval_list_grid(pval_list)
+```
 
 ## FLASH on Top 10K Variable Genes
 
