@@ -45,24 +45,31 @@ wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
 
 ```{r}
 source(paste0(wkdir, "reports/analytics_functions.R"))
-```
-
-For each factor analysis result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of $\beta$ and $W$.
-
-For gene $j$ and KO condition $m$,
-$$lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}$$
-Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a simple Wilcoxon DGE analysis.
-
-Conclusion:
-
-```{r}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  if (length(signif_num) < 30){
+    signif_num <- c(signif_num, rep(NA, 30 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Effect_genes = signif_num,
+                             row.names = NULL))
+  knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
+               caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%')
+}
 dge_cutoff <- 0.05
 lfsr_cutoff_1 <- 0.05
 lfsr_cutoff_2 <- 0.05/20
 ```
 
+# Differential Gene Expression
+
+We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using a simple Wilcoxon rank sum test in Seurat.
+
+The number of genes that passed an FDR threshold of 0.05 under each KO condition is:
+
 ```{r wilcox_DE}
-DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
+DE_list <- readRDS(paste0(wkdir, "preprocess_output/DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < dge_cutoff) %>% nrow()})
 DE_signif_counts <- t(data.frame(KO = names(DE_signif_counts),
                                  DE_genes = DE_signif_counts,
@@ -74,62 +81,85 @@ knitr::kable(rbind(DE_signif_counts[, 1:10],
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
-```{r}
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-  signif_num <- t(data.frame(KO = names(signif_num),
-                             Effect_genes = signif_num,
-                             row.names = NULL))
-  knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
-               caption = caption_text) %>%
-    kable_styling() %>% scroll_box(width = '100%')
-}
-```
+# LFSR Estimation from GSFA
 
-# Genes Filtered by Detection Rate
+In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:
 
-## GSFA Detection > 10% (8046 genes)
+For a given GSFA inference result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of $\beta$ and $W$.
+
+For gene $j$ and KO condition $m$,
+$$lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}$$
+Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a the Wilcoxon DGE analysis mentioned above.
+
+We focus on GSFA results on genes filtered by the criterion of detection rate > 10% (8046 genes kept), since we observed in our permutation analysis that the factors obtained in this way are the most well calibrated.
+
+## GSFA Detection > 10% (NTC condition as one of the guides)
 
 ```{r}
-lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/",
-                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
+NTC_included.lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/",
+                                        "lfsr/All.gibbs_k20_svd.lfsr_mat.2k-3k.rds"))
+print_lfsr_signif_tb(NTC_included.lfsr_mat, lfsr_cutoff_1,
                      paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_1))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
+print_lfsr_signif_tb(NTC_included.lfsr_mat, lfsr_cutoff_2,
                      paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_2))
 ```
 
-## GSFA Detection > 5% (9895 genes)
+## GSFA Detection > 10% (NTC condition regressed out)
 
 ```{r}
-lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_005/",
-                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
-                     paste0("GSFA Detection > 5% Genes, lfsr cutoff: ", lfsr_cutoff_1))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
-                     paste0("GSFA Detection > 5% Genes, lfsr cutoff: ", lfsr_cutoff_2))
+no_NTC.lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/",
+                           "lfsr/no_NTC.gibbs_k20_svd.lfsr_mat.1k-2k.rds"))
+print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff_1,
+                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_1))
+print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff_2,
+                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_2))
 ```
 
-# Genes Filtered by Variance
-
-## GSFA on Top 8K Variable Genes
+## Overlap between NTC-included and NTC-regressed_out results
 
 ```{r}
-lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_top8k_var/",
-                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
-                     paste0("GSFA Top 8K Variable Genes, lfsr cutoff: ", lfsr_cutoff_1))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
-                     paste0("GSFA Top 8K Variable Genes, lfsr cutoff: ", lfsr_cutoff_2))
+markers <- colnames(no_NTC.lfsr_mat)
+overlap_prop <- rep(0, length(markers))
+names(overlap_prop) <- markers
+for (m in markers){
+  overlap_prop[m] <- length(intersect(which(NTC_included.lfsr_mat[, m] < lfsr_cutoff_1),
+                                      which(no_NTC.lfsr_mat[, m] < lfsr_cutoff_1))) /
+    sum(NTC_included.lfsr_mat[, m] < lfsr_cutoff_1)
+}
+overlap_prop <- signif(overlap_prop, digits = 3)
+overlap_prop <- c(overlap_prop, rep(NA, 30 - length(overlap_prop)))
+overlap_prop <- t(data.frame(KO = names(overlap_prop),
+                             olap_prop = overlap_prop,
+                             row.names = NULL))
+knitr::kable(rbind(overlap_prop[, 1:10],
+                   overlap_prop[, 11:20],
+                   overlap_prop[, 21:30]),
+             caption = paste0("% of overlapping genes, FDR cutoff: ", lfsr_cutoff_1)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
 ```
 
-## GSFA on Top 10K Variable Genes
+## Comparison between NTC-regressed_out and Wilcoxon DGE results
+
+```{r load gene names}
+## Normalized expression:
+scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_detect_01.corrected_lib_NTC.rds'))
+detect_01_genes <- rownames(scaled.gene_exp)
+```
 
 ```{r}
-lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_top10k_var/",
-                           "lfsr/All.gibbs_k20_svd.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_1,
-                     paste0("GSFA Top 10K Variable Genes, lfsr cutoff: ", lfsr_cutoff_1))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff_2,
-                     paste0("GSFA Top 10K Variable Genes, lfsr cutoff: ", lfsr_cutoff_2))
+overlap_df <- as.data.frame(matrix(nrow = length(markers), ncol = 4))
+names(overlap_df) <- c("KO", "olap_num", "dge_num", "lfsr_num")
+overlap_df$KO <- markers
+for (i in 1:length(markers)){
+  m <- markers[i]
+  dge_genes <- rownames(DE_list[[m]])[which(DE_list[[m]]$p_val_adj < dge_cutoff)]
+  lfsr_genes <- detect_01_genes[which(no_NTC.lfsr_mat[, m] < lfsr_cutoff_1)]
+  overlap_df$olap_num[i] <- length(intersect(dge_genes, lfsr_genes))
+  overlap_df$dge_num[i] <- length(dge_genes)
+  overlap_df$lfsr_num[i] <- length(lfsr_genes)
+}
+knitr::kable(overlap_df, caption = paste0("Wilcoxon DGE FDR cutoff: ", dge_cutoff,
+                                          ";\nGSFA lfsr cutoff: ", lfsr_cutoff_1)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
 ```
+

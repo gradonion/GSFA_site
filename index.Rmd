@@ -109,7 +109,7 @@ knitr::include_graphics("figs/umap_KO_patterns.png")
 
 Number of genes that passed pval_adjust < 0.2 under each perturbation:
 ```{r wilcox_DE}
-DE_list <- readRDS(paste0(wkdir, "DE_results.all_markers.seurat_wilcox.rds"))
+DE_list <- readRDS(paste0(wkdir, "preprocess_output/DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < 0.2) %>% nrow()})
 DE_signif_counts <- t(data.frame(KO = names(DE_signif_counts),
                                  DE_genes = DE_signif_counts,
@@ -169,21 +169,15 @@ We tried two ways to filter the genes.
 
 # Factor Analysis on Expression Data
 
-## Using top 10K most variable genes
+## Using genes detected in > 10% of cells
 
-[GSFA all markers result](gsfa_all_markers_top10k_var.html);
+[GSFA all markers result, NTC condition regressed out](gsfa_all_markers_detect_01_noNTC.html);
 
-[Unguided G=0 result](unguided_top10k_var.html);
+[GSFA all markers result, NTC as one of the guides](gsfa_all_markers_detect_01.html);
 
-[FLASH result](flash_top10k_var.html).
+[Unguided G=0 result](unguided_detect_01.html);
 
-## Using top 8K most variable genes
-
-[GSFA all markers result](gsfa_all_markers_top8k_var.html);
-
-Unguided G=0 result;
-
-[FLASH result](flash_top8k_var.html).
+[FLASH result](flash_detect_01.html).
 
 ## Using genes detected in > 5% of cells
 
@@ -193,13 +187,21 @@ Unguided G=0 result;
 
 [FLASH result](flash_detect_005.html).
 
-## Using genes detected in > 10% of cells
+## Using top 8K most variable genes
 
-[GSFA all markers result](gsfa_all_markers_detect_01.html);
+[GSFA all markers result](gsfa_all_markers_top8k_var.html);
 
-[Unguided G=0 result](unguided_detect_01.html);
+Unguided G=0 result;
 
-[FLASH result](flash_detect_01.html).
+[FLASH result](flash_top8k_var.html).
+
+## Using top 10K most variable genes
+
+[GSFA all markers result](gsfa_all_markers_top10k_var.html);
+
+[Unguided G=0 result](unguided_top10k_var.html);
+
+[FLASH result](flash_top10k_var.html).
 
 ## Permutation test on associations
 

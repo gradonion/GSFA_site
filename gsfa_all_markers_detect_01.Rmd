@@ -92,7 +92,8 @@ all_KOs.G_mat <- as.matrix(dox_metadata[, 17:46] * 1)
 
 ## SVD Initialization
 ```{r}
-All_KOs.gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.svd.PM.rds"))
+# All_KOs.gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.svd.PM.rds"))
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.svd.restart_01.PM.rds"))
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat)
 ```
 
@@ -114,15 +115,15 @@ summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP
 ## Random Initialization
 
 ```{r}
-rand_1.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.rand_01.PM.rds"))
-rand_2.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.rand_02.PM.rds"))
-G0.gibbs_PM <-  readRDS(paste0(wkdir,
-                               "gsfa_output_detect_01/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
+rand_1.gibbs_PM <- 
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.rand_01.PM.rds"))
+rand_2.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.rand_02.PM.rds"))
+G0.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
 ```
 
-```{r  fig.width=10, eval=FALSE, include=FALSE}
+```{r  fig.width=10}
 rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
 rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
 heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
@@ -135,7 +136,7 @@ plot_pval_heatmap(heatmap_matrix,
                   factor_annot = rand_1.gibbs_res_tb$pi)
 ```
 
-```{r fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+```{r fig.width=10, fig.height=5}
 summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
 ```
 

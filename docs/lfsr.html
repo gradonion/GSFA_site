@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2020-11-12" />
+<meta name="date" content="2020-11-22" />
 
 <title>Local False Sign Rate Estimate of KO Effect on Genes</title>
 
@@ -298,14 +298,15 @@ div.tocify {
 
 <h1 class="title toc-ignore">Local False Sign Rate Estimate of KO Effect on Genes</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2020-11-12</em></h4>
+<h4 class="date"><em>2020-11-22</em></h4>
 
 </div>
 
 
-<p>For each factor analysis result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of <span class="math inline">\(\beta\)</span> and <span class="math inline">\(W\)</span>.</p>
-<p>For gene <span class="math inline">\(j\)</span> and KO condition <span class="math inline">\(m\)</span>, <span class="math display">\[lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}\]</span> Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a simple Wilcoxon DGE analysis.</p>
-<p>Conclusion:</p>
+<div id="differential-gene-expression" class="section level1">
+<h1><span class="header-section-number">1</span> Differential Gene Expression</h1>
+<p>We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using a simple Wilcoxon rank sum test in Seurat.</p>
+<p>The number of genes that passed an FDR threshold of 0.05 under each KO condition is:</p>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -525,10 +526,15 @@ DE_genes
 </tbody>
 </table>
 </div>
-<div id="genes-filtered-by-detection-rate" class="section level1">
-<h1><span class="header-section-number">1</span> Genes Filtered by Detection Rate</h1>
-<div id="gsfa-detection-10-8046-genes" class="section level2">
-<h2><span class="header-section-number">1.1</span> GSFA Detection &gt; 10% (8046 genes)</h2>
+</div>
+<div id="lfsr-estimation-from-gsfa" class="section level1">
+<h1><span class="header-section-number">2</span> LFSR Estimation from GSFA</h1>
+<p>In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:</p>
+<p>For a given GSFA inference result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of <span class="math inline">\(\beta\)</span> and <span class="math inline">\(W\)</span>.</p>
+<p>For gene <span class="math inline">\(j\)</span> and KO condition <span class="math inline">\(m\)</span>, <span class="math display">\[lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}\]</span> Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a the Wilcoxon DGE analysis mentioned above.</p>
+<p>We focus on GSFA results on genes filtered by the criterion of detection rate &gt; 10% (8046 genes kept), since we observed in our permutation analysis that the factors obtained in this way are the most well calibrated.</p>
+<div id="gsfa-detection-10-ntc-condition-as-one-of-the-guides" class="section level2">
+<h2><span class="header-section-number">2.1</span> GSFA Detection &gt; 10% (NTC condition as one of the guides)</h2>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -575,34 +581,34 @@ CDH1
 Effect_genes
 </td>
 <td style="text-align:left;">
-619
+662
 </td>
 <td style="text-align:left;">
-2195
+2179
 </td>
 <td style="text-align:left;">
-1128
+867
 </td>
 <td style="text-align:left;">
-526
+474
 </td>
 <td style="text-align:left;">
-1701
+1788
 </td>
 <td style="text-align:left;">
-1375
+1307
 </td>
 <td style="text-align:left;">
-2526
+2434
 </td>
 <td style="text-align:left;">
-125
+105
 </td>
 <td style="text-align:left;">
-550
+502
 </td>
 <td style="text-align:left;">
-588
+568
 </td>
 </tr>
 <tr>
@@ -645,34 +651,34 @@ NF1
 Effect_genes
 </td>
 <td style="text-align:left;">
-1177
+1197
 </td>
 <td style="text-align:left;">
-834
+790
 </td>
 <td style="text-align:left;">
-2885
+2835
 </td>
 <td style="text-align:left;">
-3495
+3436
 </td>
 <td style="text-align:left;">
-2237
+2226
 </td>
 <td style="text-align:left;">
-1096
+1101
 </td>
 <td style="text-align:left;">
-1752
+1660
 </td>
 <td style="text-align:left;">
-1515
+1451
 </td>
 <td style="text-align:left;">
-3451
+3570
 </td>
 <td style="text-align:left;">
-1819
+1773
 </td>
 </tr>
 <tr>
@@ -715,34 +721,34 @@ TP53
 Effect_genes
 </td>
 <td style="text-align:left;">
-2012
+1966
 </td>
 <td style="text-align:left;">
-1929
+1883
 </td>
 <td style="text-align:left;">
-1230
+1213
 </td>
 <td style="text-align:left;">
-592
+656
 </td>
 <td style="text-align:left;">
-1940
+1948
 </td>
 <td style="text-align:left;">
-1543
+1533
 </td>
 <td style="text-align:left;">
-395
+366
 </td>
 <td style="text-align:left;">
-1284
+1260
 </td>
 <td style="text-align:left;">
-3264
+3248
 </td>
 <td style="text-align:left;">
-5882
+5870
 </td>
 </tr>
 </tbody>
@@ -794,919 +800,34 @@ CDH1
 Effect_genes
 </td>
 <td style="text-align:left;">
-6
-</td>
-<td style="text-align:left;">
-416
-</td>
-<td style="text-align:left;">
-59
-</td>
-<td style="text-align:left;">
-16
-</td>
-<td style="text-align:left;">
-221
-</td>
-<td style="text-align:left;">
-222
-</td>
-<td style="text-align:left;">
-568
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-27
-</td>
-<td style="text-align:left;">
-30
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-237
-</td>
-<td style="text-align:left;">
-45
-</td>
-<td style="text-align:left;">
-614
-</td>
-<td style="text-align:left;">
-1179
-</td>
-<td style="text-align:left;">
-596
-</td>
-<td style="text-align:left;">
-126
-</td>
-<td style="text-align:left;">
-132
-</td>
-<td style="text-align:left;">
-219
-</td>
-<td style="text-align:left;">
-1215
-</td>
-<td style="text-align:left;">
-414
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-535
-</td>
-<td style="text-align:left;">
-496
-</td>
-<td style="text-align:left;">
-135
-</td>
-<td style="text-align:left;">
-33
-</td>
-<td style="text-align:left;">
-332
-</td>
-<td style="text-align:left;">
-342
-</td>
-<td style="text-align:left;">
-5
-</td>
-<td style="text-align:left;">
-162
-</td>
-<td style="text-align:left;">
-1343
-</td>
-<td style="text-align:left;">
-4599
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="gsfa-detection-5-9895-genes" class="section level2">
-<h2><span class="header-section-number">1.2</span> GSFA Detection &gt; 5% (9895 genes)</h2>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Detection &gt; 5% Genes, lfsr cutoff: 0.05
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-APC
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-771
-</td>
-<td style="text-align:left;">
-2574
-</td>
-<td style="text-align:left;">
-1099
-</td>
-<td style="text-align:left;">
-656
-</td>
-<td style="text-align:left;">
-2245
-</td>
-<td style="text-align:left;">
-1651
-</td>
-<td style="text-align:left;">
-2827
-</td>
-<td style="text-align:left;">
-256
-</td>
-<td style="text-align:left;">
-709
-</td>
-<td style="text-align:left;">
-618
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-1437
-</td>
-<td style="text-align:left;">
-1042
-</td>
-<td style="text-align:left;">
-3328
-</td>
-<td style="text-align:left;">
-4139
-</td>
-<td style="text-align:left;">
-2794
-</td>
-<td style="text-align:left;">
-1228
-</td>
-<td style="text-align:left;">
-2065
-</td>
-<td style="text-align:left;">
-1756
-</td>
-<td style="text-align:left;">
-3947
-</td>
-<td style="text-align:left;">
-2101
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-2423
-</td>
-<td style="text-align:left;">
-2299
-</td>
-<td style="text-align:left;">
-1412
-</td>
-<td style="text-align:left;">
-811
-</td>
-<td style="text-align:left;">
-2234
-</td>
-<td style="text-align:left;">
-1916
-</td>
-<td style="text-align:left;">
-420
-</td>
-<td style="text-align:left;">
-1393
-</td>
-<td style="text-align:left;">
-3625
-</td>
-<td style="text-align:left;">
-6952
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Detection &gt; 5% Genes, lfsr cutoff: 0.0025
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-APC
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-28
-</td>
-<td style="text-align:left;">
-380
-</td>
-<td style="text-align:left;">
-51
-</td>
-<td style="text-align:left;">
-11
-</td>
-<td style="text-align:left;">
-359
-</td>
-<td style="text-align:left;">
-347
-</td>
-<td style="text-align:left;">
-570
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-34
-</td>
-<td style="text-align:left;">
-30
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-336
-</td>
-<td style="text-align:left;">
-45
-</td>
-<td style="text-align:left;">
-802
-</td>
-<td style="text-align:left;">
-1412
-</td>
-<td style="text-align:left;">
-797
-</td>
-<td style="text-align:left;">
-146
-</td>
-<td style="text-align:left;">
-225
-</td>
-<td style="text-align:left;">
-294
-</td>
-<td style="text-align:left;">
-1323
-</td>
-<td style="text-align:left;">
-465
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-715
-</td>
-<td style="text-align:left;">
-573
-</td>
-<td style="text-align:left;">
-159
-</td>
-<td style="text-align:left;">
-29
-</td>
-<td style="text-align:left;">
-367
-</td>
-<td style="text-align:left;">
-405
-</td>
-<td style="text-align:left;">
 3
 </td>
 <td style="text-align:left;">
-179
+327
 </td>
 <td style="text-align:left;">
-1314
+23
 </td>
 <td style="text-align:left;">
-5294
+6
 </td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="genes-filtered-by-variance" class="section level1">
-<h1><span class="header-section-number">2</span> Genes Filtered by Variance</h1>
-<div id="gsfa-on-top-8k-variable-genes" class="section level2">
-<h2><span class="header-section-number">2.1</span> GSFA on Top 8K Variable Genes</h2>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Top 8K Variable Genes, lfsr cutoff: 0.05
-</caption>
-<tbody>
-<tr>
 <td style="text-align:left;">
-KO
+254
 </td>
 <td style="text-align:left;">
-APC
+125
 </td>
 <td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-1139
-</td>
-<td style="text-align:left;">
-2283
-</td>
-<td style="text-align:left;">
-394
-</td>
-<td style="text-align:left;">
-731
-</td>
-<td style="text-align:left;">
-1859
-</td>
-<td style="text-align:left;">
-1777
-</td>
-<td style="text-align:left;">
-1739
-</td>
-<td style="text-align:left;">
-374
-</td>
-<td style="text-align:left;">
-784
-</td>
-<td style="text-align:left;">
-465
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-1798
-</td>
-<td style="text-align:left;">
-1159
-</td>
-<td style="text-align:left;">
-2028
-</td>
-<td style="text-align:left;">
-3114
-</td>
-<td style="text-align:left;">
-2337
-</td>
-<td style="text-align:left;">
-859
-</td>
-<td style="text-align:left;">
-2006
-</td>
-<td style="text-align:left;">
-1511
-</td>
-<td style="text-align:left;">
-2361
-</td>
-<td style="text-align:left;">
-1750
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-2357
-</td>
-<td style="text-align:left;">
-2084
-</td>
-<td style="text-align:left;">
-1024
-</td>
-<td style="text-align:left;">
-1032
-</td>
-<td style="text-align:left;">
-2035
-</td>
-<td style="text-align:left;">
-1916
-</td>
-<td style="text-align:left;">
-839
-</td>
-<td style="text-align:left;">
-1178
-</td>
-<td style="text-align:left;">
-2501
-</td>
-<td style="text-align:left;">
-4693
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Top 8K Variable Genes, lfsr cutoff: 0.0025
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-APC
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-106
-</td>
-<td style="text-align:left;">
-500
-</td>
-<td style="text-align:left;">
-2
-</td>
-<td style="text-align:left;">
-20
-</td>
-<td style="text-align:left;">
-270
-</td>
-<td style="text-align:left;">
-620
-</td>
-<td style="text-align:left;">
-374
+472
 </td>
 <td style="text-align:left;">
 0
 </td>
 <td style="text-align:left;">
-68
+10
 </td>
 <td style="text-align:left;">
-18
+26
 </td>
 </tr>
 <tr>
@@ -1749,475 +870,34 @@ NF1
 Effect_genes
 </td>
 <td style="text-align:left;">
-652
+174
 </td>
 <td style="text-align:left;">
-11
+10
 </td>
 <td style="text-align:left;">
-428
+468
 </td>
 <td style="text-align:left;">
-1422
+1143
 </td>
 <td style="text-align:left;">
-902
-</td>
-<td style="text-align:left;">
-96
-</td>
-<td style="text-align:left;">
-247
-</td>
-<td style="text-align:left;">
-453
-</td>
-<td style="text-align:left;">
-710
-</td>
-<td style="text-align:left;">
-595
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-984
-</td>
-<td style="text-align:left;">
-700
-</td>
-<td style="text-align:left;">
-139
-</td>
-<td style="text-align:left;">
-143
-</td>
-<td style="text-align:left;">
-461
-</td>
-<td style="text-align:left;">
-424
-</td>
-<td style="text-align:left;">
-13
-</td>
-<td style="text-align:left;">
-172
-</td>
-<td style="text-align:left;">
-959
-</td>
-<td style="text-align:left;">
-3637
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="gsfa-on-top-10k-variable-genes" class="section level2">
-<h2><span class="header-section-number">2.2</span> GSFA on Top 10K Variable Genes</h2>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Top 10K Variable Genes, lfsr cutoff: 0.05
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-APC
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-1280
-</td>
-<td style="text-align:left;">
-2139
-</td>
-<td style="text-align:left;">
-444
-</td>
-<td style="text-align:left;">
-880
-</td>
-<td style="text-align:left;">
-2115
-</td>
-<td style="text-align:left;">
-2101
-</td>
-<td style="text-align:left;">
-2011
-</td>
-<td style="text-align:left;">
-365
-</td>
-<td style="text-align:left;">
-753
-</td>
-<td style="text-align:left;">
-501
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-1840
-</td>
-<td style="text-align:left;">
-1209
-</td>
-<td style="text-align:left;">
-2048
-</td>
-<td style="text-align:left;">
-3084
-</td>
-<td style="text-align:left;">
-2505
-</td>
-<td style="text-align:left;">
-860
-</td>
-<td style="text-align:left;">
-2099
-</td>
-<td style="text-align:left;">
-1599
-</td>
-<td style="text-align:left;">
-2488
-</td>
-<td style="text-align:left;">
-1745
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-PTPN22
-</td>
-<td style="text-align:left;">
-PTPRD
-</td>
-<td style="text-align:left;">
-RAD51
-</td>
-<td style="text-align:left;">
-RB1
-</td>
-<td style="text-align:left;">
-RUNX1
-</td>
-<td style="text-align:left;">
-SETD2
-</td>
-<td style="text-align:left;">
-STK11
-</td>
-<td style="text-align:left;">
-TP53
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-2435
-</td>
-<td style="text-align:left;">
-2267
-</td>
-<td style="text-align:left;">
-1013
-</td>
-<td style="text-align:left;">
-1165
-</td>
-<td style="text-align:left;">
-2237
-</td>
-<td style="text-align:left;">
-1903
-</td>
-<td style="text-align:left;">
-898
-</td>
-<td style="text-align:left;">
-1286
-</td>
-<td style="text-align:left;">
-2882
-</td>
-<td style="text-align:left;">
-4911
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA Top 10K Variable Genes, lfsr cutoff: 0.0025
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-APC
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ATM
-</td>
-<td style="text-align:left;">
-BAP1
-</td>
-<td style="text-align:left;">
-BID
-</td>
-<td style="text-align:left;">
-BRCA1
-</td>
-<td style="text-align:left;">
-BRCA2
-</td>
-<td style="text-align:left;">
-CASP8
-</td>
-<td style="text-align:left;">
-CDH1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-163
-</td>
-<td style="text-align:left;">
-326
-</td>
-<td style="text-align:left;">
-12
+585
 </td>
 <td style="text-align:left;">
 112
 </td>
 <td style="text-align:left;">
-448
+94
 </td>
 <td style="text-align:left;">
-773
+180
 </td>
 <td style="text-align:left;">
-320
+1201
 </td>
 <td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-103
-</td>
-<td style="text-align:left;">
-117
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-<td style="text-align:left;">
-CDKN2A
-</td>
-<td style="text-align:left;">
-CHEK1
-</td>
-<td style="text-align:left;">
-CTCF
-</td>
-<td style="text-align:left;">
-GATA3
-</td>
-<td style="text-align:left;">
-MLH1
-</td>
-<td style="text-align:left;">
-MLL2
-</td>
-<td style="text-align:left;">
-MLL3
-</td>
-<td style="text-align:left;">
-NCOR1
-</td>
-<td style="text-align:left;">
-NF1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Effect_genes
-</td>
-<td style="text-align:left;">
-662
-</td>
-<td style="text-align:left;">
-27
-</td>
-<td style="text-align:left;">
-338
-</td>
-<td style="text-align:left;">
-1392
-</td>
-<td style="text-align:left;">
-983
-</td>
-<td style="text-align:left;">
-57
-</td>
-<td style="text-align:left;">
-177
-</td>
-<td style="text-align:left;">
-513
-</td>
-<td style="text-align:left;">
-835
-</td>
-<td style="text-align:left;">
-534
+350
 </td>
 </tr>
 <tr>
@@ -2260,34 +940,1128 @@ TP53
 Effect_genes
 </td>
 <td style="text-align:left;">
-979
+451
 </td>
 <td style="text-align:left;">
-729
+435
 </td>
 <td style="text-align:left;">
-110
+78
 </td>
 <td style="text-align:left;">
-103
+40
 </td>
 <td style="text-align:left;">
-669
+230
 </td>
 <td style="text-align:left;">
-361
+316
 </td>
 <td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+134
+</td>
+<td style="text-align:left;">
+1187
+</td>
+<td style="text-align:left;">
+4497
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="gsfa-detection-10-ntc-condition-regressed-out" class="section level2">
+<h2><span class="header-section-number">2.2</span> GSFA Detection &gt; 10% (NTC condition regressed out)</h2>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+GSFA Detection &gt; 10% Genes, lfsr cutoff: 0.05
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+745
+</td>
+<td style="text-align:left;">
+2369
+</td>
+<td style="text-align:left;">
+1111
+</td>
+<td style="text-align:left;">
+604
+</td>
+<td style="text-align:left;">
+1963
+</td>
+<td style="text-align:left;">
+1456
+</td>
+<td style="text-align:left;">
+2538
+</td>
+<td style="text-align:left;">
+143
+</td>
+<td style="text-align:left;">
+597
+</td>
+<td style="text-align:left;">
+632
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+1328
+</td>
+<td style="text-align:left;">
+953
+</td>
+<td style="text-align:left;">
+2951
+</td>
+<td style="text-align:left;">
+3501
+</td>
+<td style="text-align:left;">
+2351
+</td>
+<td style="text-align:left;">
+1114
+</td>
+<td style="text-align:left;">
+1734
+</td>
+<td style="text-align:left;">
+1508
+</td>
+<td style="text-align:left;">
+3537
+</td>
+<td style="text-align:left;">
+1994
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+1960
+</td>
+<td style="text-align:left;">
+1309
+</td>
+<td style="text-align:left;">
+705
+</td>
+<td style="text-align:left;">
+2065
+</td>
+<td style="text-align:left;">
+1500
+</td>
+<td style="text-align:left;">
+503
+</td>
+<td style="text-align:left;">
+1248
+</td>
+<td style="text-align:left;">
+3275
+</td>
+<td style="text-align:left;">
+5874
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+GSFA Detection &gt; 10% Genes, lfsr cutoff: 0.0025
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+445
+</td>
+<td style="text-align:left;">
+32
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+259
+</td>
+<td style="text-align:left;">
+189
+</td>
+<td style="text-align:left;">
+498
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+20
+</td>
+<td style="text-align:left;">
+23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+243
+</td>
+<td style="text-align:left;">
+30
+</td>
+<td style="text-align:left;">
+603
+</td>
+<td style="text-align:left;">
+1194
+</td>
+<td style="text-align:left;">
+637
+</td>
+<td style="text-align:left;">
+95
+</td>
+<td style="text-align:left;">
+147
+</td>
+<td style="text-align:left;">
+212
+</td>
+<td style="text-align:left;">
+1184
+</td>
+<td style="text-align:left;">
+453
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Effect_genes
+</td>
+<td style="text-align:left;">
+494
+</td>
+<td style="text-align:left;">
+107
+</td>
+<td style="text-align:left;">
+32
+</td>
+<td style="text-align:left;">
+288
+</td>
+<td style="text-align:left;">
+269
+</td>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:left;">
+129
+</td>
+<td style="text-align:left;">
+1316
+</td>
+<td style="text-align:left;">
+4505
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="overlap-between-ntc-included-and-ntc-regressed_out-results" class="section level2">
+<h2><span class="header-section-number">2.3</span> Overlap between NTC-included and NTC-regressed_out results</h2>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+% of overlapping genes, FDR cutoff: 0.05
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+olap_prop
+</td>
+<td style="text-align:left;">
+0.921
+</td>
+<td style="text-align:left;">
+0.954
+</td>
+<td style="text-align:left;">
+0.960
+</td>
+<td style="text-align:left;">
+0.943
+</td>
+<td style="text-align:left;">
+0.953
+</td>
+<td style="text-align:left;">
+0.964
+</td>
+<td style="text-align:left;">
+0.952
+</td>
+<td style="text-align:left;">
+0.990
+</td>
+<td style="text-align:left;">
+0.906
+</td>
+<td style="text-align:left;">
+0.898
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+olap_prop
+</td>
+<td style="text-align:left;">
+0.953
+</td>
+<td style="text-align:left;">
+0.953
+</td>
+<td style="text-align:left;">
+0.968
+</td>
+<td style="text-align:left;">
+0.962
+</td>
+<td style="text-align:left;">
+0.959
+</td>
+<td style="text-align:left;">
+0.895
+</td>
+<td style="text-align:left;">
+0.920
+</td>
+<td style="text-align:left;">
+0.932
+</td>
+<td style="text-align:left;">
+0.956
+</td>
+<td style="text-align:left;">
+0.980
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+olap_prop
+</td>
+<td style="text-align:left;">
+0.914
+</td>
+<td style="text-align:left;">
+0.946
+</td>
+<td style="text-align:left;">
+0.870
+</td>
+<td style="text-align:left;">
+0.936
+</td>
+<td style="text-align:left;">
+0.918
+</td>
+<td style="text-align:left;">
+0.932
+</td>
+<td style="text-align:left;">
+0.881
+</td>
+<td style="text-align:left;">
+0.920
+</td>
+<td style="text-align:left;">
+0.983
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="comparison-between-ntc-regressed_out-and-wilcoxon-dge-results" class="section level2">
+<h2><span class="header-section-number">2.4</span> Comparison between NTC-regressed_out and Wilcoxon DGE results</h2>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Wilcoxon DGE FDR cutoff: 0.05; GSFA lfsr cutoff: 0.05
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+KO
+</th>
+<th style="text-align:right;">
+olap_num
+</th>
+<th style="text-align:right;">
+dge_num
+</th>
+<th style="text-align:right;">
+lfsr_num
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+745
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2369
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1111
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+604
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1963
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1456
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2538
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+143
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+597
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+632
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1328
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+953
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2951
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3501
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2351
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1114
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1734
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1508
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3537
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NF1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1994
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1960
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1309
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+705
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2065
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:right;">
 14
 </td>
-<td style="text-align:left;">
-325
+<td style="text-align:right;">
+22
 </td>
-<td style="text-align:left;">
-1269
+<td style="text-align:right;">
+1500
 </td>
+</tr>
+<tr>
 <td style="text-align:left;">
-3767
+RUNX1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+503
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1248
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+3275
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:right;">
+2567
+</td>
+<td style="text-align:right;">
+3174
+</td>
+<td style="text-align:right;">
+5874
 </td>
 </tr>
 </tbody>

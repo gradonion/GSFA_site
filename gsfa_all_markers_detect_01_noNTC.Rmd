@@ -1,6 +1,6 @@
 ---
 title: "Guided Factor Analysis on MCF10A Treated"
-subtitle: "-- Genes Filtered by Variability"
+subtitle: "-- Genes Filtered by Detection Rate, NTC Regressed"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -60,15 +60,15 @@ MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damag
 Only cells with gRNA readout were kept, resulted in 5584 cells.
 
 Genes:    
-**Only the top 10K variable genes by vst (also detected in at least 10 cells) were kept.**
+**Only genes detected in > 10% of cells were kept, resulted in 8046 genes.**
 
 Normalization:    
 Seurat "LogNormalize": log(count per 10K + 1).   
-**Library size was regressed out, and the residuals were used as input.**
+**Library size was regressed out, so were the non-targeting control (NTC) condition per cell. The residuals were used as input.**
 
 ```{r eval=FALSE, include=FALSE}
 ## Normalized expression:
-scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_top10k_var.corrected_lib_size.rds'))
+scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_detect_01.corrected_lib_NTC.rds'))
 ```
 
 ```{r load meta data, fig.width=9}
@@ -87,92 +87,60 @@ dox_metadata <- dox_metadata %>% filter(guide_count > 0)
 Guided sparse factor analysis, with the $G$ matrix being 30 types of KO conditions across cells.
 
 ```{r}
-all_KOs.G_mat <- as.matrix(dox_metadata[, 17:46] * 1)
+KO_names <- colnames(dox_metadata[, 17:46])
+KO_names <- KO_names[KO_names != "NONTARGETING"]
+all_KOs.G_mat <- as.matrix(dox_metadata[, KO_names] * 1)
 ```
 
 ## SVD Initialization
 ```{r}
-All_KOs.gibbs_PM <-
-  readRDS(paste0(wkdir, "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.svd.PM.rds"))
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/no_NTC.corrected.gibbs_obj_k20.svd.PM.rds"))
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat)
 ```
 
-```{r svd_heatmap, fig.width=10}
+```{r fig.width=10}
 heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
 rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
 colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
-ntc_inx <- which(colnames(heatmap_matrix) == "NONTARGETING")
-heatmap_matrix <- heatmap_matrix[, c(colnames(heatmap_matrix)[ntc_inx],
-                                     colnames(heatmap_matrix)[-ntc_inx])]
 plot_pval_heatmap(heatmap_matrix,
                   factor_annot = All_KOs.gibbs_res_tb$pi)
+no_NTC.heatmap_matrix <- heatmap_matrix
 ```
 
-```{r svd_pval, fig.width=10, fig.height=5}
-summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (TP53 excluded, SVD)")
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -29]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
 ```
 
-```{r fig.height=4, fig.width=6}
-qplot(heatmap_matrix[, 1], bins = 50, xlab = "NTC P value", ylab = "Count")
+## Random Initialization
+
+```{r}
+rand_1.gibbs_PM <- 
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/no_NTC.corrected.gibbs_obj_k20.rand_01.PM.rds"))
+rand_2.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/no_NTC.corrected.gibbs_obj_k20.rand_02.PM.rds"))
+G0.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/G0.no_NTC.corrected.gibbs_obj_k20.svd.PM.rds"))
 ```
 
-## Random Initialization -- 1
-
-```{r rand_1_heatmap, fig.width=10}
-rand_1.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.rand_01.PM.rds"))
-rand.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
-rand.gibbs_res_tb <- rand.gibbs_res_tb %>% arrange(-sum_var)
-heatmap_matrix <- rand.gibbs_res_tb %>% select(starts_with("pval"))
-rownames(heatmap_matrix) <- rand.gibbs_res_tb$index
+```{r  fig.width=10}
+rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
+rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_1.gibbs_res_tb$index
 colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
-ntc_inx <- which(colnames(heatmap_matrix) == "NONTARGETING")
-heatmap_matrix <- heatmap_matrix[, c(colnames(heatmap_matrix)[ntc_inx],
-                                     colnames(heatmap_matrix)[-ntc_inx])]
 plot_pval_heatmap(heatmap_matrix,
-                  factor_annot = rand.gibbs_res_tb$pi)
+                  factor_annot = rand_1.gibbs_res_tb$pi)
 ```
 
-```{r rand_1_pval, fig.width=10, fig.height=5}
-summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (TP53 excluded, Random 1)")
-```
-
-```{r fig.height=4, fig.width=6}
-qplot(heatmap_matrix[, 1], bins = 50, xlab = "NTC P value", ylab = "Count")
-```
-
-## Random Initialization -- 2
-
-```{r rand_2_heatmap, fig.width=10}
-rand_2.gibbs_PM <- readRDS(paste0(wkdir,
-                                  "gsfa_output_top10k_var/All.corrected.gibbs_obj_k20.rand_02.PM.rds"))
-rand.gibbs_res_tb <- make_gibbs_res_tb(rand_2.gibbs_PM, all_KOs.G_mat)
-rand.gibbs_res_tb <- rand.gibbs_res_tb %>% arrange(-sum_var)
-heatmap_matrix <- rand.gibbs_res_tb %>% select(starts_with("pval"))
-rownames(heatmap_matrix) <- rand.gibbs_res_tb$index
-colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
-ntc_inx <- which(colnames(heatmap_matrix) == "NONTARGETING")
-heatmap_matrix <- heatmap_matrix[, c(colnames(heatmap_matrix)[ntc_inx],
-                                     colnames(heatmap_matrix)[-ntc_inx])]
-plot_pval_heatmap(heatmap_matrix,
-                  factor_annot = rand.gibbs_res_tb$pi)
-```
-
-```{r rand_2_pval, fig.width=10, fig.height=5}
-summ_pvalues(unlist(heatmap_matrix[, -30]), title_text = "GSFA All KOs (TP53 excluded, Random 2)")
-```
-
-```{r fig.height=4, fig.width=6}
-qplot(heatmap_matrix[, 1], bins = 50, xlab = "NTC P value", ylab = "Count")
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -29]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
 ```
 
 ## Difference btw Methods in Factor Estimation
 
 For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
 
-```{r ZZT_diff}
-G0.gibbs_PM <- readRDS(paste0(wkdir,
-                              "gsfa_output_top10k_var/G0.corrected.gibbs_obj_k20.svd.PM.rds"))
+```{r}
 cat("Guided SVD vs Rand_01:",
     ZZT_mean_diff(All_KOs.gibbs_PM$Z.pm, rand_1.gibbs_PM$Z.pm) %>% signif(digits = 3))
 cat("\n\n")
@@ -187,21 +155,60 @@ cat("Guided SVD vs Unguided:",
 cat("\n\n")
 ```
 
-## Correlation btw Factors
+## Comparison with NTC included GSFA result
 
 ```{r}
-plot_pairwise.corr_heatmap(input_mat = All_KOs.gibbs_PM$Z.pm, corr_type = "pearson",
-                           name = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
+NTC_included.gibbs_PM <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/All.corrected.gibbs_obj_k20.svd.restart_01.PM.rds"))
+NTC_included.gibbs_res_tb <- make_gibbs_res_tb(NTC_included.gibbs_PM, all_KOs.G_mat)
+NTC_included.heatmap <- NTC_included.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(NTC_included.heatmap) <- 1:nrow(NTC_included.heatmap)
+colnames(NTC_included.heatmap) <- colnames(all_KOs.G_mat)
 ```
 
-```{r}
-plot_pairwise.corr_heatmap(input_mat = (All_KOs.gibbs_PM$F.pm > 0.5) * 1, corr_type = "jaccard",
-                           name = "Pairwise Correlation in Binarized Gene Loadings - F (GSFA)")
+```{r pval_comparison, eval=FALSE, include=FALSE}
+plot_lst <- list()
+for (i in 1:ncol(heatmap_matrix)){
+  pval_df <- data.frame(orig = -log10(NTC_included.heatmap[, i]),
+                        no_NTC = -log10(heatmap_matrix[, i]))
+  p <- ggplot(pval_df, aes_string(x = "orig", y = "no_NTC")) +
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    labs(title = colnames(heatmap_matrix)[i]) +
+    theme(axis.title = element_blank())
+  plot_lst[[i]] <- p
+}
+args <- c(plot_lst, list(nrow = 5,
+                         left = "New (NTC regressed)", bottom = "Original",
+                         top = "Factor ~ Marker, -log10(P value)"))
+do.call(grid.arrange, args)
 ```
 
-```{r}
-plot_pairwise.corr_heatmap(input_mat = All_KOs.gibbs_PM$W.pm, corr_type = "pearson",
-                           name = "Pairwise Correlation in Gene Loadings - W (GSFA)")
+```{r fig.width=12}
+pval_vec_1 <- unlist(no_NTC.heatmap_matrix)
+name_1 <- "NTC regressed"
+pval_vec_2 <- unlist(NTC_included.heatmap)
+name_2 <- "NTC included"
+paired_df <- data.frame(V1 = pval_vec_1[order(pval_vec_1)],
+                        V2 = pval_vec_2[order(pval_vec_2)])
+paired_df <- reshape2::melt(paired_df, value.name = "pval")
+paired_df <- paired_df %>%
+  mutate(neg_logp = -log10(pval)) %>%
+  mutate(rank = rep(1:length(pval_vec_1), 2)) %>%
+  rename(type = variable) %>%
+  mutate(type = factor(type)) %>%
+  mutate(type = recode(type, V1 = name_1, V2 = name_2))
+p1 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = factor(type))) +
+  geom_point(size = 0.8) +
+  labs(y = "-log10(P value)") +
+  theme(legend.title = element_blank(),
+        legend.position = "none")
+p2 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
+  geom_point(size = 0.8) +
+  scale_y_continuous(limits = c(0, 20)) +
+  labs(y = "-log10(P value)") +
+  theme(legend.title = element_blank())
+grid.arrange(p1, p2, nrow = 1)
 ```
 
 # Gene Ontology Enrichment Analysis
@@ -214,9 +221,9 @@ GO category: Biological Process.
 
 GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
 
-```{r go_enrich}
+```{r eval=FALSE, include=FALSE}
 gsfa.go_enrich <-
-  readRDS(paste0(wkdir, "gsfa_output_top10k_var/enrich_res/All_KOs.corrected.k20_svd.go_enrich.cutoff_0.5.rds"))
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/enrich_res/All_KOs.corrected.k20_svd.go_enrich.cutoff_0.5.rds"))
 signif_num <- print_enrich_tb(gsfa.go_enrich)
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
                               Signif_GO_terms = signif_num,
