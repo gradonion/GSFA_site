@@ -1,6 +1,6 @@
 ---
 title: "Guided Factor Analysis on MCF10A Treated"
-subtitle: "-- Genes Filtered by Detection Rate, NTC Regressed"
+subtitle: "-- Genes Filtered by Detection Rate, NTC Regressed Out"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -111,7 +111,9 @@ no_NTC.heatmap_matrix <- heatmap_matrix
 summ_pvalues(unlist(heatmap_matrix[, -29]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
 ```
 
-## Random Initialization
+## Alternative Initializations and Chain Convergence
+
+Other than initializing GSFA using truncated SVD, we also tried 2 runs with random initialization.
 
 ```{r}
 rand_1.gibbs_PM <- 
@@ -121,6 +123,8 @@ rand_2.gibbs_PM <-
 G0.gibbs_PM <-
   readRDS(paste0(wkdir, "gsfa_output_detect_01/G0.no_NTC.corrected.gibbs_obj_k20.svd.PM.rds"))
 ```
+
+### Association results for one randomly initialized GSFA run
 
 ```{r  fig.width=10}
 rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
@@ -136,7 +140,29 @@ plot_pval_heatmap(heatmap_matrix,
 summ_pvalues(unlist(heatmap_matrix[, -29]), title_text = "GSFA All KOs (K=20, TP53 excluded)")
 ```
 
-## Difference btw Methods in Factor Estimation
+### Chain mixing and convergence evaluation
+
+To check the convergence of a certain scalar estimand., we adopt the potential scale reduction metric ($\hat{R}$) as described in Section 11.4 of _Bayesian Data Analysis, 3rd ed_.
+
+The basic idea is to evaluate both the within-sequence variance and the between-sequence variance, and assess how close the two variances are.
+
+If the potential scale reduction $\hat{R}$ is close to 1, it means our inference has reached a good level of convergence;   
+if $\hat{R}$ is high, then we have reason to believe that proceeding with further simulations may improve our inference on this estimand.
+
+Since the order and sign of factors are intercahngeable, we focus on evaluating the estimation of all pairs of $\beta_{m\cdot} \cdot W_{j\cdot}$ (a dot product that sums over all factors for each marker-gene pair).
+
+We take the last 1000 stable samples from each of the 3 runs (1 SVD initialized, 2 randomly initialized). Each chain was further split into 2 halves, resulting in 6 chains with 500 iterations of samples each to assess convergence on.
+
+The table below shows the summary of $\hat{R}$ of $\beta_{m\cdot} \cdot W_{j\cdot}$ across genes for a given KO condition $m$:
+
+```{r show_R_hat_summary}
+converg_mat <-
+  readRDS(paste0(wkdir, "gsfa_output_detect_01/convergence/no_NTC.corrected.beta_W_converg_mat.1k-2k.rds"))
+knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Difference btw methods in factor estimation
 
 For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
 

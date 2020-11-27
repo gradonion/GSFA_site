@@ -45,21 +45,25 @@ wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
 
 ```{r}
 source(paste0(wkdir, "reports/analytics_functions.R"))
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb <- function(signif_num, caption_text){
   if (length(signif_num) < 30){
     signif_num <- c(signif_num, rep(NA, 30 - length(signif_num)))
   }
   signif_num <- t(data.frame(KO = names(signif_num),
-                             Effect_genes = signif_num,
+                             Num_genes = signif_num,
                              row.names = NULL))
-  knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
+  print(knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
                caption = caption_text) %>%
-    kable_styling() %>% scroll_box(width = '100%')
+    kable_styling() %>% scroll_box(width = '100%'))
 }
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
 dge_cutoff <- 0.05
 lfsr_cutoff_1 <- 0.05
-lfsr_cutoff_2 <- 0.05/20
+lfsr_cutoff_2 <- 0.01
 ```
 
 # Differential Gene Expression
@@ -71,14 +75,8 @@ The number of genes that passed an FDR threshold of 0.05 under each KO condition
 ```{r wilcox_DE}
 DE_list <- readRDS(paste0(wkdir, "preprocess_output/DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < dge_cutoff) %>% nrow()})
-DE_signif_counts <- t(data.frame(KO = names(DE_signif_counts),
-                                 DE_genes = DE_signif_counts,
-                                 row.names = NULL))
-knitr::kable(rbind(DE_signif_counts[, 1:10],
-                   DE_signif_counts[, 11:20],
-                   DE_signif_counts[, 21:30]),
-             caption = paste0("Wilcoxon DGE, FDR cutoff: ", dge_cutoff)) %>%
-  kable_styling() %>% scroll_box(width = '100%')
+print_signif_tb(DE_signif_counts,
+                caption_text = paste0("Wilcoxon DGE, FDR cutoff: ", dge_cutoff))
 ```
 
 # LFSR Estimation from GSFA
@@ -115,7 +113,7 @@ print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff_2,
                      paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_2))
 ```
 
-## Overlap between NTC-included and NTC-regressed_out results
+## Overlap between NTC-included and NTC-regressed-out results
 
 ```{r}
 markers <- colnames(no_NTC.lfsr_mat)
@@ -138,7 +136,7 @@ knitr::kable(rbind(overlap_prop[, 1:10],
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
-## Comparison between NTC-regressed_out and Wilcoxon DGE results
+## Comparison between NTC-regressed-out and Wilcoxon DGE results
 
 ```{r load gene names}
 ## Normalized expression:
@@ -163,3 +161,28 @@ knitr::kable(overlap_df, caption = paste0("Wilcoxon DGE FDR cutoff: ", dge_cutof
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
+# LFSR from GSFA on Permuted Data Sets
+
+```{r}
+sum_lfsr_num_01 <- rep(0, 29)
+sum_lfsr_num_05 <- rep(0, 29)
+for (perm_num in 1:10){
+  perm_lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/lfsr/perm_", perm_num,
+                                  ".no_NTC.gibbs_k20.lfsr_mat.1k-2k.rds"))
+  print_lfsr_signif_tb(perm_lfsr_mat, lfsr_cutoff_2,
+                       paste0("Permuted GSFA (", perm_num, "), lfsr cutoff: ", lfsr_cutoff_2))
+  sum_lfsr_num_01 <- sum_lfsr_num_01 + colSums(perm_lfsr_mat < lfsr_cutoff_2)
+  sum_lfsr_num_05 <- sum_lfsr_num_05 + colSums(perm_lfsr_mat < lfsr_cutoff_1)
+}
+```
+
+## Average number of genes that passed the lfsr threshold across permutations
+
+```{r}
+print_signif_tb(sum_lfsr_num_01 / 10,
+                caption_text = paste0("Number of genes passed lfsr ", lfsr_cutoff_2,
+                                      " (averaged over 10 permuted GSFA sets)"))
+print_signif_tb(sum_lfsr_num_05 / 10,
+                caption_text = paste0("Number of genes passed lfsr ", lfsr_cutoff_1,
+                                      " (averaged over 10 permuted GSFA sets)"))
+```
