@@ -181,6 +181,16 @@ cat("Guided SVD vs Unguided:",
 cat("\n\n")
 ```
 
+```{r G0 heatmap}
+G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, all_KOs.G_mat)
+heatmap_matrix <- G0.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = G0.gibbs_res_tb$pi)
+G0.heatmap_matrix <- heatmap_matrix
+```
+
 ## Comparison with NTC included GSFA result
 
 ```{r}

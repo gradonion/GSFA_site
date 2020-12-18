@@ -26,33 +26,35 @@ factor_matrix_regression <- function(factors, G_mat){
   return(list(pval = pval_tb, beta = beta_reg_tb))
 }
 
-make_gibbs_res_tb <- function(gibbs_obj, G){
-  K <- ncol(gibbs_obj$Z.pm)
+make_gibbs_res_tb <- function(gibbs_obj, G, compute_pve = TRUE){
+  names(gibbs_obj) <- sub(pattern = "[.]", replacement = "_", x = names(gibbs_obj))
+  K <- ncol(gibbs_obj$Z_pm)
   res_tb <- data.frame(index = 1:K, pi = gibbs_obj$pi_pm[, 1])
-  sum_var <- rep(0, K)
-  for (i in 1:K) {
-    mat_tmp <- outer(gibbs_obj$Z.pm[, i], gibbs_obj$W.pm[, i])
-    sum_var[i] <- sum(apply(mat_tmp, 2, var))
+  if (compute_pve){
+    sum_var <- rep(0, K)
+    for (i in 1:K) {
+      mat_tmp <- outer(gibbs_obj$Z_pm[, i], gibbs_obj$W_pm[, i])
+      sum_var[i] <- sum(apply(mat_tmp, 2, var))
+    }
+    res_tb$sum_var <- sum_var
   }
-  res_tb$sum_var <- sum_var
-  
   if (is.null(ncol(G))){
-    if (length(G) != nrow(gibbs_obj$Z.pm)){
+    if (length(G) != nrow(gibbs_obj$Z_pm)){
       stop("Number of samples in genotype and in the gibbs object do not match!")
     }
     res_tb$beta_pm <- gibbs_obj$beta_pm[, 1]
     res_tb$beta_reg <- rep(NA, K)
     res_tb$pval <- rep(NA, K)
     for (i in 1:K){
-      lm.summary <- summary(lm(gibbs_obj$Z.pm[, i] ~ G))
+      lm.summary <- summary(lm(gibbs_obj$Z_pm[, i] ~ G))
       res_tb$beta_reg[i] <- lm.summary$coefficients[2, 1]
       res_tb$pval[i] <- lm.summary$coefficients[2, 4]
     }
   } else {
-    if (nrow(G) != nrow(gibbs_obj$Z.pm)){
+    if (nrow(G) != nrow(gibbs_obj$Z_pm)){
       stop("Number of samples in genotype and in the gibbs object do not match!")
     }
-    res_regress <- factor_matrix_regression(gibbs_obj$Z.pm, G)
+    res_regress <- factor_matrix_regression(gibbs_obj$Z_pm, G)
     tmp_beta_pm <- t(gibbs_obj$beta_pm)
     colnames(tmp_beta_pm) <- paste0("beta_pm-", 1:ncol(tmp_beta_pm))
     res_tb <- cbind(res_tb, tmp_beta_pm,
@@ -88,7 +90,8 @@ make_flash_res_tb <- function(flashier_obj, G){
 
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL){
   # 'heatmap_matrix' has factors in the rows and SNPs in the columns
-  col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue", "white", "red"))
+  # col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
+  col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
   main_lgd <- Legend(col_fun = col_fun, title = "-log10(Factor~KO p value)", at = seq(0, 15, 3))
   lgd_list <- list(main = main_lgd)
   
@@ -110,7 +113,8 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
     row_annot <- NULL
     row_lgd <- NULL
   } else {
-    factor_col_fun <- circlize::colorRamp2(c(0, 0.7, 1), c("gold", "lightgreen", "seagreen"))
+    # factor_col_fun <- circlize::colorRamp2(c(0, 0.7, 1), c("gold", "lightgreen", "seagreen"))
+    factor_col_fun <- circlize::colorRamp2(c(0, 1), c("palegoldenrod", "turquoise4"))
     row_annot <- rowAnnotation(pi1 = factor_annot,
                                col = list(pi1 = factor_col_fun),
                                show_annotation_name = T,
@@ -140,44 +144,57 @@ summ_pvalues <- function(pvalues, title_text = NULL){
   gridExtra::grid.arrange(plot1, plot2, ncol = 2, top = title_text)
 }
 
-plot_pairwise.corr_heatmap <- function(input_mat, corr_type = "pearson",
-                                       name = NULL, return_corr = FALSE){
+plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
+                                       name_1 = NULL, name_2 = NULL,
+                                       corr_type = "pearson",
+                                       return_corr = FALSE){
   # Please store samples in the columns of 'input_mat'.
-  corr_mat <- diag(ncol(input_mat))
-  for (i in 1:(ncol(input_mat)-1)){
-    for (j in (i+1):ncol(input_mat)){
+  if (is.null(input_mat_2)){
+    input_mat_2 <- input_mat_1
+  }
+  stopifnot(nrow(input_mat_1) == nrow(input_mat_2))
+  corr_mat <- matrix(nrow = ncol(input_mat_1), ncol = ncol(input_mat_2))
+  
+  for (i in 1:ncol(input_mat_1)){
+    for (j in 1:ncol(input_mat_2)){
+      vec_1 <- input_mat_1[, i]
+      vec_2 <- input_mat_2[, j]
       if (corr_type == "pearson"){
-        corr_mat[i, j] <- cor(input_mat[, i], input_mat[, j], method = "pearson")
+        corr_mat[i, j] <- cor(vec_1, vec_2, method = "pearson")
       } else if (corr_type == "jaccard"){
-        corr_mat[i, j] <- sum(input_mat[, i] * input_mat[, j]) /
-          sum(input_mat[, i] + input_mat[, j] > 0)
+        corr_mat[i, j] <- sum(vec_1 * vec_2) / sum(vec_1 + vec_2 > 0)
       } else {
         stop("Please provide a valid method to compute pairwise correlation.")
       }
-      corr_mat[j, i] <- corr_mat[i, j]
     }
   }
-  if (is.null(colnames(input_mat))){
-    rownames(corr_mat) <- 1:ncol(input_mat)
-    colnames(corr_mat) <- 1:ncol(input_mat)
-  } else {
-    rownames(corr_mat) <- colnames(input_mat)
-    colnames(corr_mat) <- colnames(input_mat)
-  }
   
+  if (is.null(colnames(input_mat_1))){
+    rownames(corr_mat) <- 1:ncol(input_mat_1)
+  } else {
+    rownames(corr_mat) <- colnames(input_mat_1)
+  }
+  if (is.null(colnames(input_mat_2))){
+    colnames(corr_mat) <- 1:ncol(input_mat_2)
+  } else {
+    colnames(corr_mat) <- colnames(input_mat_2)
+  }
+
   if (corr_type == "pearson"){
     ht <- Heatmap(corr_mat,
                   col = circlize::colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
                   name = "Pearson Correlation",
-                  row_title = name, column_title = name,
+                  row_title = name_1, column_title = name_2,
                   cluster_rows = F, cluster_columns = F,
                   row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8))
   }
   if (corr_type == "jaccard"){
     ht <- Heatmap(corr_mat,
-                  col = circlize::colorRamp2(c(0, 0.5, 1), c("white", "steelblue1", "steelblue4")),
-                  name = "Jaccard Correlation",
-                  row_title = name, column_title = name,
+                  # col = circlize::colorRamp2(c(0, 0.5, 1), c("white", "steelblue1", "steelblue4")),
+                  col = circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                             colors = c("black", "purple", "gold")),
+                  name = "Jaccard Index",
+                  row_title = name_1, column_title = name_2,
                   cluster_rows = F, cluster_columns = F,
                   row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8))
   }
@@ -220,8 +237,9 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
     enrich_list[[i]] <- enrich_list[[i]] %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
     signif_tb <- enrich_list[[i]] %>% filter(qvalue < qvalue_cutoff) %>%
       filter(FoldChange >= FC_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, FoldChange, qvalue)
+      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size)
     signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
+    signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
     signif_tb$qvalue <- format(signif_tb$qvalue, digits = 3)
     
     signif_num[i] <- nrow(signif_tb)
@@ -229,7 +247,7 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
       print(kable(signif_tb,
                   caption = paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")) %>%
               kable_styling() %>%
-              scroll_box(width = '100%', height = '400px'))
+              scroll_box(width = '100%', height = '500px'))
     }
   }
   return(signif_num)

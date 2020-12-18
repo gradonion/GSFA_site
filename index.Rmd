@@ -171,6 +171,8 @@ We tried two ways to filter the genes.
 
 ## Using genes detected in > 10% of cells
 
+[GSFA all markers result, NTC condition regressed out, singleton cells only](gsfa_all_markers_detect_01_singleton.html);
+
 [GSFA all markers result, NTC condition regressed out](gsfa_all_markers_detect_01_noNTC.html);
 
 [GSFA all markers result, NTC as one of the guides](gsfa_all_markers_detect_01.html);

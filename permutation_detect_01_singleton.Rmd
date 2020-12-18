@@ -1,0 +1,136 @@
+---
+title: "Guided Factor Analysis on MCF10A Treated"
+subtitle: "-- Genes Filtered by Detection Rate, NTC Regressed Out"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
+gsfa_folder <- "gsfa_output_detect_01/sparse_beta_singleton/"
+source(paste0(wkdir, "reports/analytics_functions.R"))
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("darkgrey", "gold", "tomato"))
+```
+
+# Single cell expression data
+
+CROP-seq data are from this paper: [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
+
+Perturbations:    
+Knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control.
+
+Cells:    
+MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin.   
+Only cells with a single type of gRNA readout were kept, resulted in 4507 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 8046 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Library size was regressed out, so were the non-targeting control (NTC) condition per cell. The residuals were used as input.**
+
+```{r load meta data, fig.width=9}
+metadata <- data.frame(fread(paste0(wkdir, 'data/GSE108699_cs.cell_metadata.tsv.gz'),
+                             header = T, sep = '\t'), check.names = F)
+dox_metadata <- metadata %>%
+  filter(sample == "singles_dox_100nm_SI-3A-A6")
+dox_metadata$cell_barcode <- sapply(strsplit(dox_metadata$cell, split = "_"),
+                                    function(x){x[1]})
+dox_metadata <- metadata %>%
+  filter(sample == "singles_dox_100nm_SI-3A-A6") %>%
+  filter(!is.na(guide_count))
+dox_metadata <- dox_metadata %>% filter(guide_count > 0)
+dox_metadata$type_count <- rowSums(dox_metadata[, 17:46])
+  dox_metadata <- dox_metadata %>% filter(type_count == 1)
+  
+KO_names <- colnames(dox_metadata[, 17:46])
+KO_names <- KO_names[KO_names != "NONTARGETING"]
+all_KOs.G_mat <- as.matrix(dox_metadata[, KO_names] * 1)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+# Permutation
+
+Cell labels in the expression data were permuted randomly so that they are no longer correlated with the KO conditions. Then GSFA was performed still using all conditions other than NTC as guides.
+
+```{r load PM results}
+gibbs_lst <- list()
+for (i in 1:4){
+  perm_PM <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".restart.PM.rds"))
+  gibbs_lst[[i]] <- perm_PM
+}
+for (i in 5:10){
+  perm_PM <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".PM.rds"))
+  gibbs_lst[[i]] <- perm_PM
+}
+```
+
+## Factor ~ KO Beta PIP
+```{r fig.width=8}
+for (i in 1:10){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pip_matrix <- t(perm_PM$Gamma_pm[-(nmarkers + 1), ])
+  rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+  colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+  hm <- Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+                row_title = "Factors",  column_title = "KO Perturbations",
+                cluster_rows = F, cluster_columns = F)
+  draw(hm)
+}
+```
+
+## Factor ~ KO Posterior Association
+```{r fig.width=10, fig.height=5}
+pval_lst <- list()
+for (i in 1:10){
+  perm_PM <- gibbs_lst[[i]]
+  gibbs_res_tb <- make_gibbs_res_tb(perm_PM, all_KOs.G_mat, compute_pve = F)
+  pval_matrix <- gibbs_res_tb %>% select(starts_with("pval"))
+  pval_lst[[i]] <- unlist(pval_matrix)
+}
+summ_pvalues(unlist(pval_lst),
+             title_text = paste0("10 Permutations", ", 20 factors x 29 KOs"))
+```
+
+## LFSR
+
