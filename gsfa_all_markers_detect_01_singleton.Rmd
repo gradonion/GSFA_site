@@ -395,7 +395,7 @@ GO category: Biological Process.
 
 GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 gsfa.go_enrich <-
   readRDS(paste0(wkdir, gsfa_folder, "enrich_res/All.gibbs_obj_k20.svd.go_enrich.cutoff_0.9.rds"))
 signif_num <- print_enrich_tb(gsfa.go_enrich, qvalue_cutoff = 0.05, FC_cutoff = 1.5)
