@@ -300,29 +300,49 @@ div.tocify {
 </div>
 
 
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">1</span> Introduction</h1>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditons (<em>e.g.</em> genotype, CRISPR perturbation).</p>
+<div id="gsfa-model" class="section level3">
+<h3>GSFA Model</h3>
+<p>For a given normalizd gene expression matrix <span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span>:</p>
+<p><span class="math inline">\(Y = ZW^T+E\)</span>, where <span class="math inline">\(Z \in \mathbb{R}^{N \times K}\)</span>, <span class="math inline">\(W \in \mathbb{R}^{P \times K}\)</span>, <span class="math inline">\(E_{ij} \sim N(0,\psi_j)\)</span>,</p>
+<p><span class="math inline">\(Z = G \beta + \Phi\)</span>, where <span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span>, <span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span>.</p>
+<p><span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span> is a guide matrix that holds <span class="math inline">\(M\)</span> types of sample-level conditions.</p>
+<p>Both <span class="math inline">\(W\)</span> and <span class="math inline">\(\beta\)</span> have spike-and-slab priors.</p>
+<p>Next, we applied GSFA on several published data sets.</p>
 </div>
-<div id="studies" class="section level1">
-<h1><span class="header-section-number">2</span> Studies</h1>
-<div id="mcf10a-crop-seq-study" class="section level2">
-<h2><span class="header-section-number">2.1</span> MCF10A CROP-seq Study</h2>
+</div>
+<div id="studies" class="section level2">
+<h2>Studies</h2>
+<div id="mcf10a-crop-seq-study" class="section level3">
+<h3>MCF10A CROP-seq Study</h3>
+<div id="source" class="section level4">
+<h4>Source</h4>
 <p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
-<p>Cells:<br />
-MCF10A cells (normal human breast epithelial cells) <strong>with exposure to a DNA damaging agent, doxorubicin</strong>;</p>
-<p>Perturbations:<br />
-CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;</p>
-<p><a href="MCF10A_overview.html">Data overview</a>;</p>
-<p>Gene filtering before factor analysis:<br />
-Keep genes detected in &gt; 10% of cells.</p>
-<p>GSFA results:</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01.html">GSFA, NTC as one of the guides</a>;</p>
-<p>Permutation tests on factor-perturbation associations:</p>
-<p><a href="MCF10A_permutation_detect_01_singleton.html">Permutation result for detection 10%, singleton</a>;</p>
-<p>Gene discovery comparison using local false sign rate (LFSR):</p>
-<p><a href="lfsr.html">LFSR result comparison</a>.</p>
+</div>
+<div id="cells" class="section level4">
+<h4>Cells</h4>
+<p>MCF10A cells (normal human breast epithelial cells) <strong>with exposure to a DNA damaging agent, doxorubicin</strong>;</p>
+</div>
+<div id="perturbations" class="section level4">
+<h4>Perturbations</h4>
+<p>CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;<br />
+guide RNA readout measured on the single-cell level.</p>
+</div>
+<div id="analyses" class="section level4">
+<h4>Analyses</h4>
+<ul>
+<li><a href="MCF10A_overview.html">Data overview</a>;</li>
+<li><a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;</li>
+<li><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</li>
+<li><a href="MCF10A_permutation_detect_01_singleton.html">Permutation result for detection 10%, singleton</a>;</li>
+<li><a href="MCF10A_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
+</ul>
+</div>
+</div>
+<div id="luhmes-crop-seq-study" class="section level3">
+<h3>LUHMES CROP-seq Study</h3>
 </div>
 </div>
 

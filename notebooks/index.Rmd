@@ -3,42 +3,49 @@ title: "Guided Sparse Factor Analysis Project"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 output:
   html_document:
-    number_sections: yes
+    number_sections: no
     toc: yes
     toc_float: true
 ---
 
-# Introduction
+## Introduction
 
-# Studies
+We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditons (_e.g._ genotype, CRISPR perturbation).
 
-## MCF10A CROP-seq Study
+### GSFA Model
 
+For a given normalizd gene expression matrix $Y \in \mathbb{R}^{N \times P}$:
+
+$Y = ZW^T+E$, where $Z \in \mathbb{R}^{N \times K}$, $W \in \mathbb{R}^{P \times K}$, $E_{ij} \sim N(0,\psi_j)$,
+
+$Z = G \beta + \Phi$, where $\beta \in \mathbb{R}^{M \times K}$, $\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)$.
+
+$G \in \mathbb{R}^{N \times M}$ is a guide matrix that holds $M$ types of sample-level conditions.
+
+Both $W$ and $\beta$ have spike-and-slab priors.
+
+Next, we applied GSFA to several published gene expression data sets.
+
+## Studies
+
+### MCF10A CROP-seq Study
+
+#### Source
 [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
 
-Cells:    
-MCF10A cells (normal human breast epithelial cells) **with exposure to a DNA damaging agent, doxorubicin**;
+#### Cells 
+MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;
 
-Perturbations:    
-CRISPR knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;
+#### Perturbations
+CRISPR knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;    
+guide RNA readout measured on the single-cell level.
 
-[Data overview](MCF10A_overview.html);
+#### Analyses
+* [Data overview](MCF10A_overview.html);
+* [GSFA, NTC condition regressed out, singleton cells only](MCF10A_gsfa_all_markers_detect_01_singleton.html);
+* [GSFA, NTC condition regressed out](MCF10A_gsfa_all_markers_detect_01_noNTC.html);
+* [Permutation result for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
+* [Gene discovery using LFSR, and comparison with DGE](MCF10A_lfsr.html).
 
-Gene filtering before factor analysis:    
-Keep genes detected in > 10% of cells.
+### LUHMES CROP-seq Study
 
-GSFA results:
-
-[GSFA, NTC condition regressed out, singleton cells only](MCF10A_gsfa_all_markers_detect_01_singleton.html);
-
-[GSFA, NTC condition regressed out](MCF10A_gsfa_all_markers_detect_01_noNTC.html);
-
-[GSFA, NTC as one of the guides](MCF10A_gsfa_all_markers_detect_01.html);
-
-Permutation tests on factor-perturbation associations:
-
-[Permutation result for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
-
-Gene discovery comparison using local false sign rate (LFSR):
-
-[LFSR result comparison](lfsr.html).
