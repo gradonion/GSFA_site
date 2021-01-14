@@ -310,7 +310,7 @@ div.tocify {
 <p><span class="math inline">\(Z = G \beta + \Phi\)</span>, where <span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span>, <span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span>.</p>
 <p><span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span> is a guide matrix that holds <span class="math inline">\(M\)</span> types of sample-level conditions.</p>
 <p>Both <span class="math inline">\(W\)</span> and <span class="math inline">\(\beta\)</span> have spike-and-slab priors.</p>
-<p>Next, we applied GSFA on several published data sets.</p>
+<p>Next, we applied GSFA to several published gene expression data sets.</p>
 </div>
 </div>
 <div id="studies" class="section level2">
@@ -323,11 +323,11 @@ div.tocify {
 </div>
 <div id="cells" class="section level4">
 <h4>Cells</h4>
-<p>MCF10A cells (normal human breast epithelial cells) <strong>with exposure to a DNA damaging agent, doxorubicin</strong>;</p>
+<p>MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;</p>
 </div>
 <div id="perturbations" class="section level4">
 <h4>Perturbations</h4>
-<p>CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;<br />
+<p>CRISPR <strong>knock-out</strong> of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;<br />
 guide RNA readout measured on the single-cell level.</p>
 </div>
 <div id="analyses" class="section level4">
@@ -343,6 +343,27 @@ guide RNA readout measured on the single-cell level.</p>
 </div>
 <div id="luhmes-crop-seq-study" class="section level3">
 <h3>LUHMES CROP-seq Study</h3>
+<div id="source-1" class="section level4">
+<h4>Source</h4>
+<p><a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.</p>
+</div>
+<div id="cells-1" class="section level4">
+<h4>Cells</h4>
+<p>Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)</p>
+</div>
+<div id="perturbations-1" class="section level4">
+<h4>Perturbations</h4>
+<p>CRISPR <strong>knock-down</strong> of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.</p>
+</div>
+<div id="analyses-1" class="section level4">
+<h4>Analyses</h4>
+<ul>
+<li><a href="LUHMES_overview.html">Data overview</a>;</li>
+<li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, 4 confounding factors corrected, NTC condition included</a>;</li>
+<li><a href="LUHMES_merged.gsfa_all_markers_detect_01.html">GSFA, 3 confounding factors corrected, NTC condition included</a>;</li>
+<li><a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
+</ul>
+</div>
 </div>
 </div>
 
