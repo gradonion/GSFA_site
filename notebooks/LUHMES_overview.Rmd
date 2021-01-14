@@ -86,17 +86,17 @@ Batch effect:
 No batch effects were apparent on global clustering after correction.
 
 ```{r umap_batch, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/merged.batch_effect_umap.png"))
+knitr::include_graphics("figs/LUHMES_merged.batch_effect_umap.png")
 ```
 
 Cell cycle effect (colored by the mean expression of signature genes at the corresponding cell cycle stage):
 ```{r umap_cell_cycle, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/merged.cell_cycle_umap.png"))
+knitr::include_graphics("figs/LUHMES_merged.cell_cycle_umap.png")
 ```
 
 Expression patterns of neuronal marker genes:
 ```{r umap_marker_genes, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/merged.marker_genes_umap.png"))
+knitr::include_graphics("figs/LUHMES_merged.marker_genes_umap.png")
 ```
 
 Most cells were postmitotic as assessed by the absence of proliferation marker TOP2A.    
@@ -118,7 +118,7 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
 ## Distribution of Knock-down Perturbations
 
 ```{r umap_KO, out.width = '100%'}
-knitr::include_graphics(paste0(wkdir, "figs/merged.KO_patterns_umap.png"))
+knitr::include_graphics("figs/LUHMES_merged.KO_patterns_umap.png")
 ```
 
 ## Wilcoxon Differential Expression Test

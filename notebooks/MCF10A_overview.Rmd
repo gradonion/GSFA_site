@@ -102,11 +102,7 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
 ### Distribution of Knock-out Perturbations
 
 ```{r umap_KO, out.width = '100%'}
-library(png)
-library(grid)
-img <- readPNG("figs/MCF10A_dox.umap_KO_patterns.png")
-grid.raster(img)
-# knitr::include_graphics("figs/umap_KO_patterns.png")
+knitr::include_graphics("figs/MCF10A_dox.umap_KO_patterns.png")
 ```
 
 ### Wilcoxon Differential Expression Test
@@ -158,8 +154,6 @@ ggplot(dox_metadata, aes(x = factor(guide_count), y = total_umis)) +
 Cell cycle effects (colored by the mean expression of signature genes at the corresponding cell cycle stage):
 
 ```{r umap_cell_cycle, out.width = '100%'}
-# img <- readPNG("figs/umap_cell_cycle_patterns.png")
-# grid.raster(img)
 knitr::include_graphics("figs/MCF10A_dox.umap_cell_cycle_patterns.png")
 ```
 
