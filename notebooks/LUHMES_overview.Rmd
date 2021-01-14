@@ -1,0 +1,158 @@
+---
+title: "Overview on LUHMES CROP-seq Data"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(Seurat)
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+```
+
+# Data Settings
+
+CROP-seq data are from this paper: [High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+Perturbations:    
+CRISPR knock-down of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+Cells:    
+Lund human mesencephalic (LUHMES) neural progenitor cell line.   
+Cells were sequenced in 3 batches.
+
+# scRNA-seq data
+
+## Preprocessing
+
+There are 8708 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression < 10 and total UMI count < 2e+4.
+
+```{r load seurat object}
+combined_obj <-
+  readRDS(paste0(wkdir, "processed_data/seurat_obj.merged_scaled_detect_01.corrected.rds"))
+```
+
+```{r QC, fig.height=5}
+VlnPlot(combined_obj, features = c("nFeature_RNA", "nCount_RNA", "percent_mt"), pt.size = 0.2)
+```
+
+Only genes detected in > 10% of cells were kept.
+
+Seurat "LogNormalize": log(count per $10^4$ + 1).
+
+**Batch effect, (unique UMI count,) library size, and mitochondria percentage were all corrected for.**
+
+## UMAP representation after correction
+
+Batch effect:
+
+No batch effects were apparent on global clustering after correction.
+
+```{r umap_batch, out.width = '100%'}
+knitr::include_graphics(paste0(wkdir, "figs/merged.batch_effect_umap.png"))
+```
+
+Cell cycle effect (colored by the mean expression of signature genes at the corresponding cell cycle stage):
+```{r umap_cell_cycle, out.width = '100%'}
+knitr::include_graphics(paste0(wkdir, "figs/merged.cell_cycle_umap.png"))
+```
+
+Expression patterns of neuronal marker genes:
+```{r umap_marker_genes, out.width = '100%'}
+knitr::include_graphics(paste0(wkdir, "figs/merged.marker_genes_umap.png"))
+```
+
+Most cells were postmitotic as assessed by the absence of proliferation marker TOP2A.    
+But there is heterogeneity in the progression of differentiation at the single-cell level.
+
+# CRISPR Perturbations
+
+```{r load meta data, fig.width=9, fig.height=5}
+metadata_mat <- readRDS(paste0(wkdir, "processed_data/merged_metadata.rds"))
+num_cells_per_guide <- colSums(metadata_mat[, 4:18])
+num_cells.df <- data.frame(locus = names(num_cells_per_guide),
+                           count = num_cells_per_guide)
+ggplot(data = num_cells.df, aes(x=locus, y=count)) +
+  geom_bar(stat="identity", width = 0.6) +
+  labs(title = "Cell count per knockdown target", x = "# of cells", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size =11))
+```
+
+## Distribution of Knock-down Perturbations
+
+```{r umap_KO, out.width = '100%'}
+knitr::include_graphics(paste0(wkdir, "figs/merged.KO_patterns_umap.png"))
+```
+
+## Wilcoxon Differential Expression Test
+
+Number of genes that passed FDR < 0.05 under each perturbation:
+```{r wilcox_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.all_markers.seurat_wilcox.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+DE_signif_tb <- t(data.frame(KO = names(DE_signif_counts),
+                             DE_genes = DE_signif_counts,
+                             row.names = NULL))
+knitr::kable(rbind(DE_signif_tb[, 1:5],
+                   DE_signif_tb[, 6:10],
+                   DE_signif_tb[, 11:15])) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+```{r pval_FC_plot, fig.width=9, fig.height=15}
+plot.lst <- list()
+# for (m in c("PTEN", "ARID1B", "CHD2", "Nontargeting")){
+for (m in names(DE_signif_counts)){
+  DE_df <- DE_list[[m]]
+  DE_df <- DE_df %>% mutate(pass_fdr = fdr < fdr_cutoff) %>%
+    mutate(neglog_pval = -log10(p_val))
+  p <- ggplot(DE_df,
+         aes_string(x = "avg_logFC", y = "neglog_pval", color = "pass_fdr")) +
+  geom_point(size = 1) +
+  scale_color_manual(values = c("black", "red")) +
+  labs(x = "Average logFC", y = "-log10(P value)",
+       title = paste0(m, " (", DE_signif_counts[m], " genes)")) +
+  theme(legend.position = "none")
+  plot.lst[[m]] <- p
+}
+args <- c(plot.lst, list(nrow = 5, top = "Wilcoxon DGE on log(CPM)"))
+do.call(grid.arrange, args)
+```

@@ -33,11 +33,11 @@ Next, we applied GSFA to several published gene expression data sets.
 #### Source
 [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
 
-#### Cells 
+#### Cells
 MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;
 
 #### Perturbations
-CRISPR knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;    
+CRISPR **knock-out** of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;    
 guide RNA readout measured on the single-cell level.
 
 #### Analyses
@@ -49,3 +49,17 @@ guide RNA readout measured on the single-cell level.
 
 ### LUHMES CROP-seq Study
 
+#### Source
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+#### Cells
+Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)
+
+#### Perturbations
+CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+#### Analyses
+* [Data overview](LUHMES_overview.html);
+* [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
+* [GSFA, 3 confounding factors corrected, NTC condition included](LUHMES_merged.gsfa_all_markers_detect_01.html);
+* [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html).
