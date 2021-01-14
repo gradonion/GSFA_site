@@ -1,0 +1,44 @@
+---
+title: "Guided Sparse Factor Analysis Project"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+# Introduction
+
+# Studies
+
+## MCF10A CROP-seq Study
+
+[On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
+
+Cells:    
+MCF10A cells (normal human breast epithelial cells) **with exposure to a DNA damaging agent, doxorubicin**;
+
+Perturbations:    
+CRISPR knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;
+
+[Data overview](MCF10A_overview.html);
+
+Gene filtering before factor analysis:    
+Keep genes detected in > 10% of cells.
+
+GSFA results:
+
+[GSFA, NTC condition regressed out, singleton cells only](MCF10A_gsfa_all_markers_detect_01_singleton.html);
+
+[GSFA, NTC condition regressed out](MCF10A_gsfa_all_markers_detect_01_noNTC.html);
+
+[GSFA, NTC as one of the guides](MCF10A_gsfa_all_markers_detect_01.html);
+
+Permutation tests on factor-perturbation associations:
+
+[Permutation result for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
+
+Gene discovery comparison using local false sign rate (LFSR):
+
+[LFSR result comparison](lfsr.html).

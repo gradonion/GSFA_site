@@ -1,0 +1,409 @@
+---
+title: "Guided Factor Analysis on MCF10A Treated"
+subtitle: "-- Genes Filtered by Detection Rate, NTC Regressed Out"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
+gsfa_folder <- "gsfa_output_detect_01/sparse_beta_singleton/"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# Single cell expression data
+
+CROP-seq data are from this paper: [On the design of CRISPR-based single cell molecular screens](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/), GEO accession: GSE108699.
+
+Perturbations:    
+Knock-outs of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control.
+
+Cells:    
+MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin.   
+Only cells with a single type of gRNA readout were kept, resulted in 4507 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 8046 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Library size was regressed out, so were the non-targeting control (NTC) condition per cell. The residuals were used as input.**
+
+```{r eval=FALSE, include=FALSE}
+## Normalized expression:
+scaled.gene_exp <-
+  readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_detect_01.corrected_lib_NTC_singleton.rds'))
+```
+
+```{r load meta data, fig.width=9}
+metadata <- data.frame(fread(paste0(wkdir, 'data/GSE108699_cs.cell_metadata.tsv.gz'),
+                             header = T, sep = '\t'), check.names = F)
+dox_metadata <- metadata %>%
+  filter(sample == "singles_dox_100nm_SI-3A-A6")
+dox_metadata$cell_barcode <- sapply(strsplit(dox_metadata$cell, split = "_"),
+                                    function(x){x[1]})
+dox_metadata <- metadata %>%
+  filter(sample == "singles_dox_100nm_SI-3A-A6") %>%
+  filter(!is.na(guide_count))
+dox_metadata <- dox_metadata %>% filter(guide_count > 0)
+dox_metadata$type_count <- rowSums(dox_metadata[, 17:46])
+  dox_metadata <- dox_metadata %>% filter(type_count == 1)
+```
+
+# Guided results
+
+Guided sparse factor analysis, with the $G$ matrix being 29 types of KO conditions across cells.
+
+```{r}
+KO_names <- colnames(dox_metadata[, 17:46])
+KO_names <- KO_names[KO_names != "NONTARGETING"]
+all_KOs.G_mat <- as.matrix(dox_metadata[, KO_names] * 1)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+## SVD Initialization
+```{r}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.restart.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Factor ~ KO Beta PIP
+```{r fig.width=8}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
+rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+        row_title = "Factors",  column_title = "KO Perturbations",
+        cluster_rows = F, cluster_columns = F)
+```
+
+### Factor ~ KO Posterior Association
+```{r fig.width=10}
+heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = All_KOs.gibbs_res_tb$pi)
+guided.heatmap_matrix <- heatmap_matrix
+gsfa_KO_names <- apply(guided.heatmap_matrix, 1,
+                       function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-3], collapse = ",") })
+gsfa_KO_names <- paste(1:nrow(guided.heatmap_matrix), gsfa_KO_names, sep = " - ")
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -which(colnames(heatmap_matrix) == "TP53")]),
+             title_text = "GSFA All KOs (K=20, TP53 excluded)")
+```
+
+### Beta PIP vs P-Value
+```{r fig.width=12, fig.height=5}
+p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "20 factors x 29 conditions")
+p2 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            ylim = c(0, 20),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "Y-axis truncated at 20")
+grid.arrange(p1, p2, nrow = 1)
+```
+
+### Local False Sign Rate (LFSR)
+
+```{r lfsr function}
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 30){
+    signif_num <- c(signif_num, rep(NA, 30 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:10], signif_num[, 11:20], signif_num[, 21:30]),
+               caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+```
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder,
+                           "lfsr/All.gibbs_obj_k20.svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, 0.05,
+                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", 0.05))
+```
+
+## Alternative Initializations and Chain Convergence
+
+Other than initializing GSFA using truncated SVD, we also tried 2 runs with random initialization.
+
+```{r}
+rand_1.gibbs_PM <- 
+  readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.rand_01.restart.PM.rds"))
+rand_2.gibbs_PM <-
+  readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.rand_02.restart.PM.rds"))
+```
+
+### Association results for 2 randomly initialized GSFA runs
+
+```{r rand_01, fig.width=10, fig.height=5}
+rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat)
+rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_1.gibbs_res_tb$index
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+# plot_pval_heatmap(heatmap_matrix,
+#                   factor_annot = rand_1.gibbs_res_tb$pi)
+summ_pvalues(unlist(heatmap_matrix[, -which(colnames(heatmap_matrix) == "TP53")]),
+             title_text = "GSFA Random Init-1 (K=20, TP53 excluded)")
+```
+
+```{r rand_02, fig.width=10, fig.height=5}
+rand_2.gibbs_res_tb <- make_gibbs_res_tb(rand_2.gibbs_PM, all_KOs.G_mat)
+rand_2.gibbs_res_tb <- rand_2.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_2.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_2.gibbs_res_tb$index
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+# plot_pval_heatmap(heatmap_matrix,
+#                   factor_annot = rand_2.gibbs_res_tb$pi)
+summ_pvalues(unlist(heatmap_matrix[, -which(colnames(heatmap_matrix) == "TP53")]),
+             title_text = "GSFA Random Init-2 (K=20, TP53 excluded)")
+```
+
+### Chain mixing and convergence evaluation
+
+To check the convergence of a certain scalar estimand, we adopt the potential scale reduction metric ($\hat{R}$) as described in Section 11.4 of _Bayesian Data Analysis, 3rd ed_.
+
+The basic idea is to evaluate both the within-sequence variance and the between-sequence variance, and assess how close the two variances are.
+
+If the potential scale reduction $\hat{R}$ is close to 1, it means our inference has reached a good level of convergence;   
+if $\hat{R}$ is high, then we have reason to believe that proceeding with further simulations may improve our inference on this estimand.
+
+Since the order and sign of factors are intercahngeable, we focus on evaluating the estimation of all pairs of $\beta_{m\cdot} \cdot W_{j\cdot}$ (a dot product that sums over all factors for each marker-gene pair).
+
+We take the last 1000 stable samples from each of the 3 runs (1 SVD initialized, 2 randomly initialized). Each chain was further split into 2 halves, resulting in 6 chains with 500 iterations of samples each to assess convergence on.
+
+The table below shows the summary of $\hat{R}$ of $\beta_{m\cdot} \cdot W_{j\cdot}$ across genes for a given KO condition $m$:
+
+```{r show_R_hat_summary}
+converg_mat <-
+  readRDS(paste0(wkdir, gsfa_folder, "convergence/All.gibbs_obj_k20.beta_W_converg_mat.1k-2k.rds"))
+knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Difference btw methods in factor estimation
+
+For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
+
+```{r}
+cat("Guided SVD vs Rand_01:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Guided SVD vs Rand_02:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Rand_01 vs Rand_02:",
+    ZZT_mean_diff(rand_1.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+# cat("Guided SVD vs Unguided:",
+#     ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, G0.gibbs_PM$Z_pm) %>% signif(digits = 3))
+# cat("\n\n")
+```
+
+# Unguided Result
+```{r}
+G0.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "G0.gibbs_obj_k20.svd.PM.rds"))
+G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+## Factor ~ KO Beta PIP
+```{r fig.width=8, fig.height=1}
+beta_pip_matrix <- t(G0.gibbs_PM$Gamma_pm[-2, ])
+colnames(beta_pip_matrix) <- 1:ncol(beta_pip_matrix)
+rownames(beta_pip_matrix) <- "G0"
+Heatmap(beta_pip_matrix,
+        name = "Beta PIP", col = pip_col_fun,column_title = "Factors",
+        cluster_rows = F, cluster_columns = F,
+        heatmap_legend_param = list(legend_direction = "horizontal"))
+```
+
+## Factor ~ KO Posterior Association
+```{r fig.width=10}
+heatmap_matrix <- G0.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = G0.gibbs_res_tb$pi)
+G0.heatmap_matrix <- heatmap_matrix
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -which(colnames(heatmap_matrix) == "TP53")]),
+             title_text = "Unguide G0 (K=20, TP53 excluded)")
+```
+
+## Unguided vs Guided
+
+```{r fig.width=12}
+paired_pval_ranked_scatterplot <- function(pval_vec_1, pval_vec_2,
+                                           name_1, name_2, zoom_in = FALSE){
+  paired_df <- data.frame(V1 = pval_vec_1[order(pval_vec_1)],
+                          V2 = pval_vec_2[order(pval_vec_2)])
+  paired_df <- reshape2::melt(paired_df, value.name = "pval")
+  paired_df <- paired_df %>%
+    mutate(neg_logp = -log10(pval)) %>%
+    mutate(rank = rep(1:length(pval_vec_1), 2)) %>%
+    rename(type = variable) %>%
+    mutate(type = factor(type)) %>%
+    mutate(type = recode(type, V1 = name_1, V2 = name_2))
+  p1 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = factor(type))) +
+    geom_point(size = 0.8) +
+    labs(y = "-log10(P value)", title = "20 factors x 29 conditions each")
+  if (zoom_in){
+    p1 <- p1 +
+      geom_hline(yintercept = 20, color = "grey", linetype = "dashed") +
+      theme(legend.title = element_blank(),
+            legend.position = "none")
+    p2 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
+      geom_point(size = 0.8) +
+      scale_y_continuous(limits = c(0, 20)) +
+      labs(y = "-log10(P value)", title = "Zoomed in (Y-axis truncated at 20)") +
+      theme(legend.title = element_blank())
+    grid.arrange(p1, p2, nrow = 1,
+                 top = paste(name_1, "vs", name_2, "Factor~KO Associations"))
+  } else {
+    print(p1)
+  }
+}
+paired_pval_ranked_scatterplot(unlist(guided.heatmap_matrix), unlist(G0.heatmap_matrix),
+                               "Guided", "Unguided", zoom_in = T)
+```
+
+# FLASH
+
+```{r}
+flash_obj <- readRDS(paste0(wkdir, "flash_output/detect_01.corrected_lib_NTC_singleton.flashier_obj_k20.rds"))
+flash_res_tb <- make_flash_res_tb(flash_obj, all_KOs.G_mat)
+```
+
+## Factor ~ KO Posterior Association
+
+```{r FLASH pval heatmap, fig.width=10}
+heatmap_matrix <- flash_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = flash_res_tb$pi1)
+flash_heatmap <- heatmap_matrix
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix[, -which(colnames(heatmap_matrix) == "TP53")]),
+             title_text = "FLASH (K=20, TP53 excluded)")
+```
+
+## FLASH vs GSFA
+
+```{r fig.width=12}
+paired_pval_ranked_scatterplot(unlist(guided.heatmap_matrix), unlist(flash_heatmap),
+                               "Guided", "FLASH", zoom_in = T)
+```
+
+We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.
+
+**In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value < 1e-3 with.**
+
+```{r}
+flash_KO_names <- apply(flash_heatmap, 1,
+                        function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-3], collapse = ",") })
+flash_KO_names <- paste(1:nrow(flash_heatmap), flash_KO_names, sep = " - ")
+flash_matching_order <- c(1, 2, 3, 4, 5, 6, 13, 9, 14, 10, 15, 12, 7, 8, 11, 16, 17, 20, 19, 18)
+```
+
+```{r}
+Z_pm.flash <- flash_obj$loadings.pm[[1]][, flash_matching_order]
+colnames(Z_pm.flash) <- flash_KO_names[flash_matching_order]
+Z_pm.gsfa <- All_KOs.gibbs_PM$Z_pm
+colnames(Z_pm.gsfa) <- gsfa_KO_names
+plot_pairwise.corr_heatmap(input_mat_1 = Z_pm.gsfa,
+                           input_mat_2 = Z_pm.flash,
+                           name_1 = "GSFA Factors (Z_pm)", name_2 = "FLASH Factors")
+```
+
+```{r}
+F_pm.flash <- flash_obj$loadings.lfsr[[2]][, flash_matching_order]
+colnames(F_pm.flash) <- flash_KO_names[flash_matching_order]
+F_pm.gsfa <- All_KOs.gibbs_PM$F_pm
+colnames(F_pm.gsfa) <- gsfa_KO_names
+plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.9,
+                           input_mat_2 = F_pm.flash < 0.05,
+                           name_1 = "GSFA Binarized Gene Loadings (F_pm)",
+                           name_2 = "FLASH Binarized Gene Loadings",
+                           corr_type = "jaccard")
+```
+
+# Gene Ontology Enrichment Analysis
+
+Genes w/ non-zero loadings vs all genes selected for factor analysis.
+
+GO category: Biological Process.
+
+## PIP cutoff at 0.95
+
+GO terms that passed overrpresentation analysis fold change $\geq$ 2 and q value $<$ 0.05:
+
+```{r}
+gsfa.go_enrich <-
+  readRDS(paste0(wkdir, gsfa_folder, "enrich_res/All.gibbs_obj_k20.svd.go_enrich.cutoff_0.95.rds"))
+signif_num <- print_enrich_tb(gsfa.go_enrich, qvalue_cutoff = 0.05, FC_cutoff = 2)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10],
+                   signif_num.df[, 11:20])) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+

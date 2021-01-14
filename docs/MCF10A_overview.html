@@ -11,8 +11,9 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
+<meta name="date" content="2021-01-14" />
 
-<title>Guided Sparse Factor Analysis Project</title>
+<title>Overview on MCF10A CROP-seq Data</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +27,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -294,35 +296,265 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Guided Sparse Factor Analysis Project</h1>
+<h1 class="title toc-ignore">Overview on MCF10A CROP-seq Data</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
+<h4 class="date"><em>2021-01-14</em></h4>
 
 </div>
 
 
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">1</span> Introduction</h1>
-</div>
-<div id="studies" class="section level1">
-<h1><span class="header-section-number">2</span> Studies</h1>
-<div id="mcf10a-crop-seq-study" class="section level2">
-<h2><span class="header-section-number">2.1</span> MCF10A CROP-seq Study</h2>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
+<div id="data-settings" class="section level1">
+<h1><span class="header-section-number">1</span> Data Settings</h1>
+<p>CROP-seq data source:<br />
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
 <p>Cells:<br />
 MCF10A cells (normal human breast epithelial cells) <strong>with exposure to a DNA damaging agent, doxorubicin</strong>;</p>
 <p>Perturbations:<br />
-CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;</p>
-<p><a href="MCF10A_overview.html">Data overview</a>;</p>
-<p>Gene filtering before factor analysis:<br />
-Keep genes detected in &gt; 10% of cells.</p>
-<p>GSFA results:</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01.html">GSFA, NTC as one of the guides</a>;</p>
-<p>Permutation tests on factor-perturbation associations:</p>
-<p><a href="MCF10A_permutation_detect_01_singleton.html">Permutation result for detection 10%, singleton</a>;</p>
-<p>Gene discovery comparison using local false sign rate (LFSR):</p>
-<p><a href="lfsr.html">LFSR result comparison</a>.</p>
+CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control.</p>
+<div id="doxorubicin-treated-expression-data" class="section level2">
+<h2><span class="header-section-number">1.1</span> Doxorubicin-treated expression data</h2>
+<p>There are 5584 cells with nonzero gRNA count.</p>
+</div>
+<div id="perturbations" class="section level2">
+<h2><span class="header-section-number">1.2</span> Perturbations</h2>
+<p><img src="MCF10A_overview_files/figure-html/load%20meta%20data-1.png" width="864" style="display: block; margin: auto;" /><img src="MCF10A_overview_files/figure-html/load%20meta%20data-2.png" width="864" style="display: block; margin: auto;" /></p>
+<div id="distribution-of-knock-out-perturbations" class="section level3">
+<h3><span class="header-section-number">1.2.1</span> Distribution of Knock-out Perturbations</h3>
+<p><img src="../figs/umap_KO_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="wilcoxon-differential-expression-test" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> Wilcoxon Differential Expression Test</h3>
+Number of genes that passed pval_adjust &lt; 0.2 under each perturbation:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+NONTARGETING
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DE_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+33
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+34
+</td>
+<td style="text-align:left;">
+3476
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="MCF10A_overview_files/figure-html/pval_FC_plot-1.png" width="864" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="potential-confounding-factors" class="section level2">
+<h2><span class="header-section-number">1.3</span> Potential confounding factors</h2>
+<p>Positive correlation between number of guides and cell library size: <img src="MCF10A_overview_files/figure-html/libsize_confound-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Cell cycle effects (colored by the mean expression of signature genes at the corresponding cell cycle stage):</p>
+<p><img src="../figs/umap_cell_cycle_patterns.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="preprocessing-of-rna-count-matrix" class="section level2">
+<h2><span class="header-section-number">1.4</span> Preprocessing of RNA count matrix:</h2>
+<p>Seurat “LogNormalize”: log(count per <span class="math inline">\(10^4\)</span> + 1).</p>
+<p><em>Library size was regressed out, and the residuals were used as input.</em></p>
+<p>Only cells with gRNA readout and genes detected in &gt; 10% of cells were kept.</p>
 </div>
 </div>
 

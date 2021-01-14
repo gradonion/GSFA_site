@@ -11,8 +11,9 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
+<meta name="date" content="2021-01-14" />
 
-<title>Guided Sparse Factor Analysis Project</title>
+<title>Local False Sign Rate Estimate of KO Effect on Genes</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -294,35 +295,251 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Guided Sparse Factor Analysis Project</h1>
+<h1 class="title toc-ignore">Local False Sign Rate Estimate of KO Effect on Genes</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
+<h4 class="date"><em>2021-01-14</em></h4>
 
 </div>
 
 
-<div id="introduction" class="section level1">
-<h1><span class="header-section-number">1</span> Introduction</h1>
+<div id="differential-gene-expression" class="section level1">
+<h1><span class="header-section-number">1</span> Differential Gene Expression</h1>
+<p>We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using a simple Wilcoxon rank sum test in Seurat.</p>
+<p>The number of genes that passed an FDR threshold of 0.05 under each KO condition is:</p>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Wilcoxon DGE, FDR cutoff: 0.05
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+NONTARGETING
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+3174
+</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="studies" class="section level1">
-<h1><span class="header-section-number">2</span> Studies</h1>
-<div id="mcf10a-crop-seq-study" class="section level2">
-<h2><span class="header-section-number">2.1</span> MCF10A CROP-seq Study</h2>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
-<p>Cells:<br />
-MCF10A cells (normal human breast epithelial cells) <strong>with exposure to a DNA damaging agent, doxorubicin</strong>;</p>
-<p>Perturbations:<br />
-CRISPR knock-outs of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;</p>
-<p><a href="MCF10A_overview.html">Data overview</a>;</p>
-<p>Gene filtering before factor analysis:<br />
-Keep genes detected in &gt; 10% of cells.</p>
-<p>GSFA results:</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</p>
-<p><a href="MCF10A_gsfa_all_markers_detect_01.html">GSFA, NTC as one of the guides</a>;</p>
-<p>Permutation tests on factor-perturbation associations:</p>
-<p><a href="MCF10A_permutation_detect_01_singleton.html">Permutation result for detection 10%, singleton</a>;</p>
-<p>Gene discovery comparison using local false sign rate (LFSR):</p>
-<p><a href="lfsr.html">LFSR result comparison</a>.</p>
+</div>
+<div id="lfsr-estimation-from-gsfa" class="section level1">
+<h1><span class="header-section-number">2</span> LFSR Estimation from GSFA</h1>
+<p>In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:</p>
+<p>For a given GSFA inference result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of <span class="math inline">\(\beta\)</span> and <span class="math inline">\(W\)</span>.</p>
+<p>For gene <span class="math inline">\(j\)</span> and KO condition <span class="math inline">\(m\)</span>, <span class="math display">\[lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}\]</span> Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a the Wilcoxon DGE analysis mentioned above.</p>
+<p>We focus on GSFA results on genes filtered by the criterion of detection rate &gt; 10% (8046 genes kept), since we observed in our permutation analysis that the factors obtained in this way are the most well calibrated.</p>
+<div id="gsfa-detection-10-ntc-condition-regressed-out" class="section level2">
+<h2><span class="header-section-number">2.1</span> GSFA Detection &gt; 10% (NTC condition regressed out)</h2>
+</div>
+<div id="overlap-between-ntc-included-and-ntc-regressed-out-results" class="section level2">
+<h2><span class="header-section-number">2.2</span> Overlap between NTC-included and NTC-regressed-out results</h2>
+</div>
+<div id="comparison-between-ntc-regressed-out-and-wilcoxon-dge-results" class="section level2">
+<h2><span class="header-section-number">2.3</span> Comparison between NTC-regressed-out and Wilcoxon DGE results</h2>
 </div>
 </div>
 
