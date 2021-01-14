@@ -302,14 +302,468 @@ div.tocify {
 </div>
 
 
-<div id="differential-gene-expression" class="section level1">
-<h1><span class="header-section-number">1</span> Differential Gene Expression</h1>
-<p>We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using a simple Wilcoxon rank sum test in Seurat.</p>
-<p>The number of genes that passed an FDR threshold of 0.05 under each KO condition is:</p>
+<p>Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate &gt; 10% (8046 genes kept).</p>
+<div id="differential-gene-expression-test" class="section level1">
+<h1><span class="header-section-number">1</span> Differential Gene Expression Test</h1>
+<p>We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using either <strong>Wilcoxon rank sum test</strong> or <strong>Welch’s t-test</strong>.</p>
+<p>We have 2 variations on the gene expression data we use: (1) <strong>log-CPM expression</strong>; (2) <strong>corrected expression</strong>: log-CPM data corrected for batch effect and other confounding factors and then scaled. The 2nd kind is the expression data we passed to GSFA.</p>
+<div id="wilcoxon-rank-sum-test-on-log-cpm-expression" class="section level2">
+<h2><span class="header-section-number">1.1</span> Wilcoxon rank sum test on log-CPM expression</h2>
+<p>The number of genes that passed an FDR threshold of 0.05 (Benjamini-Hochberg) under each KO condition is:</p>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
-Wilcoxon DGE, FDR cutoff: 0.05
+Wilcoxon DGE on log(CPM) expression, FDR cutoff: 0.05
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+9
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+NONTARGETING
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+223
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+159
+</td>
+<td style="text-align:left;">
+6490
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="MCF10A_lfsr_files/figure-html/wilcox_pval_FC_plot-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="welchs-t-test-on-corrected-expression" class="section level2">
+<h2><span class="header-section-number">1.2</span> Welch’s t-test on corrected expression</h2>
+<p>The number of genes that passed an FDR threshold of 0.05 (Benjamini-Hochberg) under each KO condition is:</p>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+t-test DGE on corrected expression, FDR cutoff: 0.05
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+25
+</td>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+14
+</td>
+<td style="text-align:left;">
+31
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+14
+</td>
+<td style="text-align:left;">
+9
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:left;">
+NF1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+8
+</td>
+<td style="text-align:left;">
+74
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+10
+</td>
+<td style="text-align:left;">
+8
+</td>
+<td style="text-align:left;">
+16
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+7
+</td>
+<td style="text-align:left;">
+20
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+15
+</td>
+<td style="text-align:left;">
+76
+</td>
+<td style="text-align:left;">
+3649
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="MCF10A_lfsr_files/figure-html/ttest_pval_FC_plot-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="lfsr-estimation-from-gsfa-ntc-condition-regressed-out-singletons" class="section level1">
+<h1><span class="header-section-number">2</span> LFSR Estimation from GSFA (NTC condition regressed out, singletons)</h1>
+<p>In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:</p>
+<p>For a given GSFA inference result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of <span class="math inline">\(\beta\)</span> and <span class="math inline">\(W\)</span>.</p>
+<p>For gene <span class="math inline">\(j\)</span> and KO condition <span class="math inline">\(m\)</span>, <span class="math display">\[lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}\]</span> Under each KO condition, the number of genes that pass a certain LFSR cutoff would be compared to that from a the DGE tests mentioned above.</p>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+GSFA NTC regressed, LFSR cutoff: 0.05
 </caption>
 <tbody>
 <tr>
@@ -355,7 +809,7 @@ Num_genes
 0
 </td>
 <td style="text-align:left;">
-1
+0
 </td>
 <td style="text-align:left;">
 0
@@ -434,7 +888,7 @@ Num_genes
 0
 </td>
 <td style="text-align:left;">
-0
+776
 </td>
 <td style="text-align:left;">
 0
@@ -446,7 +900,7 @@ Num_genes
 0
 </td>
 <td style="text-align:left;">
-1
+149
 </td>
 <td style="text-align:left;">
 0
@@ -455,9 +909,6 @@ Num_genes
 <tr>
 <td style="text-align:left;">
 KO
-</td>
-<td style="text-align:left;">
-NONTARGETING
 </td>
 <td style="text-align:left;">
 PTEN
@@ -486,13 +937,15 @@ STK11
 <td style="text-align:left;">
 TP53
 </td>
+<td style="text-align:left;">
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Num_genes
 </td>
 <td style="text-align:left;">
-0
+882
 </td>
 <td style="text-align:left;">
 0
@@ -507,39 +960,922 @@ Num_genes
 0
 </td>
 <td style="text-align:left;">
-22
-</td>
-<td style="text-align:left;">
 0
 </td>
 <td style="text-align:left;">
 0
 </td>
 <td style="text-align:left;">
-22
+1370
 </td>
 <td style="text-align:left;">
-3174
+5682
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="comparison-between-ntc-regressed-and-wilcoxon-dge-log-cpm-results" class="section level2">
+<h2><span class="header-section-number">2.1</span> Comparison between NTC-regressed and Wilcoxon DGE (log-CPM) results</h2>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Wilcoxon DGE FDR cutoff: 0.05; GSFA NTC-regressed LFSR cutoff: 0.05
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+KO
+</th>
+<th style="text-align:right;">
+olap_num
+</th>
+<th style="text-align:right;">
+dge_num
+</th>
+<th style="text-align:right;">
+lfsr_num
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+603
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+127
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NF1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+655
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+176
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:right;">
+99
+</td>
+<td style="text-align:right;">
+151
+</td>
+<td style="text-align:right;">
+1052
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:right;">
+4642
+</td>
+<td style="text-align:right;">
+5510
+</td>
+<td style="text-align:right;">
+5351
 </td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<div id="lfsr-estimation-from-gsfa" class="section level1">
-<h1><span class="header-section-number">2</span> LFSR Estimation from GSFA</h1>
-<p>In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:</p>
-<p>For a given GSFA inference result, we estimated the local false sign rate (lfsr) of a certain knock-out effect on each gene based on the posteriors of <span class="math inline">\(\beta\)</span> and <span class="math inline">\(W\)</span>.</p>
-<p>For gene <span class="math inline">\(j\)</span> and KO condition <span class="math inline">\(m\)</span>, <span class="math display">\[lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}\]</span> Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a the Wilcoxon DGE analysis mentioned above.</p>
-<p>We focus on GSFA results on genes filtered by the criterion of detection rate &gt; 10% (8046 genes kept), since we observed in our permutation analysis that the factors obtained in this way are the most well calibrated.</p>
-<div id="gsfa-detection-10-ntc-condition-regressed-out" class="section level2">
-<h2><span class="header-section-number">2.1</span> GSFA Detection &gt; 10% (NTC condition regressed out)</h2>
+<div id="comparison-between-ntc-regressed-and-dge-t-test-corrected-results" class="section level2">
+<h2><span class="header-section-number">2.2</span> Comparison between NTC-regressed and DGE t-test (corrected) results</h2>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+DGE t-test FDR cutoff: 0.05; GSFA NTC-regressed LFSR cutoff: 0.05
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+KO
+</th>
+<th style="text-align:right;">
+olap_num
+</th>
+<th style="text-align:right;">
+dge_num
+</th>
+<th style="text-align:right;">
+lfsr_num
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+APC
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ATM
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BAP1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BID
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BRCA2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CASP8
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN2A
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CHEK1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CTCF
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+776
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLH1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MLL3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+149
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NF1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+882
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPN22
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PTPRD
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RAD51
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RB1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RUNX1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SETD2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+STK11
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:right;">
+1370
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:right;">
+3576
+</td>
+<td style="text-align:right;">
+3649
+</td>
+<td style="text-align:right;">
+5682
+</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="overlap-between-ntc-included-and-ntc-regressed-out-results" class="section level2">
-<h2><span class="header-section-number">2.2</span> Overlap between NTC-included and NTC-regressed-out results</h2>
 </div>
-<div id="comparison-between-ntc-regressed-out-and-wilcoxon-dge-results" class="section level2">
-<h2><span class="header-section-number">2.3</span> Comparison between NTC-regressed-out and Wilcoxon DGE results</h2>
+<div id="gsfa-estimated-effect-size-vs-lfsr" class="section level2">
+<h2><span class="header-section-number">2.3</span> GSFA estimated effect size vs LFSR</h2>
+<div id="compared-to-dge-on-input-y" class="section level3">
+<h3><span class="header-section-number">2.3.1</span> Compared to DGE on input Y</h3>
+<p><img src="MCF10A_lfsr_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>To understand why t-test on the input matrix, <span class="math inline">\(Y\)</span>, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 3 possible assumptions:</p>
+<ol style="list-style-type: decimal">
+<li><p>The denoised data (i.e. <span class="math inline">\(ZW^T\)</span>) might increase gene association with guide.</p></li>
+<li><p>The guide-associated factors (i.e. <span class="math inline">\(\sum_{k \in \{\hat\beta_k \neq 0\}} Z_kW_k^T\)</span>) might increase gene association with guide.</p></li>
+<li><p>The residuals of <span class="math inline">\(Y\)</span> after regressing out non-relevant factors (i.e. <span class="math inline">\(\text{resid} (Y \sim Z_{l \in \{\hat\beta_l = 0\}})\)</span>) might increase gene association with guide.</p></li>
+</ol>
+</div>
+<div id="compared-to-dge-on-denoised-zwt" class="section level3">
+<h3><span class="header-section-number">2.3.2</span> Compared to DGE on denoised <span class="math inline">\(ZW^T\)</span></h3>
+<p>[1] “GATA3” [1] “NCOR1” [1] “PTEN” [1] “STK11” [1] “TP53”</p>
+<p><img src="MCF10A_lfsr_files/figure-html/unnamed-chunk-14-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="compared-to-dge-on-associated-modules-in-y" class="section level3">
+<h3><span class="header-section-number">2.3.3</span> Compared to DGE on associated modules in Y</h3>
+<p>Knock-down gene: GATA3 Associated factors: 7,11</p>
+<p>Knock-down gene: NCOR1 Associated factors: 8</p>
+<p>Knock-down gene: PTEN Associated factors: 13</p>
+<p>Knock-down gene: STK11 Associated factors: 13,17,19</p>
+<p>Knock-down gene: TP53 Associated factors: 1,2,3,5,6,7,8,9,11,12,13,15,20</p>
+<p><img src="MCF10A_lfsr_files/figure-html/unnamed-chunk-15-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="compared-to-dge-on-residuals-of-y-after-associated-modules-were-regressed-out" class="section level3">
+<h3><span class="header-section-number">2.3.4</span> Compared to DGE on residuals of Y after associated modules were regressed out</h3>
+<p><img src="MCF10A_lfsr_files/figure-html/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 </div>
 

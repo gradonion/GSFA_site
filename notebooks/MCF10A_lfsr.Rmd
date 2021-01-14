@@ -40,11 +40,10 @@ knitr::opts_chunk$set(echo = FALSE,
 # formatting of pander tables
 pander::panderOptions('knitr.auto.asis', FALSE)
 pander::panderOptions("table.split.table", Inf)
-wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
 ```
 
 ```{r}
-source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
 print_signif_tb <- function(signif_num, caption_text){
   if (length(signif_num) < 30){
     signif_num <- c(signif_num, rep(NA, 30 - length(signif_num)))
@@ -61,25 +60,63 @@ print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
   print_signif_tb(signif_num, caption_text)
 }
 
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/GSE108699_MCF10A/"
 dge_cutoff <- 0.05
-lfsr_cutoff_1 <- 0.05
-lfsr_cutoff_2 <- 0.01
+lfsr_cutoff <- 0.05
 ```
 
-# Differential Gene Expression
+Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate > 10% (8046 genes kept).
 
-We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using a simple Wilcoxon rank sum test in Seurat.
+# Differential Gene Expression Test
 
-The number of genes that passed an FDR threshold of 0.05 under each KO condition is:
+We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using either **Wilcoxon rank sum test** or **Welch's t-test**.
+
+We have 2 variations on the gene expression data we use: (1) **log-CPM expression**; (2) **corrected expression**: log-CPM data corrected for batch effect and other confounding factors and then scaled. The 2nd kind is the expression data we passed to GSFA.
+
+## Wilcoxon rank sum test on log-CPM expression
+
+The number of genes that passed an FDR threshold of 0.05 (Benjamini-Hochberg) under each KO condition is:
 
 ```{r wilcox_DE}
-DE_list <- readRDS(paste0(wkdir, "preprocess_output/DE_results.all_markers.seurat_wilcox.rds"))
-DE_signif_counts <- sapply(DE_list, function(x){filter(x, p_val_adj < dge_cutoff) %>% nrow()})
+wilcox.DE_list <-
+  readRDS(paste0(wkdir, "preprocess_output/DE_results.all_markers.seurat_wilcox.rds"))
+wilcox.DE_list <- lapply(wilcox.DE_list, function(x){
+    x <- x %>% mutate(gene_ID = rownames(x))
+    x$fdr <- p.adjust(x$p_val, method = "fdr")
+    return(x)
+  })
+DE_signif_counts <- sapply(wilcox.DE_list, function(x){filter(x, fdr < dge_cutoff) %>% nrow()})
 print_signif_tb(DE_signif_counts,
-                caption_text = paste0("Wilcoxon DGE, FDR cutoff: ", dge_cutoff))
+                caption_text = paste0("Wilcoxon DGE on log(CPM) expression, FDR cutoff: ", dge_cutoff))
 ```
 
-# LFSR Estimation from GSFA
+```{r wilcox_pval_FC_plot, fig.width=8, fig.height=14}
+signif_markers <- names(DE_signif_counts)[DE_signif_counts > 0]
+gridplot_dge_volcano(wilcox.DE_list[signif_markers],
+                     dge_cutoff, title_text = "Wilcoxon DGE on log(CPM)")
+```
+
+## Welch's t-test on corrected expression
+
+The number of genes that passed an FDR threshold of 0.05 (Benjamini-Hochberg) under each KO condition is:
+
+```{r ttest_DE_corrected}
+ttest_corr.DE_list <-
+  readRDS(paste0(wkdir, "preprocess_output/DE_results.custom_ttest.detect_01.corrected_lib_NTC_singleton.rds"))
+DE_signif_counts <-
+  sapply(ttest_corr.DE_list, function(x){filter(x, fdr < dge_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts,
+                caption_text = paste0("t-test DGE on corrected expression, FDR cutoff: ", dge_cutoff))
+```
+
+```{r ttest_pval_FC_plot, fig.width=12, fig.height=14}
+ttest.merged_list <- merge_lists(wilcox.DE_list, ttest_corr.DE_list)
+ttest.merged_list <- lapply(ttest.merged_list,
+                            function(x){ x %>% rename(p_val = p_val.y, fdr = fdr.y) })
+gridplot_dge_volcano(ttest.merged_list, dge_cutoff, title_text = "t-test DGE on corrected expression")
+```
+
+# LFSR Estimation from GSFA (NTC condition regressed out, singletons)
 
 In terms of our GSFA method, we can also determine if a KO condition has an significant effect on gene expression in the following way:
 
@@ -87,27 +124,120 @@ For a given GSFA inference result, we estimated the local false sign rate (lfsr)
 
 For gene $j$ and KO condition $m$,
 $$lfsr_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}$$
-Under each KO condition, the number of genes that pass a certain lfsr cutoff would be compared to that from a the Wilcoxon DGE analysis mentioned above.
+Under each KO condition, the number of genes that pass a certain LFSR cutoff would be compared to that from a the DGE tests mentioned above.
 
-We focus on GSFA results on genes filtered by the criterion of detection rate > 10% (8046 genes kept), since we observed in our permutation analysis that the factors obtained in this way are the most well calibrated.
-
-## GSFA Detection > 10% (NTC condition regressed out)
-
-```{r eval=FALSE, include=FALSE}
+```{r no_NTC_lfsr}
 no_NTC.lfsr_mat <- readRDS(paste0(wkdir, "gsfa_output_detect_01/sparse_beta_singleton/",
-                           "lfsr/no_NTC.gibbs_k20_svd.lfsr_mat.1k-2k.rds"))
-print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff_1,
-                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_1))
-print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff_2,
-                     paste0("GSFA Detection > 10% Genes, lfsr cutoff: ", lfsr_cutoff_2))
+                           "lfsr/All.gibbs_obj_k20.svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(no_NTC.lfsr_mat, lfsr_cutoff,
+                     paste0("GSFA NTC regressed, LFSR cutoff: ", lfsr_cutoff))
 ```
 
-## Overlap between NTC-included and NTC-regressed-out results
+## Comparison between NTC-regressed and Wilcoxon DGE (log-CPM) results
 
-## Comparison between NTC-regressed-out and Wilcoxon DGE results
+```{r}
+olap_df <- DGE_overlap_num(no_NTC.lfsr_mat, wilcox.DE_list,
+                           lfsr_cutoff = lfsr_cutoff, dge_cutoff = dge_cutoff,
+                           lfsr_name = "GSFA NTC-regressed",
+                           dge_name = "Wilcoxon DGE")
+```
 
-```{r load gene names, eval=FALSE, include=FALSE}
-## Normalized expression:
-scaled.gene_exp <- readRDS(paste0(wkdir, 'data/cropseq_dox.scaled_detect_01.corrected_lib_NTC.rds'))
-detect_01_genes <- rownames(scaled.gene_exp)
+## Comparison between NTC-regressed and DGE t-test (corrected) results
+
+```{r}
+olap_df <- DGE_overlap_num(no_NTC.lfsr_mat, ttest_corr.DE_list,
+                           lfsr_cutoff = lfsr_cutoff, dge_cutoff = dge_cutoff,
+                           lfsr_name = "GSFA NTC-regressed",
+                           dge_name = "DGE t-test")
+```
+
+## GSFA estimated effect size vs LFSR
+
+```{r load GSFA NTC-regressed inference data}
+gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/sparse_beta_singleton/",
+                           "All.gibbs_obj_k20.svd.restart.PM.rds"))
+no_NTC.DE_list <- compute_beta_dot_W(no_NTC.lfsr_mat, gibbs_PM)
+signif_markers <- colnames(no_NTC.lfsr_mat)[colSums(no_NTC.lfsr_mat < 0.05) > 0]
+
+Y <- readRDS(paste0(wkdir, "data/cropseq_dox.scaled_detect_01.corrected_lib_NTC_singleton.rds"))
+Y <- t(Y)
+dox_metadata <- readRDS(paste0(wkdir, "preprocess_output/dox_metadata.rds"))
+dox_metadata <- dox_metadata %>% filter(guide_count > 0)
+dox_metadata$type_count <- rowSums(dox_metadata[, 17:46])
+dox_metadata <- dox_metadata %>% filter(type_count == 1)
+G_mat <- dox_metadata[, 17:46] * 1
+G_mat <- G_mat[, colnames(G_mat) != "NONTARGETING"]
+```
+
+### Compared to DGE on input Y
+
+```{r fig.width=8, fig.height=8}
+GSFA_Y.DE_list <- merge_lists(no_NTC.DE_list[signif_markers], ttest_corr.DE_list)
+gridplot_betaW_lfsr(GSFA_Y.DE_list, title_text = "GSFA NTC-included")
+```
+
+To understand why t-test on the input matrix, $Y$, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 3 possible assumptions:
+
+(1) The denoised data (i.e. $ZW^T$) might increase gene association with guide.
+
+(2) The guide-associated factors (i.e. $\sum_{k \in \{\hat\beta_k \neq 0\}} Z_kW_k^T$) might increase gene association with guide.
+
+(3) The residuals of $Y$ after regressing out non-relevant factors (i.e. $\text{resid} (Y \sim Z_{l \in \{\hat\beta_l = 0\}})$) might increase gene association with guide.
+
+### Compared to DGE on denoised $ZW^T$
+
+
+```{r ttest on denoised}
+denoised.DE_list <- list()
+denoised_Y <- t(gibbs_PM$Z_pm %*% t(gibbs_PM$W_pm))
+for (m in signif_markers){
+  print(m)
+  denoised.DE_df <- DE_test(expression_mat = denoised_Y,
+                            condition = G_mat[, m],
+                            gene_names = colnames(Y))
+  denoised.DE_list[[m]] <- denoised.DE_df
+}
+```
+
+```{r fig.width=8, fig.height=8}
+GSFA_denoised_Y.DE_list <- merge_lists(no_NTC.DE_list, denoised.DE_list)
+gridplot_betaW_lfsr(GSFA_denoised_Y.DE_list, title_text = "GSFA NTC-included")
+```
+
+### Compared to DGE on associated modules in Y
+
+```{r ttest on modules}
+signif.DE_list <- list()
+resid.DE_list <- list()
+for (m in signif_markers){
+  marker_indx <- which(colnames(G_mat) == m)
+  factor_indx <- which(gibbs_PM$Gamma_pm[marker_indx, ] > 0.8)
+  if (length(factor_indx) > 0){
+    cat("Knock-down gene:", m, "Associated factors:", paste(factor_indx, collapse = ","))
+    cat("\n\n")
+    signif_modules_Y <- gibbs_PM$Z_pm[, factor_indx] %*% t(gibbs_PM$W_pm[, factor_indx])
+    resid_Y <- lm(Y ~ gibbs_PM$Z_pm[, -factor_indx])$residuals
+    
+    signif.DE_df <- DE_test(expression_mat = t(signif_modules_Y),
+                            condition = G_mat[, m],
+                            gene_names = colnames(Y))
+    resid.DE_df <- DE_test(expression_mat = t(resid_Y),
+                           condition = G_mat[, m],
+                           gene_names = colnames(Y))
+    signif.DE_list[[m]] <- signif.DE_df
+    resid.DE_list[[m]] <- resid.DE_df
+  }
+}
+```
+
+```{r fig.width=8, fig.height=8}
+GSFA_signif_modules.DE_list <- merge_lists(no_NTC.DE_list, signif.DE_list)
+gridplot_betaW_lfsr(GSFA_signif_modules.DE_list, title_text = "GSFA NTC-regressed")
+```
+
+### Compared to DGE on residuals of Y after associated modules were regressed out
+
+```{r fig.width=8, fig.height=8}
+GSFA_resid_Y.DE_list <- merge_lists(no_NTC.DE_list, resid.DE_list)
+gridplot_betaW_lfsr(GSFA_resid_Y.DE_list, title_text = "GSFA NTC-regressed")
 ```

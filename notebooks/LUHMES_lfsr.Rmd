@@ -67,7 +67,7 @@ dge_cutoff <- 0.05
 lfsr_cutoff <- 0.05
 ```
 
-Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate > 10% (6213 genes kept).
+Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate > 10% (6212 genes kept).
 
 # Differential Gene Expression Test
 

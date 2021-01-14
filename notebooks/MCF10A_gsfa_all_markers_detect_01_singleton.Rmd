@@ -87,7 +87,7 @@ dox_metadata <- metadata %>%
   filter(!is.na(guide_count))
 dox_metadata <- dox_metadata %>% filter(guide_count > 0)
 dox_metadata$type_count <- rowSums(dox_metadata[, 17:46])
-  dox_metadata <- dox_metadata %>% filter(type_count == 1)
+dox_metadata <- dox_metadata %>% filter(type_count == 1)
 ```
 
 # Guided results
