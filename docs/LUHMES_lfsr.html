@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-01-14" />
+<meta name="date" content="2021-01-15" />
 
 <title>Estimate of Perturbation Effect on Genes – LFSR vs DGE (LUHMES Crop-seq)</title>
 
@@ -297,12 +297,12 @@ div.tocify {
 
 <h1 class="title toc-ignore">Estimate of Perturbation Effect on Genes – LFSR vs DGE (LUHMES Crop-seq)</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-01-14</em></h4>
+<h4 class="date"><em>2021-01-15</em></h4>
 
 </div>
 
 
-<p>Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate &gt; 10% (6213 genes kept).</p>
+<p>Both GSFA and DE analysis were conducted on genes filtered by the criterion of detection rate &gt; 10% (6212 genes kept).</p>
 <div id="differential-gene-expression-test" class="section level1">
 <h1><span class="header-section-number">1</span> Differential Gene Expression Test</h1>
 <p>We can compare the gene expression profiles of cells under each KO (gRNA) condition with those of cells without this gRNA using either <strong>Wilcoxon rank sum test</strong> or <strong>Welch’s t-test</strong>.</p>
@@ -1327,32 +1327,26 @@ SETD5
 <h2><span class="header-section-number">2.3</span> GSFA estimated effect size vs LFSR</h2>
 <div id="compared-to-dge-on-input-y" class="section level3">
 <h3><span class="header-section-number">2.3.1</span> Compared to DGE on input Y</h3>
-<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-5-1.png" width="1248" style="display: block; margin: auto;" /></p>
-<p>To understand why t-test on the input matrix, <span class="math inline">\(Y\)</span>, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 3 possible assumptions:</p>
+<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-4-1.png" width="1248" style="display: block; margin: auto;" /></p>
+<p>To understand why t-test on the input matrix, <span class="math inline">\(Y\)</span>, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 2 possible assumptions:</p>
 <ol style="list-style-type: decimal">
-<li><p>The denoised data (i.e. <span class="math inline">\(ZW^T\)</span>) might increase gene association with guide.</p></li>
-<li><p>The guide-associated factors (i.e. <span class="math inline">\(\sum_{k \in \{\hat\beta_k \neq 0\}} Z_kW_k^T\)</span>) might increase gene association with guide.</p></li>
-<li><p>The residuals of <span class="math inline">\(Y\)</span> after regressing out non-relevant factors (i.e. <span class="math inline">\(\text{resid} (Y \sim Z_{l \in \{\hat\beta_l = 0\}})\)</span>) might increase gene association with guide.</p></li>
+<li><p>The top factors captured by GSFA (i.e. <span class="math inline">\(ZW^T\)</span>) might increase gene association with guide.</p></li>
+<li><p>The residuals of <span class="math inline">\(Y\)</span> after regressing out non-relevant factors (i.e. factor <span class="math inline">\(k\)</span>s where <span class="math inline">\(\text{PIP}(\beta_k) \leq 0.8\)</span>) might increase gene association with guide.</p></li>
 </ol>
 </div>
-<div id="compared-to-dge-on-denoised-zwt" class="section level3">
-<h3><span class="header-section-number">2.3.2</span> Compared to DGE on denoised <span class="math inline">\(ZW^T\)</span></h3>
-<p>[1] “ADNP” [1] “ARID1B” [1] “ASH1L” [1] “CHD2” [1] “CHD8” [1] “CTNND2” [1] “DYRK1A” [1] “HDAC5” [1] “MECP2” [1] “MYT1L” [1] “Nontargeting” [1] “POGZ” [1] “PTEN” [1] “RELN” [1] “SETD5”</p>
-<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-7-1.png" width="1248" style="display: block; margin: auto;" /></p>
+<div id="dge-p-values-on-zwt" class="section level3">
+<h3><span class="header-section-number">2.3.2</span> DGE p values on <span class="math inline">\(ZW^T\)</span></h3>
+<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-5-1.png" width="1248" style="display: block; margin: auto;" /></p>
 </div>
-<div id="compared-to-dge-on-associated-modules-in-y" class="section level3">
-<h3><span class="header-section-number">2.3.3</span> Compared to DGE on associated modules in Y</h3>
+<div id="dge-p-values-on-residuals-of-y-after-associated-modules-were-regressed-out" class="section level3">
+<h3><span class="header-section-number">2.3.3</span> DGE p values on residuals of Y after associated modules were regressed out</h3>
 <p>Knock-down gene: ADNP Associated factors: 4,5,7,15,18,19</p>
 <p>Knock-down gene: ARID1B Associated factors: 5,19</p>
 <p>Knock-down gene: ASH1L Associated factors: 7,13</p>
 <p>Knock-down gene: CHD2 Associated factors: 2,4,5,18,19,20</p>
 <p>Knock-down gene: PTEN Associated factors: 2,4,5,6,7,9,13,15,17,20</p>
 <p>Knock-down gene: SETD5 Associated factors: 2,7,13</p>
-<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-8-1.png" width="768" style="display: block; margin: auto;" /></p>
-</div>
-<div id="compared-to-dge-on-residuals-of-y-after-associated-modules-were-regressed-out" class="section level3">
-<h3><span class="header-section-number">2.3.4</span> Compared to DGE on residuals of Y after associated modules were regressed out</h3>
-<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_lfsr_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>

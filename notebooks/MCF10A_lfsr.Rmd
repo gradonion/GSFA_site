@@ -176,22 +176,19 @@ GSFA_Y.DE_list <- merge_lists(no_NTC.DE_list[signif_markers], ttest_corr.DE_list
 gridplot_betaW_lfsr(GSFA_Y.DE_list, title_text = "GSFA NTC-included")
 ```
 
-To understand why t-test on the input matrix, $Y$, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 3 possible assumptions:
+To understand why t-test on the input matrix, $Y$, for GSFA still found much fewer genes than LFSR from factor analysis, we consider the factors that are significantly associated with each guide. We have 2 possible assumptions:
 
-(1) The denoised data (i.e. $ZW^T$) might increase gene association with guide.
+(1) The top factors captured by GSFA (i.e. $ZW^T$) might increase gene association with guide.
 
-(2) The guide-associated factors (i.e. $\sum_{k \in \{\hat\beta_k \neq 0\}} Z_kW_k^T$) might increase gene association with guide.
+(2) The residuals of $Y$ after regressing out non-relevant factors (i.e. $\text{resid} (Y \sim Z_{l \in \{\hat\beta_l = 0\}})$) might increase gene association with guide.
 
-(3) The residuals of $Y$ after regressing out non-relevant factors (i.e. $\text{resid} (Y \sim Z_{l \in \{\hat\beta_l = 0\}})$) might increase gene association with guide.
-
-### Compared to DGE on denoised $ZW^T$
+### DGE p values on $ZW^T$
 
 
-```{r ttest on denoised}
+```{r ttest on ZWT}
 denoised.DE_list <- list()
 denoised_Y <- t(gibbs_PM$Z_pm %*% t(gibbs_PM$W_pm))
 for (m in signif_markers){
-  print(m)
   denoised.DE_df <- DE_test(expression_mat = denoised_Y,
                             condition = G_mat[, m],
                             gene_names = colnames(Y))
@@ -204,10 +201,10 @@ GSFA_denoised_Y.DE_list <- merge_lists(no_NTC.DE_list, denoised.DE_list)
 gridplot_betaW_lfsr(GSFA_denoised_Y.DE_list, title_text = "GSFA NTC-included")
 ```
 
-### Compared to DGE on associated modules in Y
+### DGE p values on residuals of Y after associated modules were regressed out
 
 ```{r ttest on modules}
-signif.DE_list <- list()
+# signif.DE_list <- list()
 resid.DE_list <- list()
 for (m in signif_markers){
   marker_indx <- which(colnames(G_mat) == m)
@@ -215,27 +212,24 @@ for (m in signif_markers){
   if (length(factor_indx) > 0){
     cat("Knock-down gene:", m, "Associated factors:", paste(factor_indx, collapse = ","))
     cat("\n\n")
-    signif_modules_Y <- gibbs_PM$Z_pm[, factor_indx] %*% t(gibbs_PM$W_pm[, factor_indx])
+    # signif_modules_Y <- gibbs_PM$Z_pm[, factor_indx] %*% t(gibbs_PM$W_pm[, factor_indx])
+    # signif.DE_df <- DE_test(expression_mat = t(signif_modules_Y),
+    #                         condition = G_mat[, m],
+    #                         gene_names = colnames(Y))
+    # signif.DE_list[[m]] <- signif.DE_df
     resid_Y <- lm(Y ~ gibbs_PM$Z_pm[, -factor_indx])$residuals
-    
-    signif.DE_df <- DE_test(expression_mat = t(signif_modules_Y),
-                            condition = G_mat[, m],
-                            gene_names = colnames(Y))
     resid.DE_df <- DE_test(expression_mat = t(resid_Y),
                            condition = G_mat[, m],
                            gene_names = colnames(Y))
-    signif.DE_list[[m]] <- signif.DE_df
     resid.DE_list[[m]] <- resid.DE_df
   }
 }
 ```
 
-```{r fig.width=8, fig.height=8}
+```{r fig.height=8, fig.width=8, eval=FALSE, include=FALSE}
 GSFA_signif_modules.DE_list <- merge_lists(no_NTC.DE_list, signif.DE_list)
 gridplot_betaW_lfsr(GSFA_signif_modules.DE_list, title_text = "GSFA NTC-regressed")
 ```
-
-### Compared to DGE on residuals of Y after associated modules were regressed out
 
 ```{r fig.width=8, fig.height=8}
 GSFA_resid_Y.DE_list <- merge_lists(no_NTC.DE_list, resid.DE_list)

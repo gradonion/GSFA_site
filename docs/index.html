@@ -305,6 +305,8 @@ div.tocify {
 <p>We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditons (<em>e.g.</em> genotype, CRISPR perturbation).</p>
 <div id="gsfa-model" class="section level3">
 <h3>GSFA Model</h3>
+<pre class="r"><code>knitr::include_graphics(&quot;figs/GSFA_model_illustration.png&quot;)</code></pre>
+<p><img src="figs/GSFA_model_illustration.png" width="100%" /></p>
 <p>For a given normalizd gene expression matrix <span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span>:</p>
 <p><span class="math inline">\(Y = ZW^T+E\)</span>, where <span class="math inline">\(Z \in \mathbb{R}^{N \times K}\)</span>, <span class="math inline">\(W \in \mathbb{R}^{P \times K}\)</span>, <span class="math inline">\(E_{ij} \sim N(0,\psi_j)\)</span>,</p>
 <p><span class="math inline">\(Z = G \beta + \Phi\)</span>, where <span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span>, <span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span>.</p>

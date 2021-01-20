@@ -14,6 +14,10 @@ We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that 
 
 ### GSFA Model
 
+```{r, out.width = '100%'}
+knitr::include_graphics("figs/GSFA_model_illustration.png")
+```
+
 For a given normalizd gene expression matrix $Y \in \mathbb{R}^{N \times P}$:
 
 $Y = ZW^T+E$, where $Z \in \mathbb{R}^{N \times K}$, $W \in \mathbb{R}^{P \times K}$, $E_{ij} \sim N(0,\psi_j)$,
