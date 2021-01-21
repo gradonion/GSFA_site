@@ -14,12 +14,12 @@ output:
 
 Genetic perturbation often regulates the expression of a network of genes via _trans_ effect.
 
-Current computational approaches to detect _trans_ genetic effects include:
+#### Current computational approaches to detect _trans_ genetic effects include:
 * Per-gene association analysis such as _trans_-eQTL analysis and differential expression analysis, but bears huge multiple testing burden;   
 * Sparse factor analysis which takes advantage of "gene modules", but subsequent analyses are necessary to interpret the biological meaning of factors.
 
-Our approach to detect the effect of genetic perturbation:   
-**Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.**
+#### Our approach to detect the effect of genetic perturbation:   
+* Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.
 
 We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditions (_e.g._ genotype, CRISPR perturbation).
 
