@@ -302,20 +302,29 @@ div.tocify {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditons (<em>e.g.</em> genotype, CRISPR perturbation).</p>
+<div id="motivation" class="section level3">
+<h3>Motivation</h3>
+<p>Genetic perturbation often regulates the expression of a network of genes via <em>trans</em> effect.</p>
+<p>CUrrent computational approaches to detect <em>trans</em> genetic effects include:<br />
+* Per-gene association analysis such as <em>trans</em>-eQTL analysis and differential expression analysis, but bears huge multiple testing burden;<br />
+* Sparse factor analysis which takes advantage of “gene modules”, but subsequent analyses are necessary to interpret the biological meaning of factors.</p>
+<p>Our approach to detect the effect of genetic perturbation:<br />
+Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.</p>
+<p>We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditions (<em>e.g.</em> genotype, CRISPR perturbation).</p>
+</div>
 <div id="gsfa-model" class="section level3">
 <h3>GSFA Model</h3>
 <p><img src="figs/GSFA_model_illustration.png" width="100%" /></p>
-<p>For a given normalizd gene expression matrix <span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span>:</p>
+<p>For a given normalizd gene expression matrix <span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span> and a guide matrix <span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span> that holds <span class="math inline">\(M\)</span> types of sample-level conditions:</p>
 <p><span class="math inline">\(Y = ZW^T+E\)</span>, where <span class="math inline">\(Z \in \mathbb{R}^{N \times K}\)</span>, <span class="math inline">\(W \in \mathbb{R}^{P \times K}\)</span>, <span class="math inline">\(E_{ij} \sim N(0,\psi_j)\)</span>,</p>
 <p><span class="math inline">\(Z = G \beta + \Phi\)</span>, where <span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span>, <span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span>.</p>
-<p><span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span> is a guide matrix that holds <span class="math inline">\(M\)</span> types of sample-level conditions.</p>
 <p>Both <span class="math inline">\(W\)</span> and <span class="math inline">\(\beta\)</span> have spike-and-slab priors.</p>
-<p>Next, we applied GSFA to several published gene expression data sets.</p>
+<p>Gibbs sampling is used to infer the model parameters from data.</p>
 </div>
 </div>
-<div id="studies" class="section level2">
-<h2>Studies</h2>
+<div id="applications" class="section level2">
+<h2>Applications</h2>
+<p>We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.</p>
 <div id="mcf10a-crop-seq-study" class="section level3">
 <h3>MCF10A CROP-seq Study</h3>
 <div id="source" class="section level4">

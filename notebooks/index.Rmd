@@ -10,7 +10,18 @@ output:
 
 ## Introduction
 
-We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditons (_e.g._ genotype, CRISPR perturbation).
+### Motivation
+
+Genetic perturbation often regulates the expression of a network of genes via _trans_ effect.
+
+CUrrent computational approaches to detect _trans_ genetic effects include:   
+* Per-gene association analysis such as _trans_-eQTL analysis and differential expression analysis, but bears huge multiple testing burden;   
+* Sparse factor analysis which takes advantage of "gene modules", but subsequent analyses are necessary to interpret the biological meaning of factors.
+
+Our approach to detect the effect of genetic perturbation:   
+Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.
+
+We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditions (_e.g._ genotype, CRISPR perturbation).
 
 ### GSFA Model
 
@@ -18,19 +29,19 @@ We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that 
 knitr::include_graphics("figs/GSFA_model_illustration.png")
 ```
 
-For a given normalizd gene expression matrix $Y \in \mathbb{R}^{N \times P}$:
+For a given normalizd gene expression matrix $Y \in \mathbb{R}^{N \times P}$ and a guide matrix $G \in \mathbb{R}^{N \times M}$ that holds $M$ types of sample-level conditions:
 
 $Y = ZW^T+E$, where $Z \in \mathbb{R}^{N \times K}$, $W \in \mathbb{R}^{P \times K}$, $E_{ij} \sim N(0,\psi_j)$,
 
 $Z = G \beta + \Phi$, where $\beta \in \mathbb{R}^{M \times K}$, $\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)$.
 
-$G \in \mathbb{R}^{N \times M}$ is a guide matrix that holds $M$ types of sample-level conditions.
-
 Both $W$ and $\beta$ have spike-and-slab priors.
 
-Next, we applied GSFA to several published gene expression data sets.
+Gibbs sampling is used to infer the model parameters from data.
 
-## Studies
+## Applications
+
+We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.
 
 ### MCF10A CROP-seq Study
 
