@@ -14,7 +14,7 @@ We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that 
 
 ### GSFA Model
 
-```{r, out.width = '100%'}
+```{r echo=FALSE, out.width='100%'}
 knitr::include_graphics("figs/GSFA_model_illustration.png")
 ```
 
