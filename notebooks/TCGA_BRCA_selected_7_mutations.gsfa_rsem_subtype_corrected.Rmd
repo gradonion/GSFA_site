@@ -1,0 +1,212 @@
+---
+title: "Guided Factor Analysis on TCGA BRCA Gene Expression Data"
+subtitle: "-- Subtypes Corrected"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(signif_num, caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/TCGA/"
+meta_file <- "processed_data/BRCA_metadata_w_subtype.female_white_only.rds"
+gsfa_folder <- "gsfa_output_rsem_female_white/corrected_subtype/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# Data Description
+
+References:
+[Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/);   
+[Comprehensive molecular portraits of human breast tumors](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3465532/).
+
+Data source:   
+[FireBrowse TCGA BRCA Archives](http://firebrowse.org/?cohort=BRCA&download_dialog=true).
+
+Perturbations:    
+Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).
+
+Samples:    
+TCGA breast invasive carcinoma (BRCA) tumor samples.   
+To avoid possible confounding due to gender and race, **we confined our study samples to be only from female Caucasian subjects**.    
+In addition, only samples with somatic mutation annotation and defined cancer subtypes were kept, resulted in 349 samples.
+
+Genes:    
+**Only the top 10k variable genes in samples of consideration were kept.**
+
+Normalization:    
+**RSEM normalized counts corrected for subject age, tumor purity and cancer subtypes.** The corrected and scaled expression data were used as input for subsequent factor analysis.
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, meta_file))
+all_KOs.G_mat <- metadata[, 14:20]
+KO_names <- colnames(all_KOs.G_mat)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+# Guided results
+
+Here, our "guide", $G$ matrix, consists of the somatic mutation status of top 7 driver genes across samples.
+
+We specified 20 factors in our model. In each case, Gibbs sampling was conducted for 2000 iterations, and the posterior mean estimates were averaged over the last 500 iterations.
+
+## SVD Initialization
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Local False Sign Rate (LFSR)
+
+For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, 0.05,
+                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+### Factor ~ KO Beta PIP
+```{r fig.width=8, fig.height=6}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
+rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+        row_title = "GSFA Factors",  column_title = "Somatic Mutations",
+        cluster_rows = F, cluster_columns = F)
+```
+
+### Factor ~ KO Posterior Association
+```{r fig.width=9, fig.height=6}
+heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = All_KOs.gibbs_res_tb$pi,
+                  row_title = "GSFA Factors", column_title = "Somatic Mutations")
+guided.heatmap_matrix <- heatmap_matrix
+gsfa_KO_names <- apply(guided.heatmap_matrix, 1,
+                       function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
+gsfa_KO_names <- paste(1:nrow(guided.heatmap_matrix), gsfa_KO_names, sep = " - ")
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA All Mutations (K=20, SVD)")
+```
+
+### Beta PIP vs P-Value
+```{r fig.width=6, fig.height=5}
+qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "20 factors x 7 conditions\n(red line at y=5)") +
+  geom_hline(yintercept = 5, color = "red", linetype = "dashed")
+```
+
+# Gene Ontology Enrichment Analysis
+
+Statistical test: hypergeometric test;
+
+GO category: Biological Process.
+
+## GO enrichment per factor
+
+Target: Genes w/ PIP > 0.95 in each factor;    
+Backgroud: all 10000 genes used in factor analysis.
+
+GO terms that passed over-representation test fold change $\geq$ 1.5 and q value $<$ 0.05:
+
+```{r}
+gsfa.go_enrich <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "enrich_res/All.gibbs_obj_k20.svd.go_enrich.cutoff_0.95.rds"))
+signif_num <- print_enrich_tb(gsfa.go_enrich, qvalue_cutoff = 0.05, FC_cutoff = 1.5,
+                              type = "per_factor")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Factors of interest
+
+7: immune response    
+11: angiogenesis; positive regulation of cell motility    
+15: response to type I interferon   
+17: cell division
+
+## GO enrichment per driver gene condition
+
+Target: Genes w/ GSFA lfsr < 0.05 under each condition, stratefied by sign of effect;    
+Backgroud: all 10000 genes used in factor analysis.
+
+GO terms that passed over-representation test fold change $\geq$ 1.5 and q value $<$ 0.05:
+
+```{r}
+gsfa.go_enrich_permarker <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "enrich_res/All.gibbs_obj_k20.svd.go_enrich.permarker_updown.rds"))
+signif_num <- print_enrich_tb(gsfa.go_enrich_permarker, qvalue_cutoff = 0.05, FC_cutoff = 1.5,
+                              type = "per_marker")
+signif_num.df <- t(data.frame(Mutation_status = names(gsfa.go_enrich_permarker),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+

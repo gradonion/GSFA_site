@@ -73,14 +73,15 @@ annotated_gene_exp <-
 sample_name_df <- readRDS(paste0(wkdir, "processed_data/BRCA_metadata.female_white_only.rds"))
 ```
 
-```{r genes}
+```{r genes, fig.width=7, fig.height=5}
 filtered_gene_exp <- annotated_gene_exp[, sample_name_df$id]
 gene_df <- data.frame(name = rownames(filtered_gene_exp),
                       mean = rowMeans(filtered_gene_exp),
                       var = apply(filtered_gene_exp, 1, var),
                       stringsAsFactors = F)
 ggplot(gene_df, aes(x = mean, y = var)) +
-  geom_point() +
+  geom_point(size = 0.8) +
+  geom_density2d() +
   scale_x_log10() + scale_y_log10() +
   labs(x = "Mean of gene expression (RSEM)",
        y = "Variance of gene expression (RSEM)",
@@ -100,7 +101,7 @@ stopifnot(identical(colnames(topvar_corrected_mat), sample_name_df$id))
 ```
 
 
-```{r svd}
+```{r svd, fig.width=7, fig.height=5}
 corrected_svd <- svd(topvar_corrected_mat, nu = 30, nv = 30)
 qplot(1:30, corrected_svd$d[1:30]^2 / sum(corrected_svd$d^2),
       xlab = "PC", ylab = "PVE")
