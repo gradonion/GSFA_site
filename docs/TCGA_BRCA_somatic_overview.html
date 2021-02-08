@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
+
+<meta name="date" content="2021-02-07" />
+
+<title>Overview on TCGA BRCA mRNA-Seq Data with Somatic Mutations</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">GSFA</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Overview on TCGA BRCA mRNA-Seq Data with Somatic Mutations</h1>
+<h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
+<h4 class="date"><em>2021-02-07</em></h4>
+
+</div>
+
+
+<div id="data-settings" class="section level1">
+<h1><span class="header-section-number">1</span> Data Settings</h1>
+<p>References: <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/">Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics</a>.</p>
+<p>Data source:<br />
+<a href="http://firebrowse.org/?cohort=BRCA&amp;download_dialog=true">FireBrowse TCGA BRCA Archives</a>.</p>
+<p>Perturbations:<br />
+Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).</p>
+<p>Samples:<br />
+TCGA breast invasive carcinoma (BRCA) tumor samples.<br />
+To avoid possible confounding due to gender and race, <strong>we confined our study samples to be only from female Caucasian subjects</strong>.<br />
+In addition, only samples with somatic mutation annotation were kept, resulted in 700 samples.</p>
+</div>
+<div id="bulk-mrna-seq-data" class="section level1">
+<h1><span class="header-section-number">2</span> Bulk mRNA-Seq Data</h1>
+<div id="rsem-normailzed-gene-expression" class="section level2">
+<h2><span class="header-section-number">2.1</span> RSEM normailzed gene expression</h2>
+<p><img src="TCGA_BRCA_somatic_overview_files/figure-html/genes-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Only the top 10k most variable genes were kept.</p>
+<p>Normalized RSEM data was log-transformed, and then <strong>corrected for subject age and tumor purity through linear regression</strong>.</p>
+</div>
+<div id="pca-on-the-corrected-expression-data" class="section level2">
+<h2><span class="header-section-number">2.2</span> PCA on the corrected expression data</h2>
+<p><img src="TCGA_BRCA_somatic_overview_files/figure-html/svd-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="somatic-mutations" class="section level1">
+<h1><span class="header-section-number">3</span> Somatic Mutations</h1>
+<p>We categorize the somatic mutations observed in our samples into the genes they are located in.</p>
+These are the top most frequently mutated genes in our samples:
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:500px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Occurrence of somatic mutations out of 700 samples:
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+Hugo_Symbol
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+PIK3CA
+</td>
+<td style="text-align:right;">
+238
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:right;">
+193
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TTN
+</td>
+<td style="text-align:right;">
+140
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDH1
+</td>
+<td style="text-align:right;">
+87
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUC16
+</td>
+<td style="text-align:right;">
+74
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:right;">
+69
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP3K1
+</td>
+<td style="text-align:right;">
+51
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUC4
+</td>
+<td style="text-align:right;">
+51
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CROCCP2
+</td>
+<td style="text-align:right;">
+48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUC12
+</td>
+<td style="text-align:right;">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KMT2C
+</td>
+<td style="text-align:right;">
+44
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SYNE1
+</td>
+<td style="text-align:right;">
+44
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FLG
+</td>
+<td style="text-align:right;">
+41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RYR2
+</td>
+<td style="text-align:right;">
+41
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FCGBP
+</td>
+<td style="text-align:right;">
+40
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MUC5B
+</td>
+<td style="text-align:right;">
+38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RYR3
+</td>
+<td style="text-align:right;">
+36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HMCN1
+</td>
+<td style="text-align:right;">
+35
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OBSCN
+</td>
+<td style="text-align:right;">
+35
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NCOR1
+</td>
+<td style="text-align:right;">
+33
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="distribution-of-samples-with-selected-mutations" class="section level2">
+<h2><span class="header-section-number">3.1</span> Distribution of samples with selected mutations</h2>
+<p><img src="TCGA_BRCA_somatic_overview_files/figure-html/pca_driver_genes-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="distribution-of-breast-cancer-subtypes" class="section level2">
+<h2><span class="header-section-number">3.2</span> Distribution of breast cancer subtypes</h2>
+<p>Breast tumor subtype data were obtained from <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3465532/">Comprehensive molecular portraits of human breast tumors</a>.</p>
+<p><img src="TCGA_BRCA_somatic_overview_files/figure-html/pca_subtypes-1.png" width="864" style="display: block; margin: auto;" /></p>
+</div>
+<div id="differential-gene-expression-test" class="section level2">
+<h2><span class="header-section-number">3.3</span> Differential Gene Expression Test</h2>
+Number of genes that passed FDR &lt; 0.05 under each gene mutation status:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;">
+Mutation
+</td>
+<td style="text-align:left;">
+PIK3CA
+</td>
+<td style="text-align:left;">
+TP53
+</td>
+<td style="text-align:left;">
+TTN
+</td>
+<td style="text-align:left;">
+GATA3
+</td>
+<td style="text-align:left;">
+CDH1
+</td>
+<td style="text-align:left;">
+MAP3K1
+</td>
+<td style="text-align:left;">
+MAP2K4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_DE_genes
+</td>
+<td style="text-align:left;">
+4477
+</td>
+<td style="text-align:left;">
+6853
+</td>
+<td style="text-align:left;">
+638
+</td>
+<td style="text-align:left;">
+1957
+</td>
+<td style="text-align:left;">
+5558
+</td>
+<td style="text-align:left;">
+1760
+</td>
+<td style="text-align:left;">
+152
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

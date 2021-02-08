@@ -1,0 +1,195 @@
+---
+title: "Overview on TCGA BRCA mRNA-Seq Data with Somatic Mutations"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
+wkdir <- "/project2/xinhe/yifan/TCGA/"
+```
+
+# Data Settings
+
+References:
+[Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/).
+
+Data source:   
+[FireBrowse TCGA BRCA Archives](http://firebrowse.org/?cohort=BRCA&download_dialog=true).
+
+Perturbations:    
+Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).
+
+Samples:    
+TCGA breast invasive carcinoma (BRCA) tumor samples.   
+To avoid possible confounding due to gender and race, **we confined our study samples to be only from female Caucasian subjects**.    
+In addition, only samples with somatic mutation annotation were kept, resulted in 700 samples.
+
+# Bulk mRNA-Seq Data
+
+## RSEM normailzed gene expression
+
+```{r load data}
+annotated_gene_exp <-
+  readRDS(paste0(wkdir, "processed_data/BRCA_Merge_rnaseqv2_RSEM_w_somatic_mutations.rds"))
+sample_name_df <- readRDS(paste0(wkdir, "processed_data/BRCA_metadata.female_white_only.rds"))
+```
+
+```{r genes}
+filtered_gene_exp <- annotated_gene_exp[, sample_name_df$id]
+gene_df <- data.frame(name = rownames(filtered_gene_exp),
+                      mean = rowMeans(filtered_gene_exp),
+                      var = apply(filtered_gene_exp, 1, var),
+                      stringsAsFactors = F)
+ggplot(gene_df, aes(x = mean, y = var)) +
+  geom_point() +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Mean of gene expression (RSEM)",
+       y = "Variance of gene expression (RSEM)",
+       title = "TCGA BRCA Samples")
+```
+
+Only the top 10k most variable genes were kept.
+
+Normalized RSEM data was log-transformed, and then **corrected for subject age and tumor purity through linear regression**.
+
+## PCA on the corrected expression data
+
+```{r}
+topvar_corrected_mat <-
+  readRDS(paste0(wkdir, "processed_data/BRCA_RSEM_w_mutation.female_white_only.top10k_var_scaled.corrected.rds"))
+stopifnot(identical(colnames(topvar_corrected_mat), sample_name_df$id))
+```
+
+
+```{r svd}
+corrected_svd <- svd(topvar_corrected_mat, nu = 30, nv = 30)
+qplot(1:30, corrected_svd$d[1:30]^2 / sum(corrected_svd$d^2),
+      xlab = "PC", ylab = "PVE")
+
+corrected_proj <- t(topvar_corrected_mat) %*% corrected_svd$u
+corrected_proj_df <- as.data.frame(corrected_proj)
+corrected_proj_df <- cbind(corrected_proj_df, sample_name_df)
+```
+
+# Somatic Mutations
+
+We categorize the somatic mutations observed in our samples into the genes they are located in.
+
+These are the top most frequently mutated genes in our samples:
+```{r load meta data}
+mutations <- data.frame(fread(paste0(wkdir, "BRCA_Mutation_Packager_Oncotated_Calls/merged_TCGA_BRCA_mutations.txt"),
+                              sep = "\t", header = T),
+                        check.names = F, stringsAsFactors = F)
+mutations$Sample_filename_short <- sapply(strsplit(mutations$Sample_filename, split = "[.]"),
+                                          function(x){x[1]})
+mutated_gene_freq <- mutations %>%
+  filter(Sample_filename_short %in% sample_name_df$filename) %>%
+  distinct(Hugo_Symbol, Sample_filename_short) %>%
+  count(Hugo_Symbol) %>%
+  arrange(-n) %>% head(20)
+print(kable(mutated_gene_freq, caption = "Occurrence of somatic mutations out of 700 samples:") %>%
+        kable_styling() %>%
+        scroll_box(width = '100%', height = '500px'))
+```
+
+## Distribution of samples with selected mutations
+
+```{r pca_driver_genes, fig.width=10, fig.height=8}
+markers <- c("PIK3CA", "TP53", "TTN", "GATA3", "CDH1", "MAP3K1", "MAP2K4")
+plot_lst <- list()
+for (m in markers){
+  corrected_proj_df[[m]] <- as.factor(corrected_proj_df[[m]])
+  p <- ggplot(corrected_proj_df, aes_string(x = "V1", y = "V2", color = m)) +
+    geom_point(size = 0.8) +
+    scale_color_manual(values = c("black", "red")) +
+    labs(x = "PC1", y = "PC2", title = m) +
+    theme(legend.position = "none")
+  plot_lst[[m]] <- p
+}
+do.call(grid.arrange, plot_lst)
+```
+
+## Distribution of breast cancer subtypes
+
+Breast tumor subtype data were obtained from [Comprehensive molecular portraits of human breast tumors](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3465532/).
+
+```{r pca_subtypes, fig.width=9}
+subtypes <- data.frame(fread(paste0(wkdir, "brca_subtypes/TCGA_breast_tumors_subtypes.txt"),
+                             header = T, sep = "\t"), stringsAsFactors = F)
+sample_name_df <- left_join(sample_name_df, subtypes %>% select(Complete.TCGA.ID, PAM50.mRNA),
+                            by = c("participant_id" = "Complete.TCGA.ID"))
+corrected_proj_df$Subtype <- sample_name_df$PAM50.mRNA
+ggplot(corrected_proj_df, aes(x = V1, y = V2, color = factor(Subtype))) +
+  geom_point(size = 1) +
+  labs(x = "PC1", y = "PC2", color = "Subtype")
+```
+
+## Differential Gene Expression Test
+
+Number of genes that passed FDR < 0.05 under each gene mutation status:
+```{r ttest_DE}
+ttest_DE_list <- function(exp_mat, G_mat, compute_FC = FALSE, verbose = TRUE){
+  ## exp_mat: gene by sample
+  stopifnot(ncol(exp_mat) == nrow(G_mat))
+  DE_list <- list()
+  for (m in 1:ncol(G_mat)){
+    DE_res <- DE_test(expression_mat = exp_mat,
+                      condition = G_mat[, m],
+                      gene_names = rownames(exp_mat),
+                      test.use = "t.test", compute_FC = compute_FC)
+    if (verbose){
+      print(colnames(G_mat)[m])
+      print(nrow(DE_res %>% filter(fdr < 0.05)))
+    }
+    DE_list[[colnames(G_mat)[m]]] <- DE_res
+  }
+  return(DE_list)
+}
+
+corrected_DE <- ttest_DE_list(topvar_corrected_mat, sample_name_df[, markers], verbose = F)
+DE_signif_counts <- sapply(corrected_DE, function(x){filter(x, fdr < 0.05) %>% nrow()})
+DE_signif_tb <- t(data.frame(Mutation = names(DE_signif_counts),
+                             Num_DE_genes = DE_signif_counts,
+                             row.names = NULL))
+knitr::kable(DE_signif_tb) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```

@@ -88,11 +88,12 @@ make_flash_res_tb <- function(flashier_obj, G){
   return(flash_res_tb)
 }
 
-plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL){
+plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,
+                              row_title = "Factor", column_title = "KO Perturbations"){
   # 'heatmap_matrix' has factors in the rows and SNPs in the columns
   # col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
   col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
-  main_lgd <- Legend(col_fun = col_fun, title = "-log10(Factor~KO p value)", at = seq(0, 15, 3))
+  main_lgd <- Legend(col_fun = col_fun, title = "-log10(Factor~Guide\np value)", at = seq(0, 15, 3))
   lgd_list <- list(main = main_lgd)
   
   if (is.null(snp_annot)){
@@ -125,7 +126,7 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
   
   # pd <- packLegend(main_lgd, column_lgd, row_lgd, direction = "vertical")
   ht <- Heatmap(-log10(heatmap_matrix), col = col_fun, name = "-log10(p value)",
-                row_title = "Factors",  column_title = "KO Perturbations",
+                row_title = row_title, column_title = column_title,
                 cluster_rows = F, cluster_columns = F,
                 show_heatmap_legend = F,
                 top_annotation = column_annot) + row_annot
@@ -222,7 +223,8 @@ plot_PIP_hist_grid <- function(PIP_mat, cutoff = 0.5){
   do.call(grid.arrange, args)
 }
 
-print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
+print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
+                            type = "per_factor"){
   signif_num <- rep(0, length(enrich_list))
   for (i in 1:length(enrich_list)){
     enrich_df <- enrich_list[[i]]@result
@@ -246,10 +248,18 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2){
     
     signif_num[i] <- nrow(signif_tb)
     if (nrow(signif_tb) > 0){
-      print(kable(signif_tb,
-                  caption = paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")) %>%
+      if (type == "per_factor"){
+        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")
+      }
+      if (type == "per_marker"){
+        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant GO terms")
+      }
+      print(kable(signif_tb, caption = caption_text) %>%
               kable_styling() %>%
               scroll_box(width = '100%', height = '500px'))
+      cat("\n")
+      cat("------------")
+      cat("\n")
     }
   }
   return(signif_num)
@@ -314,17 +324,17 @@ paired_pval_ranked_scatterplot <- function(pval_vec_1, pval_vec_2,
     mutate(type = factor(type)) %>%
     mutate(type = recode(type, V1 = name_1, V2 = name_2))
   p1 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
-    geom_point(size = 0.8) +
+    geom_point(size = 0.8, alpha = 0.6) +
     labs(y = "-log10(P value)",
          title = paste(name_1, "vs", name_2, "Factor~KO Associations")) +
     theme(legend.title = element_blank())
 
-  if (!is.null(zoom_in_y)){
+  if (is.numeric(zoom_in_y)){
     p1 <- p1 +
       geom_hline(yintercept = zoom_in_y, color = "grey", linetype = "dashed") +
       theme(legend.position = "none")
     p2 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
-      geom_point(size = 0.8) +
+      geom_point(size = 0.8, alpha = 0.6) +
       scale_y_continuous(limits = c(0, zoom_in_y)) +
       labs(y = "-log10(P value)",
            title = paste0("Zoomed in (Y-axis truncated at ", zoom_in_y, ")")) +

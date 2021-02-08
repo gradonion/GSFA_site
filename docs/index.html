@@ -336,8 +336,8 @@ div.tocify {
 <p>We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.</p>
 <div id="mcf10a-crop-seq-study" class="section level3">
 <h3>MCF10A CROP-seq Study</h3>
-<div id="source" class="section level4">
-<h4>Source</h4>
+<div id="source-and-reference" class="section level4">
+<h4>Source and Reference</h4>
 <p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
 </div>
 <div id="cells" class="section level4">
@@ -362,8 +362,8 @@ guide RNA readout measured on the single-cell level.</p>
 </div>
 <div id="luhmes-crop-seq-study" class="section level3">
 <h3>LUHMES CROP-seq Study</h3>
-<div id="source-1" class="section level4">
-<h4>Source</h4>
+<div id="source-and-reference-1" class="section level4">
+<h4>Source and Reference</h4>
 <p><a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.</p>
 </div>
 <div id="cells-1" class="section level4">
@@ -381,6 +381,39 @@ guide RNA readout measured on the single-cell level.</p>
 <li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, 4 confounding factors corrected, NTC condition included</a>;</li>
 <li><a href="LUHMES_merged.gsfa_all_markers_detect_01.html">GSFA, 3 confounding factors corrected, NTC condition included</a>;</li>
 <li><a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
+</ul>
+</div>
+</div>
+<div id="tcga-brca-somatic-mutation-study" class="section level3">
+<h3>TCGA BRCA Somatic Mutation Study</h3>
+<div id="references" class="section level4">
+<h4>References</h4>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/">Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics</a>.</p>
+</div>
+<div id="data-sources" class="section level4">
+<h4>Data sources</h4>
+<p><a href="http://firebrowse.org/?cohort=BRCA&amp;download_dialog=true">FireBrowse TCGA BRCA Archives</a>.</p>
+<ul>
+<li>mRNA-seq file “illuminahiseq_rnaseqv2-RSEM_genes_normalized”;<br />
+</li>
+<li>Mutation annotation file “Mutation_Packager_Oncotated_Calls”;<br />
+</li>
+<li>Clinical file “Clinical_Pick_Tier1”.</li>
+</ul>
+</div>
+<div id="samples" class="section level4">
+<h4>Samples</h4>
+<p>TCGA breast invasive carcinoma (BRCA) tumor samples (confined to female, Caucasian, and with somatic mutation annotation).</p>
+</div>
+<div id="perturbation" class="section level4">
+<h4>Perturbation</h4>
+<p>Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).</p>
+</div>
+<div id="analyses-2" class="section level4">
+<h4>Analyses</h4>
+<ul>
+<li><a href="TCGA_BRCA_somatic_overview.html">Data overview</a>;</li>
+<li><a href="TCGA_BRCA_selected_7_mutations.gsfa_rsem_female_white.html">GSFA, female Caucasian only, corrected for age and purity</a>;</li>
 </ul>
 </div>
 </div>
