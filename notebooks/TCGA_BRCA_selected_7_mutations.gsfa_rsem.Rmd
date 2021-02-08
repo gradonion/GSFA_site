@@ -300,3 +300,70 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
              caption = "Summary:") %>%
   kable_styling() %>% scroll_box(width = '100%')
 ```
+
+# FLASH
+
+```{r flash_tb}
+flash_obj <-
+  readRDS(paste0(wkdir, "flash_output/BRCA_RSEM_w_mutation.female_white_only.top10k_var_scaled.corrected.flashier_obj_k20.rds"))
+flash_res_tb <- make_flash_res_tb(flash_obj, all_KOs.G_mat)
+```
+
+## Factor ~ KO Posterior Association
+
+```{r FLASH pval heatmap, fig.width=10}
+heatmap_matrix <- flash_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = flash_res_tb$pi1,
+                  row_title = "FLASH Factors", column_title = "Somatic Mutations")
+flash_heatmap <- heatmap_matrix
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "FLASH All KOs (K=20, SVD)")
+```
+
+## FLASH vs GSFA
+
+```{r fig.width=8}
+paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
+                               pval_vec_2 = unlist(flash_heatmap),
+                               name_1 = "Guided", name_2 = "FLASH")
+```
+
+We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.
+
+**In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value < 1e-4 with.**
+
+```{r}
+flash_KO_names <- apply(flash_heatmap, 1,
+                        function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
+flash_KO_names <- paste(1:nrow(flash_heatmap), flash_KO_names, sep = " - ")
+# flash_matching_order <- apply(corr_mat, 1, function(x){ which.max(abs(x)) })
+flash_matching_order <- c(1:13, 15, 14, 15, 17, 18, 20, 2)
+```
+
+```{r fig.width=9, fig.height=7}
+Z_pm.flash <- flash_obj$loadings.pm[[1]][, flash_matching_order]
+colnames(Z_pm.flash) <- flash_KO_names[flash_matching_order]
+Z_pm.gsfa <- All_KOs.gibbs_PM$Z_pm
+colnames(Z_pm.gsfa) <- gsfa_KO_names
+plot_pairwise.corr_heatmap(input_mat_1 = Z_pm.gsfa,
+                           input_mat_2 = Z_pm.flash,
+                           name_1 = "GSFA Factors (Z_pm)", name_2 = "FLASH Factors")
+```
+
+```{r fig.width=9, fig.height=7}
+F_pm.flash <- flash_obj$loadings.lfsr[[2]][, flash_matching_order]
+colnames(F_pm.flash) <- flash_KO_names[flash_matching_order]
+F_pm.gsfa <- All_KOs.gibbs_PM$F_pm
+colnames(F_pm.gsfa) <- gsfa_KO_names
+plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
+                           input_mat_2 = F_pm.flash < 0.05,
+                           name_1 = "GSFA Binarized Gene Loadings (F_pm > 0.95)",
+                           name_2 = "FLASH Binarized Gene Loadings (LFSR < 0.05)",
+                           corr_type = "jaccard")
+```

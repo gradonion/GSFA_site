@@ -209,4 +209,3 @@ signif_num.df <- t(data.frame(Mutation_status = names(gsfa.go_enrich_permarker),
 knitr::kable(signif_num.df, caption = "Summary:") %>%
   kable_styling() %>% scroll_box(width = '100%')
 ```
-
