@@ -50,7 +50,8 @@ print_signif_tb <- function(signif_num, caption_text){
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
-  print(knitr::kable(signif_num, caption = caption_text) %>%
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10]),
+                     caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
 print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
@@ -59,9 +60,9 @@ print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
 }
 
 wkdir <- "/project2/xinhe/yifan/TCGA/"
-meta_file <- "processed_data/BRCA_metadata.female_white_only.rds"
+meta_file <- "processed_data/BRCA_metadata.female_white_only.top5_lof_mis.rds"
 gsfa_folder <- "gsfa_output_rsem_female_white/corrected/"
-guide <- "selected_7"
+guide <- "top5_lof_mis"
 pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
                                     colors = c("black", "purple", "gold"))
 ```
@@ -74,9 +75,6 @@ References:
 Data source:   
 [FireBrowse TCGA BRCA Archives](http://firebrowse.org/?cohort=BRCA&download_dialog=true).
 
-Perturbations:    
-Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).
-
 Samples:    
 TCGA breast invasive carcinoma (BRCA) tumor samples.   
 To avoid possible confounding due to gender and race, **we confined our study samples to be only from female Caucasian subjects**.    
@@ -88,16 +86,28 @@ Genes:
 Normalization:    
 **RSEM normalized counts corrected for subject age and tumor purity.** The corrected and scaled expression data were used as input for subsequent factor analysis.
 
+Perturbations:    
+Somatic mutation status of selected frequently mutated driver genes (TP53, CDH1, GATA3, MAP3K1, PIK3CA).    
+Mutations were classified into 2 types: missense mutations and loss of function (LOF) mutations.
+
 ```{r load meta data, fig.width=9}
 metadata <- readRDS(paste0(wkdir, meta_file))
-all_KOs.G_mat <- metadata[, 14:20]
+all_KOs.G_mat <- metadata[, 14:23]
 KO_names <- colnames(all_KOs.G_mat)
 nmarkers <- ncol(all_KOs.G_mat)
+
+num_per_marker <- colSums(all_KOs.G_mat)
+num_per_marker <- t(data.frame(Mutation = names(num_per_marker),
+                               Num_cells = num_per_marker,
+                               row.names = NULL))
+print(knitr::kable(rbind(num_per_marker[, 1:5], num_per_marker[, 6:10]),
+                   caption = "Number of samples that harbor each type of mutation (out of all 700)") %>%
+    kable_styling() %>% scroll_box(width = '100%'))
 ```
 
 # Guided results
 
-Here, our "guide", $G$ matrix, consists of the somatic mutation status of top 7 driver genes across samples.
+Here, our "guide", $G$ matrix, consists of the somatic mutation status (missense and LOF separated) of top 5 driver genes across samples.
 
 We specified 20 factors in our model. In each case, Gibbs sampling was conducted for 2000 iterations, and the posterior mean estimates were averaged over the last 500 iterations.
 
@@ -200,8 +210,9 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 ### Factors of interest
 
 8: immune response    
+9: angiogenesis   
 11: translation   
-13: blood vessel development; epidermal cell differentiation    
+15: blood vessel development; epidermal cell differentiation    
 16: RNA splicing    
 20: cell cycle; nuclear division
 
@@ -221,8 +232,20 @@ signif_num <- print_enrich_tb(gsfa.go_enrich_permarker, qvalue_cutoff = 0.05, FC
 signif_num.df <- t(data.frame(Mutation_status = names(gsfa.go_enrich_permarker),
                               Signif_GO_terms = signif_num,
                               row.names = NULL))
-knitr::kable(signif_num.df, caption = "Summary:") %>%
+knitr::kable(rbind(signif_num.df[, 1:5], signif_num.df[, 6:10]),
+             caption = "Summary:") %>%
   kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Correlation btw factors from different guided results
+
+```{r}
+selected_7.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "selected_7", ".gibbs_obj_k20.svd.PM.rds"))
+plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
+                           input_mat_2 = selected_7.gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Z_pm (LOF-Missense Guides)",
+                           name_2 = "Z_pm (Merged Guides)")
 ```
 
 # Unguided Result
