@@ -297,7 +297,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Guided Factor Analysis on TCGA BRCA Gene Expression Data</h1>
-<h3 class="subtitle"><em>– Guides: Top 7 Somatic Mutation Genes</em></h3>
+<h3 class="subtitle"><em>– Guides: LOF and Missense Mutations Separated</em></h3>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
 <h4 class="date"><em>2021-02-09</em></h4>
 
@@ -100539,6 +100539,9 @@ TP53_mis_down
 <td style="text-align:left;">
 CDH1_LOF_up
 </td>
+<td style="text-align:left;">
+CDH1_LOF_down
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -100559,13 +100562,13 @@ Signif_GO_terms
 <td style="text-align:left;">
 203
 </td>
+<td style="text-align:left;">
+314
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Mutation_status
-</td>
-<td style="text-align:left;">
-CDH1_LOF_down
 </td>
 <td style="text-align:left;">
 GATA3_LOF_up
@@ -100579,13 +100582,16 @@ MAP3K1_LOF_up
 <td style="text-align:left;">
 MAP3K1_LOF_down
 </td>
+<td style="text-align:left;">
+PIK3CA_mis_up
+</td>
+<td style="text-align:left;">
+PIK3CA_mis_down
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Signif_GO_terms
-</td>
-<td style="text-align:left;">
-314
 </td>
 <td style="text-align:left;">
 44
@@ -100598,6 +100604,12 @@ Signif_GO_terms
 </td>
 <td style="text-align:left;">
 2
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+147
 </td>
 </tr>
 </tbody>
@@ -100625,7 +100637,7 @@ Signif_GO_terms
 <h2><span class="header-section-number">4.3</span> Unguided vs Guided</h2>
 <div id="association-p-value-comparison" class="section level3">
 <h3><span class="header-section-number">4.3.1</span> Association p value comparison</h3>
-<p><img src="TCGA_BRCA_top5_lof_missense.gsfa_rsem_files/figure-html/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="TCGA_BRCA_top5_lof_missense.gsfa_rsem_files/figure-html/unnamed-chunk-15-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="correlation-btw-guided-unguided-factors" class="section level3">
 <h3><span class="header-section-number">4.3.2</span> Correlation btw guided &amp; unguided factors</h3>

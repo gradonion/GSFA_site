@@ -1,6 +1,6 @@
 ---
 title: "Guided Factor Analysis on TCGA BRCA Gene Expression Data"
-subtitle: "-- Guides: Top 7 Somatic Mutation Genes"
+subtitle: "-- Guides: LOF and Missense Mutations Separated"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -232,7 +232,7 @@ signif_num <- print_enrich_tb(gsfa.go_enrich_permarker, qvalue_cutoff = 0.05, FC
 signif_num.df <- t(data.frame(Mutation_status = names(gsfa.go_enrich_permarker),
                               Signif_GO_terms = signif_num,
                               row.names = NULL))
-knitr::kable(rbind(signif_num.df[, 1:5], signif_num.df[, 6:10]),
+knitr::kable(rbind(signif_num.df[, 1:6], signif_num.df[, 7:12]),
              caption = "Summary:") %>%
   kable_styling() %>% scroll_box(width = '100%')
 ```
@@ -244,8 +244,8 @@ selected_7.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "selected_7", ".gibbs_
 plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
                            input_mat_2 = selected_7.gibbs_PM$Z_pm,
                            corr_type = "pearson",
-                           name_1 = "Z_pm (LOF-Missense Guides)",
-                           name_2 = "Z_pm (Merged Guides)")
+                           name_1 = "Z_pm (Guided by LOF-Missense Mutations)",
+                           name_2 = "Z_pm (Guided by All Mutations)")
 ```
 
 # Unguided Result
@@ -287,10 +287,10 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ### Association p value comparison
 
-```{r fig.width=10}
+```{r fig.width=8}
 paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
                                pval_vec_2 = unlist(G0.heatmap_matrix),
-                               name_1 = "Guided", name_2 = "Unguided", zoom_in_y = 10)
+                               name_1 = "Guided", name_2 = "Unguided")
 ```
 
 ### Correlation btw guided & unguided factors
