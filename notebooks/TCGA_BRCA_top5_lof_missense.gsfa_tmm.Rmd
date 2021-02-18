@@ -1,6 +1,6 @@
 ---
 title: "Guided Factor Analysis on TCGA BRCA Gene Expression Data"
-subtitle: "-- Normalization: RSEM, Guides: LOF and Missense Mutations Separated"
+subtitle: "-- Normalization: TMM, Guides: LOF and Missense Mutations Separated"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -23,8 +23,8 @@ theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
                              legend.text = element_text(size = 12),
                              panel.grid.minor = element_blank())
 )
-library(gridExtra)
 library(ggrepel)
+library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
 library(clusterProfiler)
@@ -61,8 +61,8 @@ print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
 }
 
 wkdir <- "/project2/xinhe/yifan/TCGA/"
-meta_file <- "processed_data/BRCA_metadata.female_white_only.top5_lof_mis.rds"
-gsfa_folder <- "gsfa_output_rsem_female_white/corrected/"
+meta_file <- "processed_data/BRCA_metadata.TMM_samples.female_white_only.top5_lof_mis.rds"
+gsfa_folder <- "gsfa_output_tmm_female_white/corrected/"
 guide <- "top5_lof_mis"
 pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
                                     colors = c("black", "purple", "gold"))
@@ -77,21 +77,21 @@ Data source:
 [FireBrowse TCGA BRCA Archives](http://firebrowse.org/?cohort=BRCA&download_dialog=true).
 
 Samples:    
-TCGA breast invasive carcinoma (BRCA) tumor samples in file "illuminahiseq_rnaseqv2-RSEM_genes_normalized".   
+TCGA breast invasive carcinoma (BRCA) tumor samples in file "illuminahiseq_rnaseq-gene_expression".   
 To avoid possible confounding due to gender and race, **we confined our study samples to be only from female Caucasian subjects**.    
-In addition, only samples with somatic mutation annotation were kept, resulted in 700 samples.
+In addition, only samples with somatic mutation annotation were kept, resulted in 573 samples.
 
 Genes:    
-**Only the top 10k variable genes in samples of consideration were kept.**
+**Only the top 10k variable genes in samples of consideration were kept.** (Variance was calculated based on the TMM-normalized log2(CPM) data.)
 
 Normalization:    
-**log2(RSEM normalized counts) corrected for subject age and tumor purity.** The corrected and scaled expression data were used as input for subsequent factor analysis.
+**Raw counts normalized by TMM using edgeR, converted to log2(CPM), then corrected for subject age and tumor purity.** The corrected and scaled expression data were used as input for subsequent factor analysis.
 
 ```{r fig.width=6, fig.height=5}
 metadata <- readRDS(paste0(wkdir, meta_file))
 annotated_gene_exp <-
-  readRDS(paste0(wkdir, "processed_data/BRCA_Merge_rnaseqv2_RSEM_w_somatic_mutations.rds"))
-filtered_gene_exp <- log2(annotated_gene_exp[, metadata$id] + 0.1)
+  readRDS(paste0(wkdir, "processed_data/BRCA_Merge_rnaseq_log2_cpm_TMM_w_somatic_mutations.rds"))
+filtered_gene_exp <- annotated_gene_exp[, metadata$id]
 gene_df <- data.frame(name = rownames(filtered_gene_exp),
                       mean = rowMeans(filtered_gene_exp),
                       var = apply(filtered_gene_exp, 1, var),
@@ -101,7 +101,7 @@ gene_df <- data.frame(name = rownames(filtered_gene_exp),
 ggplot(gene_df, aes(x = mean, y = var)) +
   geom_point(size = 0.5) +
   geom_density2d() +
-  labs(title = "RSEM-Normailzed log2 values",
+  labs(title = "TMM-Normailzed log2(CPM)",
        x = "Mean per gene", y = "Variance per gene")
 ```
 
@@ -110,7 +110,7 @@ Somatic mutation status of selected frequently mutated driver genes (TP53, CDH1,
 Mutations were classified into 2 types: missense mutations and loss of function (LOF) mutations.
 
 ```{r load meta data, fig.width=9}
-metadata <- readRDS(paste0(wkdir, meta_file))
+# metadata <- readRDS(paste0(wkdir, meta_file))
 all_KOs.G_mat <- metadata[, 14:23]
 KO_names <- colnames(all_KOs.G_mat)
 nmarkers <- ncol(all_KOs.G_mat)
@@ -120,7 +120,7 @@ num_per_marker <- t(data.frame(Mutation = names(num_per_marker),
                                Num_cells = num_per_marker,
                                row.names = NULL))
 print(knitr::kable(rbind(num_per_marker[, 1:5], num_per_marker[, 6:10]),
-                   caption = "Number of samples that harbor each type of mutation (out of all 700)") %>%
+                   caption = "Number of samples that harbor each type of mutation (out of all 573)") %>%
     kable_styling() %>% scroll_box(width = '100%'))
 ```
 
@@ -180,7 +180,7 @@ summ_pvalues(unlist(heatmap_matrix),
 ```{r fig.width=6, fig.height=5}
 qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
             xlab = "Beta PIP", ylab = "-log10(Association p-value)",
-            main = "20 factors x 10 conditions\n(red line at y=5, omiting 1 data point at y=31)") +
+            main = "20 factors x 10 conditions\n(red line at y=5, omiting 1 data point at y=26)") +
   geom_hline(yintercept = 5, color = "red", linetype = "dashed") +
   scale_y_continuous(limits = c(0, 20))
 ```
@@ -228,15 +228,14 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 
 ### Factors of interest
 
-4: angiogenesis; all kinds of cell & tissue development/migration; regulation of Wnt signaling pathway    
+4: connective tissue development; tissue migration; endothelial cell proliferation    
 5: activation of immune response    
-9: microtubule-based movement; synaptic vesicle cycle    
-11: DNA repair; (cell cycle)    
-13: mitotic cell cycle    
-14: blood vessel development; regulation of cell migration; endothelial & epithelial cell proliferation    
-17: activation of immune response   
-19: blood vessel development; endothelium development   
-20:  T cell activation; leukocyte cell-cell adhesion
+12: microtubule-based movement; synaptic vesicle cycle    
+14: blood vessel development; endothelial cell proliferation    
+16: activation of immune response   
+17: cell division, mitotic cell cycle   
+18: activation of immune response   
+20: blood vessel development; endothelium development
 
 ```{r fig.width=7, fig.height=5}
 plot_df <- data.frame(factor = 1:ncol(All_KOs.gibbs_PM$F_pm),
@@ -272,64 +271,11 @@ knitr::kable(rbind(signif_num.df[, 1:5], signif_num.df[, 6:10]),
 
 # Unguided Result
 
-In contrast to the guided version, here we provide no guidance ($G = \vec{0}$) to our sparse factor analysis model to serve as a comparison. 
-```{r G0_tb}
-G0.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "G0.gibbs_obj_k20.svd.PM.rds"))
-G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, all_KOs.G_mat, compute_pve = F)
-```
-
-## Factor ~ KO Beta PIP
-```{r fig.width=8, fig.height=1}
-beta_pip_matrix <- t(G0.gibbs_PM$Gamma_pm[-2, ])
-colnames(beta_pip_matrix) <- 1:ncol(beta_pip_matrix)
-rownames(beta_pip_matrix) <- "G0"
-Heatmap(beta_pip_matrix,
-        name = "Beta PIP", col = pip_col_fun,column_title = "Factors",
-        cluster_rows = F, cluster_columns = F,
-        heatmap_legend_param = list(legend_direction = "horizontal"))
-```
-
-## Factor ~ KO Posterior Association
-```{r fig.width=10, fig.height=6}
-heatmap_matrix <- G0.gibbs_res_tb %>% select(starts_with("pval"))
-rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
-colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
-plot_pval_heatmap(heatmap_matrix,
-                  factor_annot = G0.gibbs_res_tb$pi,
-                  row_title = "GSFA Factors", column_title = "Somatic Mutations")
-G0.heatmap_matrix <- heatmap_matrix
-```
-
-```{r fig.width=10, fig.height=5}
-summ_pvalues(unlist(heatmap_matrix),
-             title_text = "GSFA Unguide All KOs (K=20, SVD)")
-```
-
-## Unguided vs Guided
-
-### Association p value comparison
-
-```{r fig.width=8}
-paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
-                               pval_vec_2 = unlist(G0.heatmap_matrix),
-                               name_1 = "Guided", name_2 = "Unguided")
-```
-
-### Correlation btw guided & unguided factors
-
-```{r}
-plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
-                           input_mat_2 = (G0.gibbs_PM$F_pm > 0.95) * 1,
-                           corr_type = "jaccard",
-                           name_1 = "Binarized Gene Loadings (Guided)",
-                           name_2 = "Binarized Gene Loadings (Unguided)")
-```
-
 # FLASH
 
 ```{r flash_tb}
 flash_obj <-
-  readRDS(paste0(wkdir, "flash_output/BRCA_RSEM_w_mutation.female_white_only.top10k_var_scaled.corrected.flashier_obj_k20.rds"))
+  readRDS(paste0(wkdir, "flash_output/BRCA_TMM_w_mutation.female_white_only.top10k_var_scaled.corrected.flashier_obj_k20.rds"))
 flash_res_tb <- make_flash_res_tb(flash_obj, all_KOs.G_mat)
 ```
 
@@ -356,38 +302,4 @@ summ_pvalues(unlist(heatmap_matrix),
 paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
                                pval_vec_2 = unlist(flash_heatmap),
                                name_1 = "Guided", name_2 = "FLASH")
-```
-
-We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.
-
-**In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value < 1e-4 with.**
-
-```{r}
-flash_KO_names <- apply(flash_heatmap, 1,
-                        function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
-flash_KO_names <- paste(1:nrow(flash_heatmap), flash_KO_names, sep = " - ")
-# flash_matching_order <- apply(corr_mat, 1, function(x){ which.max(abs(x)) })
-flash_matching_order <- c(1:7, 10, 9, 8, 11:14, 17, 20, 18, 12, 10, 5)
-```
-
-```{r fig.width=9, fig.height=7}
-Z_pm.flash <- flash_obj$loadings.pm[[1]][, flash_matching_order]
-colnames(Z_pm.flash) <- flash_KO_names[flash_matching_order]
-Z_pm.gsfa <- All_KOs.gibbs_PM$Z_pm
-colnames(Z_pm.gsfa) <- gsfa_KO_names
-plot_pairwise.corr_heatmap(input_mat_1 = Z_pm.gsfa,
-                           input_mat_2 = Z_pm.flash,
-                           name_1 = "GSFA Factors (Z_pm)", name_2 = "FLASH Factors")
-```
-
-```{r fig.width=9, fig.height=7}
-F_pm.flash <- flash_obj$loadings.lfsr[[2]][, flash_matching_order]
-colnames(F_pm.flash) <- flash_KO_names[flash_matching_order]
-F_pm.gsfa <- All_KOs.gibbs_PM$F_pm
-colnames(F_pm.gsfa) <- gsfa_KO_names
-plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
-                           input_mat_2 = F_pm.flash < 0.05,
-                           name_1 = "GSFA Binarized Gene Loadings (F_pm > 0.95)",
-                           name_2 = "FLASH Binarized Gene Loadings (LFSR < 0.05)",
-                           corr_type = "jaccard")
 ```
