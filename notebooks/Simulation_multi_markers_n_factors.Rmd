@@ -139,7 +139,7 @@ cat(cutoffs)
 cat("\n")
 ```
 
-## \pi = 0.1
+## $\pi$ = 0.1
 ```{r}
 save_suffix <- "K_10.M_5.beta_0.2_to_1.pi_0.1"
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
@@ -160,7 +160,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
                         marker_levels, sub_text)
 ```
 
-## \pi = 0.2
+## $\pi$ = 0.2
 ```{r}
 save_suffix <- "K_10.M_5.beta_0.2_to_1.pi_0.2"
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
@@ -180,7 +180,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
                         marker_levels, sub_text)
 ```
 
-## \pi = 0.5
+## $\pi$ = 0.5
 ```{r}
 save_suffix <- "K_10.M_5.beta_0.2_to_1.pi_0.5"
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
@@ -200,7 +200,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
                         marker_levels, sub_text)
 ```
 
-## \pi = 0.8
+## $\pi$ = 0.8
 ```{r}
 save_suffix <- "K_10.M_5.beta_0.2_to_1.pi_0.8"
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
