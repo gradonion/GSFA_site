@@ -39,6 +39,10 @@ Both $W$ and $\beta$ have spike-and-slab priors.
 
 Gibbs sampling is used to infer the model parameters from data.
 
+## Simulations
+
+* [Multiple factors and guides](Simulation_multi_markers_n_factors.html);
+
 ## Applications
 
 We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.
