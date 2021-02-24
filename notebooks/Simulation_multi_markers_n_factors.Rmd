@@ -151,13 +151,22 @@ plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
                       ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
 ```
 
-```{r fig.width=12}
+```{r fig.width=12, eval=FALSE, include=FALSE}
 marker_levels <- c(0.2, 0.4, 0.6, 0.8, 1)
 sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
                    ", \u03B2s=0.2, 0.4, 0.6, 0.8, 1)")
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
                         "GSFA LFSR<0.05", "t-test FDR<0.05",
                         marker_levels, sub_text)
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
 ```
 
 ## $\pi$ = 0.2
@@ -171,13 +180,22 @@ plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
                       ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
 ```
 
-```{r fig.width=12}
+```{r fig.width=12, eval=FALSE, include=FALSE}
 marker_levels <- c(0.2, 0.4, 0.6, 0.8, 1)
 sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
                    ", \u03B2s=0.2, 0.4, 0.6, 0.8, 1)")
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
                         "GSFA LFSR<0.05", "t-test FDR<0.05",
                         marker_levels, sub_text)
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
 ```
 
 ## $\pi$ = 0.5
@@ -191,13 +209,22 @@ plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
                       ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
 ```
 
-```{r fig.width=12}
+```{r fig.width=12, eval=FALSE, include=FALSE}
 marker_levels <- c(0.2, 0.4, 0.6, 0.8, 1)
 sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
                    ", \u03B2s=0.2, 0.4, 0.6, 0.8, 1)")
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
                         "GSFA LFSR<0.05", "t-test FDR<0.05",
                         marker_levels, sub_text)
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
 ```
 
 ## $\pi$ = 0.8
@@ -211,11 +238,20 @@ plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
                       ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
 ```
 
-```{r fig.width=12}
+```{r fig.width=12, eval=FALSE, include=FALSE}
 marker_levels <- c(0.2, 0.4, 0.6, 0.8, 1)
-sub_text <- paste0("(pi=", PR_list$params$pi_true[1],
+sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
                    ", \u03B2s=0.2, 0.4, 0.6, 0.8, 1)")
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
                         "GSFA LFSR<0.05", "t-test FDR<0.05",
                         marker_levels, sub_text)
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
 ```
