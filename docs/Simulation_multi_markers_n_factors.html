@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-02-23" />
+<meta name="date" content="2021-02-24" />
 
 <title>Evaluation of GSFA on Simulated Data</title>
 
@@ -297,7 +297,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Evaluation of GSFA on Simulated Data</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-02-23</em></h4>
+<h4 class="date"><em>2021-02-24</em></h4>
 
 </div>
 
@@ -325,7 +325,8 @@ div.tocify {
 </div>
 <div id="estimation-of-factors-zs" class="section level1">
 <h1><span class="header-section-number">3</span> Estimation of Factors (<span class="math inline">\(Z\)</span>s)</h1>
-<p>We would like to evaluate how different our estimation of the factor matrix, <span class="math inline">\(\hat{Z}\)</span>, is from the true value <span class="math inline">\(Z\)</span>. Since the order of latent factors is non-identifiable, we focus on <span class="math inline">\(ZZ^T\)</span> and evaluate its estimation error using <span class="math inline">\(||\hat{Z}\hat{Z}^T - ZZ^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||_F\)</span> is the Frobenius norm, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
+<p>We would like to evaluate how different our estimation of the factor matrix, <span class="math inline">\(\hat{Z}\)</span>, is from the true value <span class="math inline">\(Z\)</span>.<br />
+Since the order of latent factors is non-identifiable, we focus on <span class="math inline">\(ZZ^T\)</span> and evaluate its estimation error using <span class="math inline">\(||\hat{Z}\hat{Z}^T - ZZ^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||_F\)</span> is the Frobenius norm, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
 <p><img src="Simulation_multi_markers_n_factors_files/figure-html/plot_rmse_ZZT-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="gene-detection" class="section level1">
@@ -347,23 +348,27 @@ div.tocify {
 </div>
 <div id="pi-0.1" class="section level2">
 <h2><span class="header-section-number">4.2</span> <span class="math inline">\(\pi\)</span> = 0.1</h2>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-10-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.2" class="section level2">
 <h2><span class="header-section-number">4.3</span> <span class="math inline">\(\pi\)</span> = 0.2</h2>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-17-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-19-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-20-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.5" class="section level2">
 <h2><span class="header-section-number">4.4</span> <span class="math inline">\(\pi\)</span> = 0.5</h2>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-18-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-21-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-23-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-24-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.8" class="section level2">
 <h2><span class="header-section-number">4.5</span> <span class="math inline">\(\pi\)</span> = 0.8</h2>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-19-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-25-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-27-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors_files/figure-html/unnamed-chunk-28-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 
