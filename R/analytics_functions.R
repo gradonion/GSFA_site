@@ -3,7 +3,7 @@ ZZT_mean_diff <- function(A_mat, B_mat){
     stop("Please make sure the two matrices have the same number of rows (samples).")
   }
   zzt_diff <- A_mat %*% t(A_mat) - B_mat %*% t(B_mat)
-  return(sum(abs(zzt_diff)) / nrow(zzt_diff)^2)
+  return(sqrt(sum(zzt_diff^2)) / nrow(zzt_diff))
 }
 
 factor_matrix_regression <- function(factors, G_mat){
@@ -241,7 +241,8 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
     enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
     signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
       filter(FoldChange >= FC_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size)
+      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
+      arrange(-FoldChange)
     signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
     signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
     signif_tb$qvalue <- format(signif_tb$qvalue, digits = 3)

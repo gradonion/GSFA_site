@@ -181,9 +181,9 @@ plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
 
 ## Alternative Initializations and Chain Convergence
 
-Other than initializing GSFA using truncated SVD, we also tried 2 runs with random initialization.
+Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 rand_1.gibbs_PM <- 
   readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_01.restart.PM.rds"))
 rand_2.gibbs_PM <-
@@ -192,7 +192,7 @@ rand_2.gibbs_PM <-
 
 ### Association results for 2 randomly initialized GSFA runs
 
-```{r rand_01, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+```{r rand_01, fig.width=10, fig.height=5}
 rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 # rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
 heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
@@ -204,7 +204,7 @@ summ_pvalues(unlist(heatmap_matrix),
              title_text = "GSFA All KOs (K=20, Random 1)")
 ```
 
-```{r rand_02, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+```{r rand_02, fig.width=10, fig.height=5}
 rand_2.gibbs_res_tb <- make_gibbs_res_tb(rand_2.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 # rand_2.gibbs_res_tb <- rand_2.gibbs_res_tb %>% arrange(-sum_var)
 heatmap_matrix <- rand_2.gibbs_res_tb %>% select(starts_with("pval"))
@@ -218,7 +218,7 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ### Chain mixing and convergence evaluation
 
-```{r show_R_hat_summary, eval=FALSE, include=FALSE}
+```{r show_R_hat_summary}
 converg_mat <-
   readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.beta_W_converg_mat.1k-2k.rds"))
 knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
@@ -227,9 +227,9 @@ knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
 
 ### Difference btw methods in factor estimation
 
-For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_1/N^2$, where $N$ is the number of rows (samples) in $Z$.
+For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_F/N$, where $||\cdot||$ is the Frobenius norm of a matrix, and $N$ is the number of rows (samples) in $Z$.
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 cat("Guided SVD vs Rand_01:",
     ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
 cat("\n\n")
@@ -353,13 +353,64 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
 
 # Gene Ontology Enrichment Analysis
 
-Target: Genes w/ non-zero loadings in each factor;    
+## `WebGestalt` GO Slim Over-Representation Analysis
+
+Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud: all 6213 genes used in factor analysis;    
-Statistical test: hypergeometric test.
+Statistical test: hypergeometric test;    
+GO category: Biological Process (non-redundant).
 
+```{r}
+gsfa.Web_ORA <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_ORA.cutoff_0.95.rds"))
+```
+
+```{r}
+enrich_list <- gsfa.Web_ORA
+signif_num <- rep(0, length(enrich_list))
+for (i in 1:length(enrich_list)){
+  if (is.null(enrich_list[[i]])){ next }
+  signif_tb <- enrich_list[[i]] %>% filter(enrichmentRatio >= 2)
+  if (nrow(signif_tb) == 0){ next }
+  signif_tb <- signif_tb %>% mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
+    mutate(GO_term = paste0("[", geneSet, "](", link, ")")) %>%
+    select(GO_term, description, enrichmentRatio, pValue, FDR, GeneRatio) %>%
+    arrange(-enrichmentRatio)
+  signif_num[i] <- nrow(signif_tb)
+  caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")
+  print(kable(signif_tb, caption = caption_text) %>%
+              kable_styling() %>%
+              scroll_box(width = '100%', height = '500px'))
+  cat("\n")
+  cat("------------")
+  cat("\n")
+}
+
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Factors of interest
+
+10: (nerve development, cell fate commitment);   
+11: chromatin remodeling, DNA recombination;   
+**13**: regulation of metal ion transport, axon development, ...;   
+**15**: neuron migration, response to metal ion, CNS neuron development, ...;   
+**18**: CNS neuron differentiation, xxx tissue development, ...;   
+19: axon development;   
+**20**: nerve development, neurotransmitter transport, ....
+
+## `clusterprofiler` GO Over-Representation Analysis
+
+Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud: all 6213 genes used in factor analysis;    
+Statistical test: hypergeometric test;    
 GO category: Biological Process.
-
-## PIP cutoff at 0.95
 
 GO terms that passed over-representation test fold change $\geq$ 2 and q value $<$ 0.05:
 
@@ -382,4 +433,4 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 13: ion transport, axon development;   
 15: cell morphogenesis, CNS development;   
 18: neuron development, cell morphogenesis;   
-20: CNS, brain development;
+20: CNS, brain development.
