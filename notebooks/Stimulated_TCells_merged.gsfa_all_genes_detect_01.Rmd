@@ -1,0 +1,478 @@
+---
+title: "Guided Factor Analysis on Stimulated T Cell CROP-seq Data"
+subtitle: "-- 2 donors pooled, batch effect and 3 other covariates corrected"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(ggrepel)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
+gsfa_folder <- "gsfa_output_detect_01/stimulated_merged/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# Single cell expression data
+
+Source:   
+[Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/), GEO accession: GSE119450.
+
+Perturbations:    
+CRISPR knock-out of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Guide conditions were defined on the target gene level; target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.    
+Guide RNAs were introduced into T cells through a novel procedure called sgRNA lentiviral infection with Cas9 protein electroporation (SLICE).
+
+Cells:    
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.   
+Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout; . Quality control resulted in 13983 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 6062 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, "processed_data/metadata.stimulated_merged.rds"))
+all_KOs.G_mat <- metadata[, 4:24]
+KO_names <- colnames(all_KOs.G_mat)
+```
+
+# Guided results
+
+Here, our "guide", $G$ matrix, consists of 21 types (20 genes + negative control) of KO conditions across cells.
+
+```{r}
+if (guide == "no_NTC"){
+  KO_names <- KO_names[KO_names != "NonTarget"]
+  all_KOs.G_mat <- all_KOs.G_mat[, KO_names]
+}
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+In each case, Gibbs sampling was conducted for 2000 iterations, and the posterior mean estimates were averaged over the last 500 iterations.
+
+## SVD Initialization
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Local False Sign Rate (LFSR)
+
+For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, 0.05,
+                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+### Factor ~ KO Beta PIP
+```{r fig.width=8}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
+rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+        row_title = "Factors",  column_title = "KO Perturbations",
+        cluster_rows = F, cluster_columns = F)
+```
+
+### Factor ~ KO Posterior Association
+```{r fig.width=10}
+heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = All_KOs.gibbs_res_tb$pi)
+guided.heatmap_matrix <- heatmap_matrix
+gsfa_KO_names <- apply(guided.heatmap_matrix, 1,
+                       function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
+gsfa_KO_names <- paste(1:nrow(guided.heatmap_matrix), gsfa_KO_names, sep = " - ")
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA All KOs (K=20, SVD)")
+```
+
+### Beta PIP vs P-Value
+```{r fig.width=12, fig.height=5}
+p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "20 factors x 15 conditions")
+p2 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            ylim = c(0, 10),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "Y-axis truncated at 10")
+grid.arrange(p1, p2, nrow = 1)
+```
+
+### Correlation btw Factors
+
+```{r eval=FALSE, include=FALSE}
+plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
+```
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
+                           corr_type = "jaccard",
+                           name_1 = "Binarized Gene Loadings (F.pm > 0.95)")
+```
+
+## Alternative Initializations and Chain Convergence
+
+Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.
+
+```{r eval=FALSE, include=FALSE}
+rand_1.gibbs_PM <- 
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_01.restart.PM.rds"))
+rand_2.gibbs_PM <-
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_02.restart.PM.rds"))
+```
+
+### Association results for 2 randomly initialized GSFA runs
+
+```{r rand_01, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+# rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_1.gibbs_res_tb$index
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+# plot_pval_heatmap(heatmap_matrix,
+#                   factor_annot = rand_1.gibbs_res_tb$pi)
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA All KOs (K=20, Random 1)")
+```
+
+```{r rand_02, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+rand_2.gibbs_res_tb <- make_gibbs_res_tb(rand_2.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+# rand_2.gibbs_res_tb <- rand_2.gibbs_res_tb %>% arrange(-sum_var)
+heatmap_matrix <- rand_2.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- rand_2.gibbs_res_tb$index
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+# plot_pval_heatmap(heatmap_matrix,
+#                   factor_annot = rand_2.gibbs_res_tb$pi)
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA All KOs (K=20, Random 2)")
+```
+
+### Chain mixing and convergence evaluation
+
+```{r show_R_hat_summary, eval=FALSE, include=FALSE}
+converg_mat <-
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.beta_W_converg_mat.1k-2k.rds"))
+knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Difference btw methods in factor estimation
+
+For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_F/N$, where $||\cdot||$ is the Frobenius norm of a matrix, and $N$ is the number of rows (samples) in $Z$.
+
+```{r, eval=FALSE, include=FALSE}
+cat("Guided SVD vs Rand_01:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Guided SVD vs Rand_02:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Rand_01 vs Rand_02:",
+    ZZT_mean_diff(rand_1.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+# cat("Guided SVD vs Unguided:",
+#     ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, G0.gibbs_PM$Z_pm) %>% signif(digits = 3))
+# cat("\n\n")
+```
+
+# Unguided Result
+
+In contrast to the guided version, here we provide no guidance ($G = \vec{0}$) to our sparse factor analysis model to serve as a comparison. 
+```{r G0_tb}
+G0.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "G0.gibbs_obj_k20.svd.restart.PM.rds"))
+G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+## Factor ~ KO Beta PIP
+```{r fig.width=8, fig.height=1}
+beta_pip_matrix <- t(G0.gibbs_PM$Gamma_pm[-2, ])
+colnames(beta_pip_matrix) <- 1:ncol(beta_pip_matrix)
+rownames(beta_pip_matrix) <- "G0"
+Heatmap(beta_pip_matrix,
+        name = "Beta PIP", col = pip_col_fun,column_title = "Factors",
+        cluster_rows = F, cluster_columns = F,
+        heatmap_legend_param = list(legend_direction = "horizontal"))
+```
+
+## Factor ~ KO Posterior Association
+```{r fig.width=10}
+heatmap_matrix <- G0.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = G0.gibbs_res_tb$pi)
+G0.heatmap_matrix <- heatmap_matrix
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA Unguide All KOs (K=20, SVD)")
+```
+
+## Unguided vs Guided
+
+```{r fig.width=12}
+paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
+                               pval_vec_2 = unlist(G0.heatmap_matrix),
+                               name_1 = "Guided", name_2 = "Unguided", zoom_in_y = 25)
+```
+
+# FLASH
+
+```{r flash_tb}
+flash_obj <- readRDS(paste0(wkdir, "flash_output/stimulated_merged.detect_01.corrected.flashier_obj_k20.rds"))
+flash_res_tb <- make_flash_res_tb(flash_obj, all_KOs.G_mat)
+```
+
+## Factor ~ KO Posterior Association
+
+```{r FLASH pval heatmap, fig.width=10}
+heatmap_matrix <- flash_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix,
+                  factor_annot = flash_res_tb$pi1)
+heatmap_matrix[heatmap_matrix == 0] <- 1e-100
+flash_heatmap <- heatmap_matrix
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "FLASH All KOs (K=20, SVD)")
+```
+
+## FLASH vs GSFA
+
+```{r fig.width=12}
+paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
+                               pval_vec_2 = unlist(flash_heatmap),
+                               name_1 = "Guided", name_2 = "FLASH",
+                               zoom_in_y = 25)
+```
+
+We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.
+
+**In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value < 1e-4 with.**
+
+```{r include=FALSE}
+flash_KO_names <- apply(flash_heatmap, 1,
+                        function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
+flash_KO_names <- paste(1:nrow(flash_heatmap), flash_KO_names, sep = " - ")
+
+Z_pm.gsfa <- All_KOs.gibbs_PM$Z_pm
+colnames(Z_pm.gsfa) <- gsfa_KO_names
+corr_mat <- plot_pairwise.corr_heatmap(input_mat_1 = Z_pm.gsfa,
+                           input_mat_2 = flash_obj$loadings.pm[[1]],
+                           name_1 = "GSFA Factors (Z_pm)", name_2 = "FLASH Factors",
+                           return_corr = T)
+
+flash_matching_order <- apply(corr_mat, 1, function(x){ which.max(abs(x)) })
+names(flash_matching_order) <- NULL
+# flash_matching_order <- c(1, 2, 3, 4, 6, 6, 7, 8, 9, 10, 14, 12, 13, 11, 15, 18, 17, 20, 16, 9)
+```
+
+```{r fig.width=9, fig.height=7}
+Z_pm.flash <- flash_obj$loadings.pm[[1]][, flash_matching_order]
+colnames(Z_pm.flash) <- flash_KO_names[flash_matching_order]
+plot_pairwise.corr_heatmap(input_mat_1 = Z_pm.gsfa,
+                           input_mat_2 = Z_pm.flash,
+                           name_1 = "GSFA Factors (Z_pm)", name_2 = "FLASH Factors")
+```
+
+```{r fig.width=9, fig.height=7}
+F_pm.flash <- flash_obj$loadings.lfsr[[2]][, flash_matching_order]
+colnames(F_pm.flash) <- flash_KO_names[flash_matching_order]
+F_pm.gsfa <- All_KOs.gibbs_PM$F_pm
+colnames(F_pm.gsfa) <- gsfa_KO_names
+plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
+                           input_mat_2 = F_pm.flash < 0.05,
+                           name_1 = "GSFA Binarized Gene Loadings (F_pm > 0.95)",
+                           name_2 = "FLASH Binarized Gene Loadings (LFSR < 0.05)",
+                           corr_type = "jaccard")
+```
+
+# Gene Ontology Enrichment Analysis
+
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6062 genes used in factor analysis;    
+Statistical test: hypergeometric test;    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
+## `WebGestalt` GO Slim Over-Representation Analysis
+    
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+```{r go_bp}
+gsfa.Web_ORA_go_bp <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_go_bp.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp, enrich_type = "GO terms")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Factors of interest
+
+7: immune response, interleukin production, response to chemokine, cell killing   
+8: cell killing, leukocyte migration    
+9: response to chemokine, interleukin production, leukocyte migration, cell killing, T cell activation    
+11: cell chemotaxis, interleukin production, leukocyte migration, T cell activation   
+12: DNA conformation change, DNA replication    
+13: interleukin production, cell killing, cell chemotaxis, leukocyte migration    
+14: meiotic cell cycle, cytokinesis, chromosome segregation, cell cycle G2/M phase transition   
+16: (cell killing)    
+17: cell killing, interleukin production, T cell activation, leukocyte proliferation, cell-cell adhesion, leukocyte migration, adaptive immune response, ......   
+18: cell chemotaxis, leukocyte migration, signal transduction by p53 class mediator   
+19: interleukin production, leukocyte migration, leukocyte proliferation, cell killing, B cell activation   
+20: cell chemotaxis, cell killing, leukocyte migration, leukocyte proliferation, T cell activation
+
+**From the reference study:**
+
+Targeting CD5, RASA2, SOCS1, and CBLB promoted programs that are characterized by the induction of markers of activation states (e.g. IL2RA, TNFRSF18/GITR), cell cycle genes (e.g. MKI67, UBE2S, CENPF and TOP2A), and effector molecules (e.g GZMB).
+
+**Associated factors in GSFA:**
+
+CD5: 7, 9   
+RASA2: 11, 13, 19, 20   
+SOCS1: 11   
+CBLB: 7, 9, 11
+
+**From the reference study:**
+
+Targeting CD3D or LCP2 inhibited the cluster 10 activation program and promoted programs characterized by expression of resting state markers such as IL7R and CCR7.
+
+**Associated factors in GSFA**
+
+CD3D: 7, 13    
+LCP2: 2, 4, 7, 13
+
+```{r fig.width=7, fig.height=5}
+plot_df <- data.frame(factor = 1:ncol(All_KOs.gibbs_PM$F_pm),
+                      num_assoc = rowSums(guided.heatmap_matrix < 1e-5),
+                      density = colMeans(All_KOs.gibbs_PM$F_pm > 0.95),
+                      num_GO_terms = signif_num)
+ggplot(plot_df, aes(x = density, y = num_GO_terms, label = factor)) +
+  geom_point(color = "red") +
+  geom_text_repel() +
+  labs(x = "Factor density at PIP > 0.95",
+       y = "Number of enriched GO BP terms")
+```
+
+## `WebGestalt` KEGG Pathway Over-Representation Analysis
+
+Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud: all 6062 genes used in factor analysis;    
+Statistical test: hypergeometric test;    
+Gene sets: The [KEGG pathway database](http://www.kegg.jp/).
+
+```{r kegg}
+gsfa.Web_ORA_kegg <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_pathway_KEGG.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_kegg, enrich_type = "KEGG pathways")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+## `WebGestalt` Wikipathway Over-Representation Analysis
+
+Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud: all 6062 genes used in factor analysis;    
+Statistical test: hypergeometric test;    
+Gene sets: The [Wikipathway database](http://www.wikipathway.org/).
+
+```{r wiki}
+gsfa.Web_ORA_wiki <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_pathway_Wikipathway.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_wiki, enrich_type = "Wikipathways")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+

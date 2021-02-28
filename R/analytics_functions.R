@@ -133,18 +133,6 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
   draw(ht, annotation_legend_list = lgd_list)
 }
 
-source("/project2/xinhe/yifan/GTEx/scripts/qqplot_uniform.R")
-summ_pvalues <- function(pvalues, title_text = NULL){
-  requireNamespace("gridExtra", quietly = TRUE)
-  # distribution histogram
-  plot1 <- histogram(pvalues, col = 'grey', type = "count",
-                     xlim = c(0, 1), breaks = 50,
-                     main = "p value distribution", xlab = "P value", ylab = "Count")
-  # uniform qq-plot
-  plot2 <- qqunif.plot(pvalues, main = "p value qq-plot")
-  gridExtra::grid.arrange(plot1, plot2, ncol = 2, top = title_text)
-}
-
 plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
                                        name_1 = NULL, name_2 = NULL,
                                        corr_type = "pearson",
@@ -181,7 +169,7 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
   } else {
     colnames(corr_mat) <- colnames(input_mat_2)
   }
-
+  
   if (corr_type == "pearson"){
     ht <- Heatmap(corr_mat,
                   col = circlize::colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
@@ -206,64 +194,16 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
   }
 }
 
-plot_PIP_hist_grid <- function(PIP_mat, cutoff = 0.5){
-  plot.lst <- list()
-  for (i in 1:ncol(PIP_mat)){
-    pi1 <- mean(PIP_mat[, i] > cutoff)
-    plot_df <- data.frame(prob = PIP_mat[, i])
-    p <- ggplot(plot_df, aes_string("prob")) +
-      geom_histogram(bins = 50) +
-      geom_vline(xintercept = cutoff, color = "red") +
-      labs(title = paste0("Factor ", i, ": ", signif(pi1, digits = 2))) +
-      theme(axis.title = element_blank())
-    plot.lst[[i]] <- p
-  }
-  args <- c(plot.lst, list(nrow = 4,
-                           left = "Count", bottom = "PIP"))
-  do.call(grid.arrange, args)
-}
-
-print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
-                            type = "per_factor"){
-  signif_num <- rep(0, length(enrich_list))
-  for (i in 1:length(enrich_list)){
-    enrich_df <- enrich_list[[i]]@result
-    tg_ratio <- enrich_df %>% pull(GeneRatio)
-    tg_mat <- do.call(rbind, strsplit(tg_ratio, split = "/"))
-    enrich_df$tg_1 <- as.numeric(tg_mat[, 1])
-    enrich_df$tg_2 <- as.numeric(tg_mat[, 2])
-    
-    bg_ratio <- enrich_df %>% pull(BgRatio)
-    bg_mat <- do.call(rbind, strsplit(bg_ratio, split = "/"))
-    enrich_df$bg_1 <- as.numeric(bg_mat[, 1])
-    enrich_df$bg_2 <- as.numeric(bg_mat[, 2])
-    
-    enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
-    signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
-      filter(FoldChange >= FC_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
-      arrange(-FoldChange)
-    signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
-    signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
-    signif_tb$qvalue <- format(signif_tb$qvalue, digits = 3)
-    
-    signif_num[i] <- nrow(signif_tb)
-    if (nrow(signif_tb) > 0){
-      if (type == "per_factor"){
-        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")
-      }
-      if (type == "per_marker"){
-        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant GO terms")
-      }
-      print(kable(signif_tb, caption = caption_text) %>%
-              kable_styling() %>%
-              scroll_box(width = '100%', height = '500px'))
-      cat("\n")
-      cat("------------")
-      cat("\n")
-    }
-  }
-  return(signif_num)
+source("/project2/xinhe/yifan/GTEx/scripts/qqplot_uniform.R")
+summ_pvalues <- function(pvalues, title_text = NULL){
+  requireNamespace("gridExtra", quietly = TRUE)
+  # distribution histogram
+  plot1 <- histogram(pvalues, col = 'grey', type = "count",
+                     xlim = c(0, 1), breaks = 50,
+                     main = "p value distribution", xlab = "P value", ylab = "Count")
+  # uniform qq-plot
+  plot2 <- qqunif.plot(pvalues, main = "p value qq-plot")
+  gridExtra::grid.arrange(plot1, plot2, ncol = 2, top = title_text)
 }
 
 permute_pval <- function(Z_pm, G_mat, num_perm = 1000){
@@ -344,4 +284,96 @@ paired_pval_ranked_scatterplot <- function(pval_vec_1, pval_vec_2,
   } else {
     print(p1)
   }
+}
+
+plot_PIP_hist_grid <- function(PIP_mat, cutoff = 0.5){
+  plot.lst <- list()
+  for (i in 1:ncol(PIP_mat)){
+    pi1 <- mean(PIP_mat[, i] > cutoff)
+    plot_df <- data.frame(prob = PIP_mat[, i])
+    p <- ggplot(plot_df, aes_string("prob")) +
+      geom_histogram(bins = 50) +
+      geom_vline(xintercept = cutoff, color = "red") +
+      labs(title = paste0("Factor ", i, ": ", signif(pi1, digits = 2))) +
+      theme(axis.title = element_blank())
+    plot.lst[[i]] <- p
+  }
+  args <- c(plot.lst, list(nrow = 4,
+                           left = "Count", bottom = "PIP"))
+  do.call(grid.arrange, args)
+}
+
+print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
+                            type = "per_factor"){
+  signif_num <- rep(0, length(enrich_list))
+  for (i in 1:length(enrich_list)){
+    enrich_df <- enrich_list[[i]]@result
+    tg_ratio <- enrich_df %>% pull(GeneRatio)
+    tg_mat <- do.call(rbind, strsplit(tg_ratio, split = "/"))
+    enrich_df$tg_1 <- as.numeric(tg_mat[, 1])
+    enrich_df$tg_2 <- as.numeric(tg_mat[, 2])
+    
+    bg_ratio <- enrich_df %>% pull(BgRatio)
+    bg_mat <- do.call(rbind, strsplit(bg_ratio, split = "/"))
+    enrich_df$bg_1 <- as.numeric(bg_mat[, 1])
+    enrich_df$bg_2 <- as.numeric(bg_mat[, 2])
+    
+    enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
+    signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
+      filter(FoldChange >= FC_cutoff) %>%
+      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
+      arrange(-FoldChange)
+    signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
+    signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
+    signif_tb$qvalue <- format(signif_tb$qvalue, digits = 3)
+    
+    signif_num[i] <- nrow(signif_tb)
+    if (nrow(signif_tb) > 0){
+      if (type == "per_factor"){
+        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")
+      }
+      if (type == "per_marker"){
+        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant GO terms")
+      }
+      print(kable(signif_tb, caption = caption_text) %>%
+              kable_styling() %>%
+              scroll_box(width = '100%', height = '500px'))
+      cat("\n")
+      cat("------------")
+      cat("\n")
+    }
+  }
+  return(signif_num)
+}
+
+print_enrich_ORA_tb <- function(enrich_list, fdr_cutoff = 0.05, FC_cutoff = 2,
+                                enrich_type = "GO terms", list_type = "per_factor"){
+  
+  signif_num <- rep(0, length(enrich_list))
+  for (i in 1:length(enrich_list)){
+    if (is.null(enrich_list[[i]])){ next }
+    signif_tb <- enrich_list[[i]] %>%
+      filter(enrichmentRatio >= FC_cutoff, FDR <= fdr_cutoff)
+    if (nrow(signif_tb) == 0){ next }
+    signif_tb <- signif_tb %>%
+      mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
+      mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
+      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio) %>%
+      arrange(-enrichmentRatio)
+    signif_num[i] <- nrow(signif_tb)
+    
+    if (list_type == "per_factor"){
+      caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
+    }
+    if (list_type == "per_marker"){
+      caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
+    }
+    print(kable(signif_tb, caption = caption_text) %>%
+            kable_styling() %>%
+            scroll_box(width = '100%', height = '400px'))
+    cat("\n")
+    cat("------------")
+    cat("\n")
+  }
+  return(signif_num)
 }

@@ -47,6 +47,42 @@ Gibbs sampling is used to infer the model parameters from data.
 
 We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.
 
+### LUHMES CROP-seq Study
+
+#### Source and Reference
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+#### Cells
+Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)
+
+#### Perturbations
+CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+#### Analyses
+* [Data overview](LUHMES_overview.html);
+* [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
+* [GSFA, 3 confounding factors corrected, NTC condition included](LUHMES_merged.gsfa_all_markers_detect_01.html);
+* [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html).
+
+### Primary Human T Cell CROP-seq Study
+
+#### Source and Reference
+
+[Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/), GEO accession: GSE119450.
+
+#### Cells
+
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.
+
+#### Perturbations
+
+CRISPR **knock-out** of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.
+
+#### Analyses
+
+* Data overview;
+* [GSFA, stimulated T cells pooled over 2 donors, batch effect corrected](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html).
+
 ### MCF10A CROP-seq Study
 
 #### Source and Reference
@@ -65,23 +101,6 @@ guide RNA readout measured on the single-cell level.
 * [GSFA, NTC condition regressed out](MCF10A_gsfa_all_markers_detect_01_noNTC.html);
 * [Permutation result for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
 * [Gene discovery using LFSR, and comparison with DGE](MCF10A_lfsr.html).
-
-### LUHMES CROP-seq Study
-
-#### Source and Reference
-[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
-
-#### Cells
-Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)
-
-#### Perturbations
-CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
-
-#### Analyses
-* [Data overview](LUHMES_overview.html);
-* [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
-* [GSFA, 3 confounding factors corrected, NTC condition included](LUHMES_merged.gsfa_all_markers_detect_01.html);
-* [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html).
 
 ### TCGA BRCA Somatic Mutation Study
 

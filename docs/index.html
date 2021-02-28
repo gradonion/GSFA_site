@@ -340,22 +340,68 @@ div.tocify {
 <div id="applications" class="section level2">
 <h2>Applications</h2>
 <p>We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.</p>
-<div id="mcf10a-crop-seq-study" class="section level3">
-<h3>MCF10A CROP-seq Study</h3>
+<div id="luhmes-crop-seq-study" class="section level3">
+<h3>LUHMES CROP-seq Study</h3>
 <div id="source-and-reference" class="section level4">
 <h4>Source and Reference</h4>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
+<p><a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.</p>
 </div>
 <div id="cells" class="section level4">
 <h4>Cells</h4>
-<p>MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;</p>
+<p>Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)</p>
 </div>
 <div id="perturbations" class="section level4">
+<h4>Perturbations</h4>
+<p>CRISPR <strong>knock-down</strong> of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.</p>
+</div>
+<div id="analyses" class="section level4">
+<h4>Analyses</h4>
+<ul>
+<li><a href="LUHMES_overview.html">Data overview</a>;</li>
+<li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, 4 confounding factors corrected, NTC condition included</a>;</li>
+<li><a href="LUHMES_merged.gsfa_all_markers_detect_01.html">GSFA, 3 confounding factors corrected, NTC condition included</a>;</li>
+<li><a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
+</ul>
+</div>
+</div>
+<div id="primary-human-t-cell-crop-seq-study" class="section level3">
+<h3>Primary Human T Cell CROP-seq Study</h3>
+<div id="source-and-reference-1" class="section level4">
+<h4>Source and Reference</h4>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/">Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function</a>, GEO accession: GSE119450.</p>
+</div>
+<div id="cells-1" class="section level4">
+<h4>Cells</h4>
+<p>Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.</p>
+</div>
+<div id="perturbations-1" class="section level4">
+<h4>Perturbations</h4>
+<p>CRISPR <strong>knock-out</strong> of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.</p>
+</div>
+<div id="analyses-1" class="section level4">
+<h4>Analyses</h4>
+<ul>
+<li>Data overview;</li>
+<li><a href="Stimulated_TCells_merged.gsfa_all_genes_detect_01.html">GSFA, stimulated T cells pooled over 2 donors, batch effect corrected</a>.</li>
+</ul>
+</div>
+</div>
+<div id="mcf10a-crop-seq-study" class="section level3">
+<h3>MCF10A CROP-seq Study</h3>
+<div id="source-and-reference-2" class="section level4">
+<h4>Source and Reference</h4>
+<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
+</div>
+<div id="cells-2" class="section level4">
+<h4>Cells</h4>
+<p>MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;</p>
+</div>
+<div id="perturbations-2" class="section level4">
 <h4>Perturbations</h4>
 <p>CRISPR <strong>knock-out</strong> of 29 tumor-suppressor genes (TP53, …), 1 non-targeting control;<br />
 guide RNA readout measured on the single-cell level.</p>
 </div>
-<div id="analyses" class="section level4">
+<div id="analyses-2" class="section level4">
 <h4>Analyses</h4>
 <ul>
 <li><a href="MCF10A_overview.html">Data overview</a>;</li>
@@ -363,30 +409,6 @@ guide RNA readout measured on the single-cell level.</p>
 <li><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</li>
 <li><a href="MCF10A_permutation_detect_01_singleton.html">Permutation result for detection 10%, singleton</a>;</li>
 <li><a href="MCF10A_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
-</ul>
-</div>
-</div>
-<div id="luhmes-crop-seq-study" class="section level3">
-<h3>LUHMES CROP-seq Study</h3>
-<div id="source-and-reference-1" class="section level4">
-<h4>Source and Reference</h4>
-<p><a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.</p>
-</div>
-<div id="cells-1" class="section level4">
-<h4>Cells</h4>
-<p>Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)</p>
-</div>
-<div id="perturbations-1" class="section level4">
-<h4>Perturbations</h4>
-<p>CRISPR <strong>knock-down</strong> of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.</p>
-</div>
-<div id="analyses-1" class="section level4">
-<h4>Analyses</h4>
-<ul>
-<li><a href="LUHMES_overview.html">Data overview</a>;</li>
-<li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, 4 confounding factors corrected, NTC condition included</a>;</li>
-<li><a href="LUHMES_merged.gsfa_all_markers_detect_01.html">GSFA, 3 confounding factors corrected, NTC condition included</a>;</li>
-<li><a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
 </ul>
 </div>
 </div>
@@ -415,7 +437,7 @@ guide RNA readout measured on the single-cell level.</p>
 <h4>Perturbation</h4>
 <p>Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).</p>
 </div>
-<div id="analyses-2" class="section level4">
+<div id="analyses-3" class="section level4">
 <h4>Analyses</h4>
 <ul>
 <li><a href="TCGA_BRCA_somatic_overview.html">Data overview</a>;</li>
