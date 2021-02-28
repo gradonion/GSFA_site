@@ -361,7 +361,7 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
                            corr_type = "jaccard")
 ```
 
-# Gene Ontology Enrichment Analysis
+# Gene Set Enrichment Analysis
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6062 genes used in factor analysis;    

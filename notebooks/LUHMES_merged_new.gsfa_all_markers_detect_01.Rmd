@@ -351,14 +351,14 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
                            corr_type = "jaccard")
 ```
 
-# Gene Ontology Enrichment Analysis
+# Gene Set Enrichment Analysis
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6213 genes used in factor analysis;    
 Statistical test: hypergeometric test;    
 Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
 
-## `WebGestalt` GO Slim Over-Representation Analysis
+## GO Slim Over-Representation Analysis
 
 Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
 
@@ -385,7 +385,7 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 19: axon development;   
 **20**: nerve development, neurotransmitter transport, ....
 
-## `WebGestalt` KEGG Pathway Over-Representation Analysis
+## KEGG Pathway Over-Representation Analysis
 
 Gene sets: The [KEGG pathway database](http://www.kegg.jp/).
 
@@ -403,7 +403,7 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
-## `WebGestalt` Wikipathway Over-Representation Analysis
+## Wikipathway Over-Representation Analysis
 
 Gene sets: The [Wikipathway database](http://www.wikipathway.org/).
 
