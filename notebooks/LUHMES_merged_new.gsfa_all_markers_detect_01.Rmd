@@ -353,40 +353,20 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
 
 # Gene Ontology Enrichment Analysis
 
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6213 genes used in factor analysis;    
+Statistical test: hypergeometric test;    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
 ## `WebGestalt` GO Slim Over-Representation Analysis
 
-Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
-Backgroud: all 6213 genes used in factor analysis;    
-Statistical test: hypergeometric test;    
-GO category: Biological Process (non-redundant).
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
 
 ```{r}
-gsfa.Web_ORA <-
+gsfa.Web_ORA_go_bp <-
   readRDS(paste0(wkdir, gsfa_folder,
-                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_ORA.cutoff_0.95.rds"))
-```
-
-```{r}
-enrich_list <- gsfa.Web_ORA
-signif_num <- rep(0, length(enrich_list))
-for (i in 1:length(enrich_list)){
-  if (is.null(enrich_list[[i]])){ next }
-  signif_tb <- enrich_list[[i]] %>% filter(enrichmentRatio >= 2)
-  if (nrow(signif_tb) == 0){ next }
-  signif_tb <- signif_tb %>% mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
-    mutate(GO_term = paste0("[", geneSet, "](", link, ")")) %>%
-    select(GO_term, description, enrichmentRatio, pValue, FDR, GeneRatio) %>%
-    arrange(-enrichmentRatio)
-  signif_num[i] <- nrow(signif_tb)
-  caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant GO terms")
-  print(kable(signif_tb, caption = caption_text) %>%
-              kable_styling() %>%
-              scroll_box(width = '100%', height = '500px'))
-  cat("\n")
-  cat("------------")
-  cat("\n")
-}
-
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.GO_bp.cutoff_0.95.rds"))
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp, enrich_type = "GO terms")
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
                               Signif_GO_terms = signif_num,
                               row.names = NULL))
@@ -405,20 +385,16 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 19: axon development;   
 **20**: nerve development, neurotransmitter transport, ....
 
-## `clusterprofiler` GO Over-Representation Analysis
+## `WebGestalt` KEGG Pathway Over-Representation Analysis
 
-Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
-Backgroud: all 6213 genes used in factor analysis;    
-Statistical test: hypergeometric test;    
-GO category: Biological Process.
+Gene sets: The [KEGG pathway database](http://www.kegg.jp/).
 
-GO terms that passed over-representation test fold change $\geq$ 2 and q value $<$ 0.05:
-
-```{r}
-gsfa.go_enrich <-
+```{r kegg}
+gsfa.Web_ORA_kegg <-
   readRDS(paste0(wkdir, gsfa_folder,
-                 "enrich_res/All.gibbs_obj_k20.svd.go_enrich.cutoff_0.95.rds"))
-signif_num <- print_enrich_tb(gsfa.go_enrich, qvalue_cutoff = 0.05, FC_cutoff = 2)
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_KEGG.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_kegg, enrich_type = "KEGG pathways")
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
                               Signif_GO_terms = signif_num,
                               row.names = NULL))
@@ -427,10 +403,21 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
-### Factors of interest
+## `WebGestalt` Wikipathway Over-Representation Analysis
 
-10: (presynaptic endocytosis, nerve development);   
-13: ion transport, axon development;   
-15: cell morphogenesis, CNS development;   
-18: neuron development, cell morphogenesis;   
-20: CNS, brain development.
+Gene sets: The [Wikipathway database](http://www.wikipathway.org/).
+
+```{r wiki}
+gsfa.Web_ORA_wiki <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_Wikipathway.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_wiki, enrich_type = "Wikipathways")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+

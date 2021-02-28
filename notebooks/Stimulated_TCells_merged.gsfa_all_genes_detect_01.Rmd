@@ -27,7 +27,6 @@ library(ggrepel)
 library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
-library(clusterProfiler)
 
 # set default chunk output
 knitr::opts_chunk$set(echo = FALSE,
@@ -369,14 +368,14 @@ Backgroud genes: all 6062 genes used in factor analysis;
 Statistical test: hypergeometric test;    
 Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
 
-## `WebGestalt` GO Slim Over-Representation Analysis
+## GO Slim Over-Representation Analysis
     
 Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
 
 ```{r go_bp}
 gsfa.Web_ORA_go_bp <-
   readRDS(paste0(wkdir, gsfa_folder,
-                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_go_bp.cutoff_0.95.rds"))
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.GO_bp.cutoff_0.95.rds"))
 
 signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp, enrich_type = "GO terms")
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
@@ -434,17 +433,14 @@ ggplot(plot_df, aes(x = density, y = num_GO_terms, label = factor)) +
        y = "Number of enriched GO BP terms")
 ```
 
-## `WebGestalt` KEGG Pathway Over-Representation Analysis
+## KEGG Pathway Over-Representation Analysis
 
-Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
-Backgroud: all 6062 genes used in factor analysis;    
-Statistical test: hypergeometric test;    
 Gene sets: The [KEGG pathway database](http://www.kegg.jp/).
 
 ```{r kegg}
 gsfa.Web_ORA_kegg <-
   readRDS(paste0(wkdir, gsfa_folder,
-                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_pathway_KEGG.cutoff_0.95.rds"))
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_KEGG.cutoff_0.95.rds"))
 
 signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_kegg, enrich_type = "KEGG pathways")
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
@@ -455,17 +451,14 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
   kable_styling() %>% scroll_box(width = '100%')
 ```
 
-## `WebGestalt` Wikipathway Over-Representation Analysis
+## Wikipathway Over-Representation Analysis
 
-Target: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
-Backgroud: all 6062 genes used in factor analysis;    
-Statistical test: hypergeometric test;    
 Gene sets: The [Wikipathway database](http://www.wikipathway.org/).
 
 ```{r wiki}
 gsfa.Web_ORA_wiki <-
   readRDS(paste0(wkdir, gsfa_folder,
-                 "ORA_GO/All.gibbs_obj_k20.svd.WebGestalt_pathway_Wikipathway.cutoff_0.95.rds"))
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_Wikipathway.cutoff_0.95.rds"))
 
 signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_wiki, enrich_type = "Wikipathways")
 signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
