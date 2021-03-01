@@ -53,7 +53,7 @@ print_signif_tb <- function(signif_num, caption_text){
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
-  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+  print(knitr::kable(rbind(signif_num[, 1:7], signif_num[, 8:14], signif_num[, 15:21]),
                      caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
