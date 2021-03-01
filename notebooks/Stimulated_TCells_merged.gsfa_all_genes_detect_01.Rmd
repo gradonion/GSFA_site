@@ -362,7 +362,7 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6062 genes used in factor analysis;    
-Statistical test: hypergeometric test;    
+Statistical test: hypergeometric test (over-representation test);    
 Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
 
 ## GO Slim Over-Representation Analysis
@@ -428,6 +428,24 @@ ggplot(plot_df, aes(x = density, y = num_GO_terms, label = factor)) +
   geom_text_repel() +
   labs(x = "Factor density at PIP > 0.95",
        y = "Number of enriched GO BP terms")
+```
+
+## Reactome Pathway Over-Representation Analysis
+
+Gene sets: The [Reactome pathway database](http://www.reactome.org/).
+
+```{r reactome}
+gsfa.Web_ORA_react <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_Reactome.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_react, enrich_type = "Reactome pathways")
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
 ```
 
 ## KEGG Pathway Over-Representation Analysis
