@@ -61,9 +61,9 @@ CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3
 #### Analyses
 * [Data overview](LUHMES_overview.html);
 * [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
-* [GSFA, 3 confounding factors corrected, NTC condition included](LUHMES_merged.gsfa_all_markers_detect_01.html);
 * [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html);
-* * [Permutation results for the 4 confounding factors corrected version](LUHMES_merged_new.permutation_detect_01.html).
+* [Permutation results](LUHMES_merged_new.permutation_detect_01.html);
+* [(GSFA, 3 confounding factors corrected, NTC condition included)](LUHMES_merged.gsfa_all_markers_detect_01.html).
 
 ### Primary Human T Cell CROP-seq Study
 
