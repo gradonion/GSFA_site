@@ -324,18 +324,36 @@ Cells from 2 donors were pooled together into 1 analysis.</p>
 <p>Seurat “LogNormalize”: log(count per <span class="math inline">\(10^4\)</span> + 1).</p>
 <p><strong>Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for.</strong></p>
 </div>
-<div id="umap-representation-after-correction" class="section level2">
-<h2><span class="header-section-number">2.2</span> UMAP representation after correction</h2>
-<p>Batch effect:</p>
-<p>Before correction:</p>
+<div id="umap-representation-of-cells" class="section level2">
+<h2><span class="header-section-number">2.2</span> UMAP representation of cells</h2>
+<div id="before-correction" class="section level3">
+<h3><span class="header-section-number">2.2.1</span> Before correction</h3>
+<div id="batch-effect" class="section level4">
+<h4><span class="header-section-number">2.2.1.1</span> Batch effect</h4>
 <p><img src="figs/Stimulated_TCells_merged.batch_effect_uncorrected_umap.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>After correction, no batch effects were apparent on the global clustering:</p>
+</div>
+<div id="cell-cycle-effect" class="section level4">
+<h4><span class="header-section-number">2.2.1.2</span> Cell cycle effect</h4>
+<p>Cells are colored by the mean expression of signature genes at the corresponding cell cycle stage: <img src="figs/Stimulated_TCells_merged.cell_cycle_uncorrected_umap.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="expression-patterns-of-marker-genes" class="section level4">
+<h4><span class="header-section-number">2.2.1.3</span> Expression patterns of marker genes</h4>
+<p>From the reference paper: activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB). <img src="figs/Stimulated_TCells_merged.marker_genes_uncorrected_umap.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="after-correction" class="section level3">
+<h3><span class="header-section-number">2.2.2</span> After correction</h3>
 <p><img src="figs/Stimulated_TCells_merged.batch_effect_umap.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>Cell cycle effect (colored by the mean expression of signature genes at the corresponding cell cycle stage): <img src="figs/Stimulated_TCells_merged.cell_cycle_umap.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>Expression patterns of marker genes:<br />
-activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB) in the reference paper. <img src="figs/Stimulated_TCells_merged.marker_genes_umap.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>Most cells were postmitotic as assessed by the absence of proliferation marker TOP2A.<br />
-But there is heterogeneity in the progression of differentiation at the single-cell level.</p>
+<div id="cell-cycle-effect-1" class="section level4">
+<h4><span class="header-section-number">2.2.2.1</span> Cell cycle effect</h4>
+<p>Cells are colored by the mean expression of signature genes at the corresponding cell cycle stage: <img src="figs/Stimulated_TCells_merged.cell_cycle_umap.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="expression-patterns-of-marker-genes-1" class="section level4">
+<h4><span class="header-section-number">2.2.2.2</span> Expression patterns of marker genes</h4>
+<p>From the reference paper: activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB). <img src="figs/Stimulated_TCells_merged.marker_genes_umap.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>The expression of MKI67 coincides with cells at the mitotic stage.</p>
+</div>
+</div>
 </div>
 </div>
 <div id="crispr-perturbations" class="section level1">

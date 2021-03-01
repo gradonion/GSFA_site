@@ -81,35 +81,50 @@ Seurat "LogNormalize": log(count per $10^4$ + 1).
 
 **Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for.**
 
-## UMAP representation after correction
+## UMAP representation of cells
 
-Batch effect:
+### Before correction
 
-Before correction:
-
+#### Batch effect
 ```{r umap_batch_uncorrected, out.width = '100%'}
 knitr::include_graphics("figs/Stimulated_TCells_merged.batch_effect_uncorrected_umap.png")
 ```
 
-After correction, no batch effects were apparent on the global clustering:
+#### Cell cycle effect
+
+Cells are colored by the mean expression of signature genes at the corresponding cell cycle stage:
+```{r umap_CC_uncorrected, out.width = '100%'}
+knitr::include_graphics("figs/Stimulated_TCells_merged.cell_cycle_uncorrected_umap.png")
+```
+
+#### Expression patterns of marker genes
+
+From the reference paper: activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB).
+```{r umap_markers_uncorrected, out.width = '100%'}
+knitr::include_graphics("figs/Stimulated_TCells_merged.marker_genes_uncorrected_umap.png")
+```
+
+### After correction
 
 ```{r umap_batch, out.width = '100%'}
 knitr::include_graphics("figs/Stimulated_TCells_merged.batch_effect_umap.png")
 ```
 
-Cell cycle effect (colored by the mean expression of signature genes at the corresponding cell cycle stage):
-```{r umap_cell_cycle, out.width = '100%'}
+#### Cell cycle effect
+
+Cells are colored by the mean expression of signature genes at the corresponding cell cycle stage:
+```{r umap_CC, out.width = '100%'}
 knitr::include_graphics("figs/Stimulated_TCells_merged.cell_cycle_umap.png")
 ```
 
-Expression patterns of marker genes:    
-activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB) in the reference paper.
-```{r umap_marker_genes, out.width = '100%'}
+#### Expression patterns of marker genes
+
+From the reference paper: activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB).
+```{r umap_markers, out.width = '100%'}
 knitr::include_graphics("figs/Stimulated_TCells_merged.marker_genes_umap.png")
 ```
 
-Most cells were postmitotic as assessed by the absence of proliferation marker TOP2A.    
-But there is heterogeneity in the progression of differentiation at the single-cell level.
+The expression of MKI67 coincides with cells at the mitotic stage.
 
 # CRISPR Perturbations
 
