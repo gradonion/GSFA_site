@@ -47,9 +47,6 @@ pander::panderOptions("table.split.table", Inf)
 ```{r}
 source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
 print_signif_tb <- function(signif_num, caption_text){
-  if (length(signif_num) < 15){
-    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
-  }
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
@@ -80,7 +77,7 @@ Guide RNAs were introduced into T cells through a novel procedure called sgRNA l
 
 Cells:    
 Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.   
-Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout; . Quality control resulted in 13983 cells.
+Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 13983 cells.
 
 Genes:    
 **Only genes detected in > 10% of cells were kept, resulted in 6062 genes.**
@@ -184,7 +181,7 @@ plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
 
 Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 rand_1.gibbs_PM <- 
   readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_01.restart.PM.rds"))
 rand_2.gibbs_PM <-
@@ -193,7 +190,7 @@ rand_2.gibbs_PM <-
 
 ### Association results for 2 randomly initialized GSFA runs
 
-```{r rand_01, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+```{r rand_01, fig.width=10, fig.height=5}
 rand_1.gibbs_res_tb <- make_gibbs_res_tb(rand_1.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 # rand_1.gibbs_res_tb <- rand_1.gibbs_res_tb %>% arrange(-sum_var)
 heatmap_matrix <- rand_1.gibbs_res_tb %>% select(starts_with("pval"))
@@ -205,7 +202,7 @@ summ_pvalues(unlist(heatmap_matrix),
              title_text = "GSFA All KOs (K=20, Random 1)")
 ```
 
-```{r rand_02, fig.width=10, fig.height=5, eval=FALSE, include=FALSE}
+```{r rand_02, fig.width=10, fig.height=5}
 rand_2.gibbs_res_tb <- make_gibbs_res_tb(rand_2.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 # rand_2.gibbs_res_tb <- rand_2.gibbs_res_tb %>% arrange(-sum_var)
 heatmap_matrix <- rand_2.gibbs_res_tb %>% select(starts_with("pval"))
@@ -219,7 +216,7 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ### Chain mixing and convergence evaluation
 
-```{r show_R_hat_summary, eval=FALSE, include=FALSE}
+```{r show_R_hat_summary}
 converg_mat <-
   readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.beta_W_converg_mat.1k-2k.rds"))
 knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
@@ -230,7 +227,7 @@ knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
 
 For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_F/N$, where $||\cdot||$ is the Frobenius norm of a matrix, and $N$ is the number of rows (samples) in $Z$.
 
-```{r, eval=FALSE, include=FALSE}
+```{r}
 cat("Guided SVD vs Rand_01:",
     ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
 cat("\n\n")
@@ -361,7 +358,7 @@ plot_pairwise.corr_heatmap(input_mat_1 = F_pm.gsfa > 0.95,
                            corr_type = "jaccard")
 ```
 
-# Gene Set Enrichment Analysis
+# Gene Ontology Enrichment Analysis
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6062 genes used in factor analysis;    

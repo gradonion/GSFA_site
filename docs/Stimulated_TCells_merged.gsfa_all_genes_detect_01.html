@@ -313,7 +313,7 @@ CRISPR knock-out of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Guide c
 Guide RNAs were introduced into T cells through a novel procedure called sgRNA lentiviral infection with Cas9 protein electroporation (SLICE).</p>
 <p>Cells:<br />
 Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.<br />
-Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout; . Quality control resulted in 13983 cells.</p>
+Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 13983 cells.</p>
 <p>Genes:<br />
 <strong>Only genes detected in &gt; 10% of cells were kept, resulted in 6062 genes.</strong></p>
 <p>Normalization:<br />
@@ -497,20 +497,20 @@ Num_genes
 </div>
 <div id="factor-ko-beta-pip" class="section level3">
 <h3><span class="header-section-number">2.1.2</span> Factor ~ KO Beta PIP</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-10-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="factor-ko-posterior-association" class="section level3">
 <h3><span class="header-section-number">2.1.3</span> Factor ~ KO Posterior Association</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="beta-pip-vs-p-value" class="section level3">
 <h3><span class="header-section-number">2.1.4</span> Beta PIP vs P-Value</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-13-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="correlation-btw-factors" class="section level3">
 <h3><span class="header-section-number">2.1.5</span> Correlation btw Factors</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-15-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="alternative-initializations-and-chain-convergence" class="section level2">
@@ -518,13 +518,554 @@ Num_genes
 <p>Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.</p>
 <div id="association-results-for-2-randomly-initialized-gsfa-runs" class="section level3">
 <h3><span class="header-section-number">2.2.1</span> Association results for 2 randomly initialized GSFA runs</h3>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/rand_01-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/rand_02-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="chain-mixing-and-convergence-evaluation" class="section level3">
 <h3><span class="header-section-number">2.2.2</span> Chain mixing and convergence evaluation</h3>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+1st Qu.
+</th>
+<th style="text-align:right;">
+Median
+</th>
+<th style="text-align:right;">
+Mean
+</th>
+<th style="text-align:right;">
+3rd Qu.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTLA
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.07
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.19
+</td>
+<td style="text-align:right;">
+1.32
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C10orf54
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CBLB
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.11
+</td>
+<td style="text-align:right;">
+1.15
+</td>
+<td style="text-align:right;">
+1.70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CD3D
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.39
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CD5
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.20
+</td>
+<td style="text-align:right;">
+1.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.17
+</td>
+<td style="text-align:right;">
+1.79
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DGKA
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DGKZ
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.12
+</td>
+<td style="text-align:right;">
+1.18
+</td>
+<td style="text-align:right;">
+1.22
+</td>
+<td style="text-align:right;">
+1.96
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HAVCR2
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.18
+</td>
+<td style="text-align:right;">
+1.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LAG3
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LCP2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEF2D
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonTarget
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PDCD1
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RASA2
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.07
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.48
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SOCS1
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.12
+</td>
+<td style="text-align:right;">
+1.16
+</td>
+<td style="text-align:right;">
+1.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+STAT6
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TCEB2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+<td style="text-align:right;">
+1.12
+</td>
+<td style="text-align:right;">
+1.16
+</td>
+<td style="text-align:right;">
+2.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TMEM222
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TNFRSF9
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+offset
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="difference-btw-methods-in-factor-estimation" class="section level3">
 <h3><span class="header-section-number">2.2.3</span> Difference btw methods in factor estimation</h3>
 <p>For a pair of <span class="math inline">\(Z\)</span> estimations from 2 inference methods, <span class="math inline">\(Z_1, Z_2\)</span>, we quantify the pairwise estimation difference as <span class="math inline">\(||Z_1Z_1^T - Z_2Z_2^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||\)</span> is the Frobenius norm of a matrix, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
+<p>Guided SVD vs Rand_01: 0.57</p>
+<p>Guided SVD vs Rand_02: 0.438</p>
+<p>Rand_01 vs Rand_02: 0.516</p>
 </div>
 </div>
 </div>
@@ -533,16 +1074,16 @@ Num_genes
 <p>In contrast to the guided version, here we provide no guidance (<span class="math inline">\(G = \vec{0}\)</span>) to our sparse factor analysis model to serve as a comparison.</p>
 <div id="factor-ko-beta-pip-1" class="section level2">
 <h2><span class="header-section-number">3.1</span> Factor ~ KO Beta PIP</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-12-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-18-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="factor-ko-posterior-association-1" class="section level2">
 <h2><span class="header-section-number">3.2</span> Factor ~ KO Posterior Association</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-13-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-14-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-19-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-20-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="unguided-vs-guided" class="section level2">
 <h2><span class="header-section-number">3.3</span> Unguided vs Guided</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-15-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-21-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="flash" class="section level1">
@@ -550,19 +1091,19 @@ Num_genes
 <div id="factor-ko-posterior-association-2" class="section level2">
 <h2><span class="header-section-number">4.1</span> Factor ~ KO Posterior Association</h2>
 <p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/FLASH%20pval%20heatmap-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-22-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="flash-vs-gsfa" class="section level2">
 <h2><span class="header-section-number">4.2</span> FLASH vs GSFA</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-17-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-23-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <p>We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.</p>
 <p><strong>In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value &lt; 1e-4 with.</strong></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-19-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-20-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-25-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-26-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="gene-set-enrichment-analysis" class="section level1">
-<h1><span class="header-section-number">5</span> Gene Set Enrichment Analysis</h1>
+<div id="gene-ontology-enrichment-analysis" class="section level1">
+<h1><span class="header-section-number">5</span> Gene Ontology Enrichment Analysis</h1>
 <p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
 Backgroud genes: all 6062 genes used in factor analysis;<br />
 Statistical test: hypergeometric test;<br />
@@ -13673,7 +14214,7 @@ CBLB: 7, 9, 11</p>
 <p><strong>Associated factors in GSFA</strong></p>
 <p>CD3D: 7, 13<br />
 LCP2: 2, 4, 7, 13</p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="kegg-pathway-over-representation-analysis" class="section level2">
