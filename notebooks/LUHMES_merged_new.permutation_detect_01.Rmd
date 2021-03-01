@@ -1,0 +1,165 @@
+---
+title: "Guided Factor Analysis on LUHMES CROP-seq Data"
+subtitle: "-- Permutation (NTC included, unique UMI count corrected)"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+gsfa_folder <- "gsfa_output_detect_01/merged_new/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# Single cell expression data
+
+Source:   
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+Perturbations:    
+CRISPR knock-down of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+Cells:    
+Lund human mesencephalic (LUHMES) neural progenitor cell line.   
+Cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 6213 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, "processed_data/merged_metadata.rds"))
+all_KOs.G_mat <- metadata[, 4:18]
+KO_names <- colnames(all_KOs.G_mat)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+# Permutation
+
+Cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then GSFA was performed still using all conditions as guides. Factor-guide association as well as the LFSR of each gene were evaluated as usual.
+
+In total, 10 random permutation rounds like this were conducted.
+
+```{r load PM results}
+gibbs_lst <- list()
+for (i in 1:10){
+  perm_PM <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".PM.rds"))
+  gibbs_lst[[i]] <- perm_PM
+}
+```
+
+## Factor ~ KO Beta PIP
+```{r fig.width=8}
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pip_matrix <- t(perm_PM$Gamma_pm[-(nmarkers + 1), ])
+  rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+  colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+  hm <- Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+                row_title = "Factors",  column_title = "KO Perturbations",
+                cluster_rows = F, cluster_columns = F)
+  draw(hm)
+}
+```
+
+## Factor ~ KO Posterior Association
+```{r fig.width=10, fig.height=5}
+pval_lst <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  gibbs_res_tb <- make_gibbs_res_tb(perm_PM, all_KOs.G_mat, compute_pve = F)
+  pval_matrix <- gibbs_res_tb %>% select(starts_with("pval"))
+  pval_lst[[i]] <- unlist(pval_matrix)
+}
+summ_pvalues(unlist(pval_lst),
+             title_text = paste0(length(gibbs_lst), " Permutations, 20 factors x 15 KOs"))
+```
+
+## LFSR
+
+```{r lfsr function}
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 16){
+    signif_num <- c(signif_num, rep(NA, 16 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:8], signif_num[, 9:16]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+```
+
+```{r load LFSR results}
+for (i in 1:length(gibbs_lst)){
+  lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".lfsr_mat.rds"))
+  print_lfsr_signif_tb(lfsr_mat, 0.05,
+                       paste0("Permutation ", i, ", # of genes that passed LFSR cutoff of 0.05:"))
+}
+```

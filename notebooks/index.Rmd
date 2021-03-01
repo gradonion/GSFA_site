@@ -62,7 +62,8 @@ CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3
 * [Data overview](LUHMES_overview.html);
 * [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
 * [GSFA, 3 confounding factors corrected, NTC condition included](LUHMES_merged.gsfa_all_markers_detect_01.html);
-* [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html).
+* [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html);
+* * [Permutation results for the 4 confounding factors corrected version](LUHMES_merged_new.permutation_detect_01.html).
 
 ### Primary Human T Cell CROP-seq Study
 
@@ -80,7 +81,7 @@ CRISPR **knock-out** of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Tar
 
 #### Analyses
 
-* Data overview;
+* [Data overview](Stimulated_TCells_overview.html);
 * [GSFA, stimulated T cells pooled over 2 donors, batch effect corrected](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html).
 
 ### MCF10A CROP-seq Study
@@ -99,7 +100,7 @@ guide RNA readout measured on the single-cell level.
 * [Data overview](MCF10A_overview.html);
 * [GSFA, NTC condition regressed out, singleton cells only](MCF10A_gsfa_all_markers_detect_01_singleton.html);
 * [GSFA, NTC condition regressed out](MCF10A_gsfa_all_markers_detect_01_noNTC.html);
-* [Permutation result for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
+* [Permutation results for detection 10%, singleton](MCF10A_permutation_detect_01_singleton.html);
 * [Gene discovery using LFSR, and comparison with DGE](MCF10A_lfsr.html).
 
 ### TCGA BRCA Somatic Mutation Study
