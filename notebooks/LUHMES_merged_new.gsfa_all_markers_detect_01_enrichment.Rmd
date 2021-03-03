@@ -134,7 +134,13 @@ plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type =
                            color_vec = c("#FFEDE6", "#FFA584", "#FF7F50"))
 ```
 
-Result of knock-down targets:
+Venn diagram for DEGs found under perturbations ADNP, ARID1B, ASH1L, CHD2:
+
+```{r umap_KO, out.width = '60%'}
+knitr::include_graphics("figs/LUHMES_DEGs_venn_diagram_4.png")
+```
+
+LFSRs and effect sizes for knock-down targets:
 
 ```{r knockdown_targets}
 source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
