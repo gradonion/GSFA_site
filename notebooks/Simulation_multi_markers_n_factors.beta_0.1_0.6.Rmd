@@ -1,0 +1,321 @@
+---
+title: "Evaluation of GSFA on Simulated Data"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(Seurat)
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/simulations/simulation_analytics.R")
+wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
+                "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6_niter1k/")
+save_suffixs <- c("G_0.2.K_10.M_6.pi_0.1",
+                  "G_0.2.K_10.M_6.pi_0.2",
+                  "G_0.2.K_10.M_6.pi_0.5",
+                  "G_0.2.K_10.M_6.pi_0.8")
+settings <- c("pi=0.1", "pi=0.2", "pi=0.5", "pi=0.8")
+marker_levels <- seq(0.1, 0.6, 0.1)
+```
+
+# Simulation Settings
+
+We simulated our data in a bottom-up fashion:
+$$G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.2),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi$$
+$$ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U$$
+$$Z, W, E_{ij} \sim N(0,\psi_j) \Rightarrow Y = ZW^T+E$$
+$G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.$
+
+For simulation cases in this report,
+
+Sample size $N = 400$, gene number $P = 500$, factor number $K = 10$, and guide/marker number $M = 6$;    
+$\sigma_w^2 = 0.5$, matrix $\beta$ takes the following form:
+
+\begin{pmatrix}
+0.1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0.2 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0.3 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0.4 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0.5 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0.6 & 0 & 0 & 0 & 0 \\
+\end{pmatrix}
+
+The first 6 factors are each associated with a guide, with the effect sizes varying from 0.1 to 0.6, while the last 4 factors are not associated with any guides.
+
+**We explored 4 cases when the density parameter $\pi_j$ is the same across $j$ but takes a value from 0.1, 0.2, 0.5 to 0.8.**
+
+Under each scenario, 500 random datasets were simulated, and both guided and unguided GSFA models were performed on each dataset for 1000 iterations starting from SVD initialization; posterior means were averaged over the last 500 iterations. 
+
+# Estimation of Effect Sizes ($\beta$s)
+
+```{r load_beta_reg_and_rmse_ZZT}
+paired_beta_plots <- list()
+zzt_diff_list <- list()
+for (i in 1:length(save_suffixs)){
+  betaZ_list <- readRDS(paste0(wkdir, "regression_beta_n_rmse_ZZT.", save_suffixs[i], ".rds"))
+  sub_text <- paste0("(\u03C0=", betaZ_list$params$pi_true[1], ")")
+  paired_beta_plots[[i]] <- plot_paired_beta_reg_boxplots(betaZ_list$regression_stats,
+                                                          marker_levels, sub_text) +
+    scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1))
+  
+  betaZ_list$rmse_ZZT$Setting <- settings[i]
+  zzt_diff_list[[i]] <- betaZ_list$rmse_ZZT
+}
+```
+
+```{r gridplot_beta_reg, fig.width=12, fig.height=9}
+do.call(grid.arrange, paired_beta_plots)
+```
+
+# Estimation of Factors ($Z$s)
+
+We would like to evaluate how different our estimation of the factor matrix, $\hat{Z}$, is from the true value $Z$.   
+Since the order of latent factors is non-identifiable, we focus on $ZZ^T$ and evaluate its estimation error using  $||\hat{Z}\hat{Z}^T - ZZ^T||_F/N$, where $||\cdot||_F$ is the Frobenius norm, and $N$ is the number of rows (samples) in $Z$.
+
+```{r plot_rmse_ZZT}
+plot_paired_rmse_zzt_boxplots(zzt_diff_list,
+                              sub_text = paste0("(\u03C0 varies from 0.1 to 0.8, ",
+                                                "\u03B2s=", paste(marker_levels, collapse = ", "), ")"))
+```
+
+# Gene Detection
+
+## Detection methods
+
+1.  GSFA + Local False Sign Rate (LFSR)
+
+In terms of our GSFA method, we can estimate the effect of a guide/marker on each gene by summarizing over all the factors through the local false sign rate (LFSR):
+
+For gene $j$ and guide $m$, based on the posteriors of $\beta$ and $W$ of an inference,
+$$\text{LFSR}_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \geq 0 \text{ | Data}), \text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \leq 0 \text{ | Data}) \Big\}$$
+
+2.  Welch's t-test + FDR
+
+Alternatively, we can simply test each gene directly, measuring whether there is an difference in $Y_j$ between the two groups of samples under guide $m$ using Welch's t-test.
+
+To obtain the following ROC curves, we varied the cutoff from 0 to 1 on both LFSR and t-test FDR values.
+
+The actual cutoff values used are (correspond to the datapoints on an ROC curve from left to right)
+
+```{r}
+save_suffix <- save_suffixs[1]
+PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
+cutoffs <- paste0(unique(PR_list$lfsr_means$cutoff), collapse = ", ")
+cat(cutoffs)
+cat("\n")
+```
+
+## $\pi$ = 0.1
+```{r}
+save_suffix <- save_suffixs[1]
+PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
+
+cutoffs <- paste0(unique(PR_list$lfsr_means$cutoff), collapse = ",")
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
+                      "(\u03C0=", PR_list$params$pi_true[1],
+                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+```
+
+```{r fig.width=12, eval=FALSE, include=FALSE}
+sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
+                   ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
+plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
+                        "GSFA LFSR<0.05", "t-test FDR<0.05",
+                        marker_levels, sub_text)
+```
+
+```{r}
+plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
+```
+
+```{r fig.height=6.5, fig.width=10, eval=FALSE, include=FALSE}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
+                              sds_df = PR_list$ttest_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("T-Test Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2, x_label = "t-test p value cutoff")
+```
+
+## $\pi$ = 0.2
+```{r}
+save_suffix <- save_suffixs[2]
+PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
+
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
+                      "(\u03C0=", PR_list$params$pi_true[1],
+                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+```
+
+```{r fig.width=12, eval=FALSE, include=FALSE}
+sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
+                   ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
+plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
+                        "GSFA LFSR<0.05", "t-test FDR<0.05",
+                        marker_levels, sub_text)
+```
+
+
+```{r}
+plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
+```
+
+```{r fig.width=10, fig.height=6.5, eval=FALSE, include=FALSE}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
+                              sds_df = PR_list$ttest_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("T-Test Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2, x_label = "t-test p value cutoff")
+```
+
+## $\pi$ = 0.5
+```{r}
+save_suffix <- save_suffixs[3]
+PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
+
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
+                      "(\u03C0=", PR_list$params$pi_true[1],
+                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+```
+
+```{r fig.width=12, eval=FALSE, include=FALSE}
+sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
+                   ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
+plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
+                        "GSFA LFSR<0.05", "t-test FDR<0.05",
+                        marker_levels, sub_text)
+```
+
+```{r}
+plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
+```
+
+```{r fig.width=10, fig.height=6.5, eval=FALSE, include=FALSE}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
+                              sds_df = PR_list$ttest_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("T-Test Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2, x_label = "t-test p value cutoff")
+```
+
+## $\pi$ = 0.8
+```{r}
+save_suffix <- save_suffixs[4]
+PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
+
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
+                      "(\u03C0=", PR_list$params$pi_true[1],
+                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+```
+
+```{r fig.width=12, eval=FALSE, include=FALSE}
+sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
+                   ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
+plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
+                        "GSFA LFSR<0.05", "t-test FDR<0.05",
+                        marker_levels, sub_text)
+```
+
+```{r}
+plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2)
+```
+
+```{r fig.width=10, fig.height=6.5, eval=FALSE, include=FALSE}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
+                              sds_df = PR_list$ttest_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("T-Test Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1], ")"),
+                              n_row = 2, x_label = "t-test p value cutoff")
+```
