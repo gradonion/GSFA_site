@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-03-02" />
+<meta name="date" content="2021-03-03" />
 
 <title>Functional Analysis on LUHMES CROP-seq GSFA Results</title>
 
@@ -298,7 +298,7 @@ div.tocify {
 <h1 class="title toc-ignore">Functional Analysis on LUHMES CROP-seq GSFA Results</h1>
 <h3 class="subtitle"><em>– NTC included, unique UMI count corrected</em></h3>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-03-02</em></h4>
+<h4 class="date"><em>2021-03-03</em></h4>
 
 </div>
 
@@ -321,7 +321,358 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="factor-ko-beta-pip" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Factor ~ KO Beta PIP</h3>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-35-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-17-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+GSFA, # of genes that passed LFSR cutoff of 0.05:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+ADNP
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ASH1L
+</td>
+<td style="text-align:left;">
+CHD2
+</td>
+<td style="text-align:left;">
+CHD8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+2092
+</td>
+<td style="text-align:left;">
+434
+</td>
+<td style="text-align:left;">
+789
+</td>
+<td style="text-align:left;">
+1938
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CTNND2
+</td>
+<td style="text-align:left;">
+DYRK1A
+</td>
+<td style="text-align:left;">
+HDAC5
+</td>
+<td style="text-align:left;">
+MECP2
+</td>
+<td style="text-align:left;">
+MYT1L
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+Nontargeting
+</td>
+<td style="text-align:left;">
+POGZ
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+RELN
+</td>
+<td style="text-align:left;">
+SETD5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+2099
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+987
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Overlap of DEGs between perturbations:</p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Result of knock-down targets:</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ADNP knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+gene_ID
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+<th style="text-align:left;">
+Name
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ENSG00000101126
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+<td style="text-align:right;">
+-0.015
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+ADNP
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ARID1B knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+gene_ID
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+<th style="text-align:left;">
+Name
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ENSG00000049618
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ASH1L knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+gene_ID
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+<th style="text-align:left;">
+Name
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ENSG00000116539
+</td>
+<td style="text-align:right;">
+0.204
+</td>
+<td style="text-align:right;">
+-0.006
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+ASH1L
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+CHD2 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+gene_ID
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+<th style="text-align:left;">
+Name
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ENSG00000173575
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+-0.015
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+<td style="text-align:left;">
+CHD2
+</td>
+</tr>
+</tbody>
+</table>
+PTEN is not detected in &gt; 10% cells.
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+SETD5 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+gene_ID
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+<th style="text-align:left;">
+Name
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ENSG00000168137
+</td>
+<td style="text-align:right;">
+0.438
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+<td style="text-align:left;">
+SETD5
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -375,6 +726,76 @@ Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR <span cla
 Backgroud genes: all 6213 genes included in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown in the webpages.</p>
+<div id="reactome-pathway-over-representation-analysis-1" class="section level3">
+<h3><span class="header-section-number">2.2.1</span> Reactome Pathway Over-Representation Analysis</h3>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614735983/#">ADNP</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614748228/#">Up-regulated</a></li>
+<li>Down-regulated</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614736635/#">ARID1B</a>
+<ul>
+<li>Up-regulated</li>
+<li><a href="http://www.webgestalt.org/results/1614748345/#">Down-regulated</a></li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614736695/#">ASH1L</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614748437/#">Up-regulated</a></li>
+<li><a href="http://www.webgestalt.org/results/1614748499/#">Down-regulated</a>: mRNA Splicing, Transcriptional Regulation by TP53</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737079/#">CHD2</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614748559/#">Up-regulated</a></li>
+<li><a href="http://www.webgestalt.org/results/1614748857/#">Down-regulated</a>: Axon guidance</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737261/#">PTEN</a>
+<ul>
+<li>Up-regulated</li>
+<li><a href="http://www.webgestalt.org/results/1614749222/#">Down-regulated</a>: Axon guidance</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737506/#">SETD5</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614749447/#">Up-regulated</a></li>
+<li><a href="http://www.webgestalt.org/results/1614749474/#">Down-regulated</a>: Axon guidance</li>
+</ul></li>
+</ul>
+</div>
+<div id="go-slim-over-representation-analysis-1" class="section level3">
+<h3><span class="header-section-number">2.2.2</span> GO Slim Over-Representation Analysis</h3>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614737785/#">ADNP</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614741328/#">Up-regulated</a>:regulation of metal ion transport, regulation of neurotransmitter levels</li>
+<li>Down-regulated</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737823/#">ARID1B</a>
+<ul>
+<li>Up-regulated</li>
+<li><a href="http://www.webgestalt.org/results/1614741644/#">Down-regulated</a>: regulation of metal ion transport</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737877/#">ASH1L</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614741821/#">Up-regulated</a>: regulation of metal ion transport</li>
+<li><a href="http://www.webgestalt.org/results/1614741971/#">Down-regulated</a></li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737909/#">CHD2</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614742122/#">Up-regulated</a></li>
+<li><a href="http://www.webgestalt.org/results/1614742235/#">Down-regulated</a>: central nervous system neuron differentiation</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614737973/#">PTEN</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614742400/#">Up-regulated</a>: regulation of ion transmembrane transport, regulation of neuron projection development</li>
+<li><a href="http://www.webgestalt.org/results/1614743125/#">Down-regulated</a>: regulation of metal ion transport</li>
+</ul></li>
+<li><a href="http://www.webgestalt.org/results/1614738030/#">SETD5</a>
+<ul>
+<li><a href="http://www.webgestalt.org/results/1614743225/#">Up-regulated</a>: axon development, positive regulation of neurogenesis</li>
+<li><a href="http://www.webgestalt.org/results/1614743342/#">Down-regulated</a></li>
+</ul></li>
+</ul>
+</div>
 </div>
 </div>
 

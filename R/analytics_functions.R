@@ -136,8 +136,12 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
 plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
                                        name_1 = NULL, name_2 = NULL,
                                        corr_type = "pearson",
-                                       return_corr = FALSE){
+                                       return_corr = FALSE,
+                                       label_size = 8,
+                                       color_vec = NULL){
   # Please store samples in the columns of 'input_mat'.
+  # 'corr_type' can be either "pearson" or "jaccard"
+  stopifnot(corr_type %in% c("pearson","jaccard"))
   if (is.null(input_mat_2)){
     input_mat_2 <- input_mat_1
     name_2 <- name_1
@@ -171,23 +175,34 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
   }
   
   if (corr_type == "pearson"){
-    ht <- Heatmap(corr_mat,
-                  col = circlize::colorRamp2(c(-1, 0, 1), c("blue", "white", "red")),
-                  name = "Pearson Correlation",
-                  row_title = name_1, column_title = name_2,
-                  cluster_rows = F, cluster_columns = F,
-                  row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8))
+    legend_name <- "Pearson Correlation"
+    if (is.null(color_vec)){
+      colormap <- circlize::colorRamp2(breaks = c(-1, 0, 1),
+                                       colors = c("blue", "white", "red"))
+    } else {
+      colormap <- circlize::colorRamp2(breaks = c(-1, 0, 1),
+                                       colors = color_vec)
+    }
+    
   }
   if (corr_type == "jaccard"){
-    ht <- Heatmap(corr_mat,
-                  # col = circlize::colorRamp2(c(0, 0.5, 1), c("white", "steelblue1", "steelblue4")),
-                  col = circlize::colorRamp2(breaks = c(0, 0.5, 1),
-                                             colors = c("black", "purple", "gold")),
-                  name = "Jaccard Index",
-                  row_title = name_1, column_title = name_2,
-                  cluster_rows = F, cluster_columns = F,
-                  row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8))
+    legend_name <- "Jaccard Index"
+    if (is.null(color_vec)){
+      colormap <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                       colors = c("black", "purple", "gold"))
+    } else {
+      colormap <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                       colors = color_vec)
+    }
   }
+  
+  ht <- Heatmap(corr_mat,
+                col = colormap,
+                name = legend_name,
+                row_title = name_1, column_title = name_2,
+                cluster_rows = F, cluster_columns = F,
+                row_names_gp = gpar(fontsize = label_size),
+                column_names_gp = gpar(fontsize = label_size))
   draw(ht)
   if (return_corr){
     return(corr_mat)

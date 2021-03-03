@@ -26,7 +26,6 @@ theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
 library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
-library(clusterProfiler)
 
 # set default chunk output
 knitr::opts_chunk$set(echo = FALSE,
@@ -116,6 +115,48 @@ Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
         cluster_rows = F, cluster_columns = F)
 ```
 
+### DEGs (LFSR < 0.05) under Each Perturbation
+
+```{r}
+lfsr_cutoff <- 0.05
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff,
+                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+Overlap of DEGs between perturbations:
+
+```{r fig.width=7, fig.height=5.5}
+num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type = "jaccard",
+                           label_size = 11,
+                           color_vec = c("#FFEDE6", "#FFA584", "#FF7F50"))
+```
+
+Result of knock-down targets:
+
+```{r knockdown_targets}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+
+gsfa.DE_list <- compute_beta_dot_W(lfsr_mat, All_KOs.gibbs_PM)
+gsfa.DE_list <- lapply(gsfa.DE_list, function(x){ left_join(x, feature.names,
+                                                            by = c("gene_ID" = "ID")) })
+for (m in signif_markers){
+  if (!(m %in% gsfa.DE_list[[m]]$Name)){
+    cat(paste0(m, " is not detected in > 10% cells."))
+    cat("\n")
+  } else {
+    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m), digits = 3,
+              caption = paste0(m, " knock-down")) %>%
+    kable_styling())
+  }
+}
+```
+
 # Gene Set Enrichment Analysis
 
 ## Enrichment by factor
@@ -160,3 +201,47 @@ Target genes: Genes w/ LSFR < 0.05 under each perturbation;
 Backgroud genes: all 6213 genes included in factor analysis;    
 Statistical test: hypergeometric test (over-representation test);    
 Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
+
+### Reactome Pathway Over-Representation Analysis
+
+* [ADNP](http://www.webgestalt.org/results/1614735983/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614748228/#)
+    * Down-regulated
+* [ARID1B](http://www.webgestalt.org/results/1614736635/#)
+    * Up-regulated
+    * [Down-regulated](http://www.webgestalt.org/results/1614748345/#)
+* [ASH1L](http://www.webgestalt.org/results/1614736695/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614748437/#)
+    * [Down-regulated](http://www.webgestalt.org/results/1614748499/#): mRNA Splicing, Transcriptional Regulation by TP53
+* [CHD2](http://www.webgestalt.org/results/1614737079/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614748559/#)
+    * [Down-regulated](http://www.webgestalt.org/results/1614748857/#): Axon guidance
+* [PTEN](http://www.webgestalt.org/results/1614737261/#)
+    * Up-regulated
+    * [Down-regulated](http://www.webgestalt.org/results/1614749222/#): Axon guidance
+* [SETD5](http://www.webgestalt.org/results/1614737506/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614749447/#)
+    * [Down-regulated](http://www.webgestalt.org/results/1614749474/#): Axon guidance
+
+### GO Slim Over-Representation Analysis
+
+* [ADNP](http://www.webgestalt.org/results/1614737785/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614741328/#):regulation of metal ion transport, regulation of neurotransmitter levels
+    * Down-regulated
+* [ARID1B](http://www.webgestalt.org/results/1614737823/#)
+    * Up-regulated
+    * [Down-regulated](http://www.webgestalt.org/results/1614741644/#): regulation of metal ion transport
+* [ASH1L](http://www.webgestalt.org/results/1614737877/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614741821/#): regulation of metal ion transport
+    * [Down-regulated](http://www.webgestalt.org/results/1614741971/#)
+* [CHD2](http://www.webgestalt.org/results/1614737909/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614742122/#)
+    * [Down-regulated](http://www.webgestalt.org/results/1614742235/#): central nervous system neuron differentiation
+* [PTEN](http://www.webgestalt.org/results/1614737973/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614742400/#): regulation of ion transmembrane transport, regulation of neuron projection development
+    * [Down-regulated](http://www.webgestalt.org/results/1614743125/#): regulation of metal ion transport
+* [SETD5](http://www.webgestalt.org/results/1614738030/#)
+    * [Up-regulated](http://www.webgestalt.org/results/1614743225/#): axon development, positive regulation of neurogenesis
+    * [Down-regulated](http://www.webgestalt.org/results/1614743342/#)
+
+    
