@@ -140,29 +140,6 @@ Venn diagram for DEGs found under perturbations ADNP, ARID1B, ASH1L, CHD2:
 knitr::include_graphics("figs/LUHMES_DEGs_venn_diagram_4.png")
 ```
 
-LFSRs and effect sizes for knock-down targets:
-
-```{r knockdown_targets}
-source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
-feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
-                                  header = FALSE), stringsAsFactors = FALSE)
-names(feature.names) <- c("ID", "Name")
-
-gsfa.DE_list <- compute_beta_dot_W(lfsr_mat, All_KOs.gibbs_PM)
-gsfa.DE_list <- lapply(gsfa.DE_list, function(x){ left_join(x, feature.names,
-                                                            by = c("gene_ID" = "ID")) })
-for (m in signif_markers){
-  if (!(m %in% gsfa.DE_list[[m]]$Name)){
-    cat(paste0(m, " is not detected in > 10% cells."))
-    cat("\n")
-  } else {
-    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m), digits = 3,
-              caption = paste0(m, " knock-down")) %>%
-    kable_styling())
-  }
-}
-```
-
 # Gene Set Enrichment Analysis
 
 ## Enrichment by factor
@@ -250,4 +227,55 @@ Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 
     * [Up-regulated](http://www.webgestalt.org/results/1614743225/#): axon development, positive regulation of neurogenesis
     * [Down-regulated](http://www.webgestalt.org/results/1614743342/#)
 
-    
+# Inspection of Signature Genes
+
+## Genes targeted by CRISPR knock-down
+
+```{r knockdown_targets}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+genes_indx <- match(rownames(lfsr_mat), feature.names$ID)
+genes_df <- feature.names[genes_indx, ]
+
+gsfa.DE_list <- compute_beta_dot_W(lfsr_mat, All_KOs.gibbs_PM)
+gsfa.DE_list <- lapply(gsfa.DE_list, function(x){ left_join(x, feature.names,
+                                                            by = c("gene_ID" = "ID")) })
+for (m in signif_markers){
+  if (!(m %in% gsfa.DE_list[[m]]$Name)){
+    cat(paste0(m, " is not detected in > 10% cells."))
+    cat("\n")
+  } else {
+    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m) %>% select(Name, beta_W, lfsr, pass_lfsr),
+                digits = 3,
+                caption = paste0(m, " knock-down")) %>%
+    kable_styling())
+  }
+}
+```
+
+## Neuron projection genes ([GO:0010975](http://amigo.geneontology.org/amigo/term/GO:0010975))
+
+According to Figure 4E of the [reference paper](https://genome.cshlp.org/content/30/9/1317.full), among these marker genes, mature neuron marker genes are down-regulated and negative regulator genes are up-regulated in ADNP, CHD2 and ASH1L knock-downs; while the opposite happens in PTEN knock-down.
+
+Here we show all the marker genes that passed LFSR < 0.05 under each knock-down. In general, their effect sizes are consistent with the findings of the paper.
+
+```{r neuron_projection_genes}
+mature_neuron <- c('DPYSL3', 'HSPA5', 'MAP1B', 'CRMP1', 'CRABP2', 'CCDC88A', 'UBE2V2',
+                   'MAPT', 'NEFL', 'MEF2C', 'ZEB2')
+negative_regulators <- c('ITM2C', 'CNTN2', 'ACAP3', 'FKBP4', 'GSK3B', 'EFNA5', 'SERPINF1')
+npg_indx <- match(c(mature_neuron, negative_regulators), genes_df$Name)
+
+for (m in signif_markers){
+  print(kable(gsfa.DE_list[[m]][npg_indx, ] %>%
+                filter(pass_lfsr) %>%
+                select(Name, beta_W, lfsr) %>%
+                mutate(type = ifelse(Name %in% mature_neuron,
+                                     "mature neuron", "negative regulator")),
+              digits = 3,
+              caption = paste0(m, " knock-down")) %>%
+          kable_styling())
+}
+```
+

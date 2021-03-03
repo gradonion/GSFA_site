@@ -321,7 +321,7 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="factor-ko-beta-pip" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Factor ~ KO Beta PIP</h3>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-15-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
@@ -455,226 +455,9 @@ Num_genes
 </table>
 </div>
 <p>Overlap of DEGs between perturbations:</p>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Venn diagram for DEGs found under perturbations ADNP, ARID1B, ASH1L, CHD2:</p>
 <p><img src="figs/LUHMES_DEGs_venn_diagram_4.png" width="60%" style="display: block; margin: auto;" /></p>
-<p>LFSRs and effect sizes for knock-down targets:</p>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-ADNP knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-gene_ID
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-<th style="text-align:left;">
-Name
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ENSG00000101126
-</td>
-<td style="text-align:right;">
-0.066
-</td>
-<td style="text-align:right;">
--0.015
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-ADNP
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-ARID1B knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-gene_ID
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-<th style="text-align:left;">
-Name
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ENSG00000049618
-</td>
-<td style="text-align:right;">
-0.46
-</td>
-<td style="text-align:right;">
-0.003
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-ASH1L knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-gene_ID
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-<th style="text-align:left;">
-Name
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ENSG00000116539
-</td>
-<td style="text-align:right;">
-0.204
-</td>
-<td style="text-align:right;">
--0.006
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-ASH1L
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-CHD2 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-gene_ID
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-<th style="text-align:left;">
-Name
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ENSG00000173575
-</td>
-<td style="text-align:right;">
-0.044
-</td>
-<td style="text-align:right;">
--0.015
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-CHD2
-</td>
-</tr>
-</tbody>
-</table>
-PTEN is not detected in &gt; 10% cells.
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-SETD5 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-gene_ID
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-<th style="text-align:left;">
-Name
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ENSG00000168137
-</td>
-<td style="text-align:right;">
-0.438
-</td>
-<td style="text-align:right;">
-0.006
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-SETD5
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
@@ -798,6 +581,957 @@ Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR <span cla
 </ul></li>
 </ul>
 </div>
+</div>
+</div>
+<div id="inspection-of-signature-genes" class="section level1">
+<h1><span class="header-section-number">3</span> Inspection of Signature Genes</h1>
+<div id="genes-targeted-by-crispr-knock-down" class="section level2">
+<h2><span class="header-section-number">3.1</span> Genes targeted by CRISPR knock-down</h2>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ADNP knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ADNP
+</td>
+<td style="text-align:right;">
+-0.015
+</td>
+<td style="text-align:right;">
+0.066
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ARID1B knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+0.46
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ASH1L knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ASH1L
+</td>
+<td style="text-align:right;">
+-0.006
+</td>
+<td style="text-align:right;">
+0.204
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+CHD2 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+CHD2
+</td>
+<td style="text-align:right;">
+-0.015
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:left;">
+TRUE
+</td>
+</tr>
+</tbody>
+</table>
+PTEN is not detected in &gt; 10% cells.
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+SETD5 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+pass_lfsr
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SETD5
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+0.438
+</td>
+<td style="text-align:left;">
+FALSE
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="neuron-projection-genes-go0010975" class="section level2">
+<h2><span class="header-section-number">3.2</span> Neuron projection genes (<a href="http://amigo.geneontology.org/amigo/term/GO:0010975">GO:0010975</a>)</h2>
+<p>According to Figure 4E of the <a href="https://genome.cshlp.org/content/30/9/1317.full">reference paper</a>, among these marker genes, mature neuron marker genes are down-regulated and negative regulator genes are up-regulated in ADNP, CHD2 and ASH1L knock-downs; while the opposite happens in PTEN knock-down.</p>
+<p>Here we show all the marker genes that passed LFSR &lt; 0.05 under each knock-down. In general, their effect sizes are consistent with the findings of the paper.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ADNP knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+HSPA5
+</td>
+<td style="text-align:right;">
+0.052
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:right;">
+-0.084
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CCDC88A
+</td>
+<td style="text-align:right;">
+-0.028
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+UBE2V2
+</td>
+<td style="text-align:right;">
+-0.016
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEFL
+</td>
+<td style="text-align:right;">
+-0.126
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:right;">
+-0.072
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:right;">
+0.130
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ACAP3
+</td>
+<td style="text-align:right;">
+0.032
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:right;">
+0.071
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ARID1B knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:right;">
+0.022
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:right;">
+-0.043
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+ASH1L knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:right;">
+-0.025
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:right;">
+0.030
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+CHD2 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+HSPA5
+</td>
+<td style="text-align:right;">
+0.058
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:right;">
+-0.063
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CCDC88A
+</td>
+<td style="text-align:right;">
+-0.034
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:right;">
+-0.026
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEFL
+</td>
+<td style="text-align:right;">
+-0.213
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:right;">
+-0.033
+</td>
+<td style="text-align:right;">
+0.046
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:right;">
+-0.041
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:right;">
+0.122
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ACAP3
+</td>
+<td style="text-align:right;">
+0.042
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GSK3B
+</td>
+<td style="text-align:right;">
+-0.018
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:right;">
+0.112
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+PTEN knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+DPYSL3
+</td>
+<td style="text-align:right;">
+0.093
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HSPA5
+</td>
+<td style="text-align:right;">
+-0.053
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:right;">
+0.225
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CCDC88A
+</td>
+<td style="text-align:right;">
+0.029
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+UBE2V2
+</td>
+<td style="text-align:right;">
+0.031
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:right;">
+0.090
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEFL
+</td>
+<td style="text-align:right;">
+0.170
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:right;">
+-0.160
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:right;">
+-0.069
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ACAP3
+</td>
+<td style="text-align:right;">
+-0.026
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GSK3B
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:right;">
+-0.083
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:left;">
+negative regulator
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+SETD5 knock-down
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Name
+</th>
+<th style="text-align:right;">
+beta_W
+</th>
+<th style="text-align:right;">
+lfsr
+</th>
+<th style="text-align:left;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+DPYSL3
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:right;">
+0.109
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:left;">
+mature neuron
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
