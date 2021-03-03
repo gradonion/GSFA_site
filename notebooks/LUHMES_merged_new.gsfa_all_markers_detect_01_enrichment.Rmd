@@ -1,0 +1,162 @@
+---
+title: "Functional Analysis on LUHMES CROP-seq GSFA Results"
+subtitle: "-- NTC included, unique UMI count corrected"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+gsfa_folder <- "gsfa_output_detect_01/merged_new/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# GSFA on LUHMES CROP-seq Data
+
+## Data Processing
+
+Cells:    
+LUHMES cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 6213 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+## GSFA Results (SVD Initialization)
+
+Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
+
+```{r load meta data}
+metadata <- readRDS(paste0(wkdir, "processed_data/merged_metadata.rds"))
+all_KOs.G_mat <- metadata[, 4:18]
+KO_names <- colnames(all_KOs.G_mat)
+if (guide == "no_NTC"){
+  KO_names <- KO_names[KO_names != "Nontargeting"]
+  all_KOs.G_mat <- all_KOs.G_mat[, KO_names]
+}
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.
+
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Factor ~ KO Beta PIP
+```{r fig.width=8}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
+rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
+Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
+        row_title = "Factors",  column_title = "Gene Perturbations",
+        cluster_rows = F, cluster_columns = F)
+```
+
+# Gene Set Enrichment Analysis
+
+## Enrichment by factor
+
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6213 genes included in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
+
+### Reactome Pathway Over-Representation Analysis
+
+Gene sets: The [Reactome pathway database](http://www.reactome.org/).   
+
+**Factors of interest**
+
+* [Factor 8](http://www.webgestalt.org/results/1614728526/#): p53-Independent DNA Damage Response, G2/M Transition
+* [Factor 9](http://www.webgestalt.org/results/1614728715/#): Neuronal System, Transmission across Chemical Synapses
+* [Factor 12](http://www.webgestalt.org/results/1614728793/#): Gap junction trafficking
+* [Factor 13](http://www.webgestalt.org/results/1614728429/#): Neurotransmitter receptors and postsynaptic signal transmission, Ion channel transport, Neuronal System
+* [Factor 15](http://www.webgestalt.org/results/1614728922/#): Transmission across Chemical Synapses, Ca2+ pathway, Gap junction trafficking
+* [Factor 17](http://www.webgestalt.org/results/1614729171/#): Axon guidance
+* [Factor 19](http://www.webgestalt.org/results/1614729226/#): Activation of NMDA receptors and postsynaptic events, Mitotic phases, Cell Cycle Checkpoints
+* [Factor 20](http://www.webgestalt.org/results/1614729303/#): Neurotransmitter receptors and postsynaptic signal transmission, Ion channel transport
+
+### GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+**Factors of interest**
+
+* [Factor 10](http://www.webgestalt.org/results/1614731260/#): nerve development, cell fate commitment;   
+* [Factor 11](http://www.webgestalt.org/results/1614731201/#): chromatin remodeling, DNA recombination;   
+* [**Factor 13**](http://www.webgestalt.org/results/1614731171/#): regulation of metal ion transport, axon development, ...;   
+* [**Factor 15**](http://www.webgestalt.org/results/1614731117/#): neuron migration, response to metal ion, CNS neuron development, ...;   
+* [**Factor 18**](http://www.webgestalt.org/results/1614730861/#): CNS neuron differentiation, xxx tissue development, ...;   
+* [Factor 19](http://www.webgestalt.org/results/1614730760/#): axon development;   
+* [**Factor 20**](http://www.webgestalt.org/results/1614730397/#): nerve development, neurotransmitter transport, ....
+
+## Enrichment by perturbation
+
+Target genes: Genes w/ LSFR < 0.05 under each perturbation;    
+Backgroud genes: all 6213 genes included in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
