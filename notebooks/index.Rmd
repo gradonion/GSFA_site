@@ -43,8 +43,8 @@ Gibbs sampling is used to infer the model parameters from data.
 
 ### Multiple factors and guides
 
-* [\beta = 0.1 to 0.6](Simulation_multi_markers_n_factors.beta_0.1_0.6.html);
-* [\beta = 0.2 to 1](Simulation_multi_markers_n_factors.html);
+* [$\beta$ = 0.1 to 0.6](Simulation_multi_markers_n_factors.beta_0.1_0.6.html);
+* [$\beta$ = 0.2 to 1](Simulation_multi_markers_n_factors.beta_0.2_1.html);
 
 ## Applications
 
