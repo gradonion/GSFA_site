@@ -1,5 +1,6 @@
 ---
 title: "Evaluation of GSFA on Simulated Data"
+subtitle: "-- Multiple Markers, Multiple Factors"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -46,10 +47,10 @@ pander::panderOptions("table.split.table", Inf)
 source("/project2/xinhe/yifan/Factor_analysis/simulations/simulation_analytics.R")
 wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
                 "simulation_results/multi_factors_n_markers/beta_0.2_to_1_niter500/")
-save_suffixs <- c("K_10.M_5.beta_0.2_to_1.pi_0.1",
-                  "K_10.M_5.beta_0.2_to_1.pi_0.2",
-                  "K_10.M_5.beta_0.2_to_1.pi_0.5",
-                  "K_10.M_5.beta_0.2_to_1.pi_0.8")
+save_suffixs <- c("K_10.M_5.pi_0.1",
+                  "K_10.M_5.pi_0.2",
+                  "K_10.M_5.pi_0.5",
+                  "K_10.M_5.pi_0.8")
 settings <- c("pi=0.1", "pi=0.2", "pi=0.5", "pi=0.8")
 marker_levels <- c(0.2, 0.4, 0.6, 0.8, 1)
 ```

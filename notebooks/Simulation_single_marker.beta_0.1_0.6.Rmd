@@ -91,7 +91,9 @@ for (i in 1:length(pis)){
   paired_beta_plots[[i]] <- plot_paired_beta_reg_boxplots(beta_reg_df,
                                                           marker_levels = marker_levels,
                                                           sub_text = sub_text) +
-      scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1))
+    scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1),
+                       minor_breaks = seq(0.1, 1, 0.1)) +
+    theme(panel.grid.minor = element_line(size = 0.5))
   paired_zzt_plots[[i]] <- plot_paired_rmse_zzt_boxplots(zzt_diff_list,
                                                          sub_text = sub_text,
                                                          x_label = "True Effect Size of Marker")

@@ -1,5 +1,6 @@
 ---
 title: "Evaluation of GSFA on Simulated Data"
+subtitle: "-- Multiple Markers, Multiple Factors"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -50,12 +51,6 @@ save_suffixs <- c("G_0.2.K_10.M_6.pi_0.1",
                   "G_0.2.K_10.M_6.pi_0.2",
                   "G_0.2.K_10.M_6.pi_0.5",
                   "G_0.2.K_10.M_6.pi_0.8")
-# wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
-#                 "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6_niter500/")
-# save_suffixs <- c("G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.1",
-#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.2",
-#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.5",
-#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.8")
 settings <- c("pi=0.1", "pi=0.2", "pi=0.5", "pi=0.8")
 marker_levels <- seq(0.1, 0.6, 0.1)
 ```
@@ -98,7 +93,9 @@ for (i in 1:length(save_suffixs)){
   sub_text <- paste0("(\u03C0=", betaZ_list$params$pi_true[1], ")")
   paired_beta_plots[[i]] <- plot_paired_beta_reg_boxplots(betaZ_list$regression_stats,
                                                           marker_levels, sub_text) +
-    scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1))
+    scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1),
+                       minor_breaks = seq(0.1, 1, 0.1)) +
+    theme(panel.grid.minor = element_line(size = 0.5))
   
   betaZ_list$rmse_ZZT$Setting <- settings[i]
   zzt_diff_list[[i]] <- betaZ_list$rmse_ZZT
