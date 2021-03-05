@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-03-03" />
+<meta name="date" content="2021-03-04" />
 
 <title>Evaluation of GSFA on Simulated Data</title>
 
@@ -297,14 +297,14 @@ div.tocify {
 
 <h1 class="title toc-ignore">Evaluation of GSFA on Simulated Data</h1>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-03-03</em></h4>
+<h4 class="date"><em>2021-03-04</em></h4>
 
 </div>
 
 
 <div id="simulation-settings" class="section level1">
 <h1><span class="header-section-number">1</span> Simulation Settings</h1>
-<p>We simulated our data in a bottom-up fashion: <span class="math display">\[G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.2),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi\]</span> <span class="math display">\[ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U\]</span> <span class="math display">\[Z, W, E_{ij} \sim N(0,\psi_j) \Rightarrow Y = ZW^T+E\]</span> <span class="math inline">\(G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.\)</span></p>
+<p>We simulated our data in a bottom-up fashion: <span class="math display">\[G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.2),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi\]</span> <span class="math display">\[ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U\]</span> <span class="math display">\[E_{ij} \sim N(0,\psi_j), Z, W \Rightarrow Y = ZW^T+E\]</span> <span class="math inline">\(G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.\)</span></p>
 <p>For simulation cases in this report,</p>
 <p>Sample size <span class="math inline">\(N = 400\)</span>, gene number <span class="math inline">\(P = 500\)</span>, factor number <span class="math inline">\(K = 10\)</span>, and guide/marker number <span class="math inline">\(M = 6\)</span>;<br />
 <span class="math inline">\(\sigma_w^2 = 0.5\)</span>, matrix <span class="math inline">\(\beta\)</span> takes the following form:</p>
@@ -349,27 +349,27 @@ Since the order of latent factors is non-identifiable, we focus on <span class="
 </div>
 <div id="pi-0.1" class="section level2">
 <h2><span class="header-section-number">4.2</span> <span class="math inline">\(\pi\)</span> = 0.1</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.2" class="section level2">
 <h2><span class="header-section-number">4.3</span> <span class="math inline">\(\pi\)</span> = 0.2</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-14-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-17-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-8-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-10-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.5" class="section level2">
 <h2><span class="header-section-number">4.4</span> <span class="math inline">\(\pi\)</span> = 0.5</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-19-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-21-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-22-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-15-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="pi-0.8" class="section level2">
 <h2><span class="header-section-number">4.5</span> <span class="math inline">\(\pi\)</span> = 0.8</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-24-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-26-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-27-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-18-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-20-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 

@@ -25,7 +25,7 @@ theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
 library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
-library(Seurat)
+
 # set default chunk output
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
@@ -146,11 +146,10 @@ cat("\n")
 save_suffix <- save_suffixs[1]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-cutoffs <- paste0(unique(PR_list$lfsr_means$cutoff), collapse = ",")
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -163,7 +162,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
@@ -192,10 +191,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[2]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -207,7 +206,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
@@ -236,10 +235,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[3]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -252,7 +251,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
@@ -281,10 +280,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[4]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.2, \u03B22=0.4, \u03B23=0.6, \u03B24=0.8, \u03B25=1)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -296,7 +295,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))

@@ -25,7 +25,7 @@ theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
 library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
-library(Seurat)
+
 # set default chunk output
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
@@ -50,6 +50,12 @@ save_suffixs <- c("G_0.2.K_10.M_6.pi_0.1",
                   "G_0.2.K_10.M_6.pi_0.2",
                   "G_0.2.K_10.M_6.pi_0.5",
                   "G_0.2.K_10.M_6.pi_0.8")
+# wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
+#                 "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6_niter500/")
+# save_suffixs <- c("G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.1",
+#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.2",
+#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.5",
+#                   "G_0.2.K_10.M_6.beta_0.1_to_0.6.pi_0.8")
 settings <- c("pi=0.1", "pi=0.2", "pi=0.5", "pi=0.8")
 marker_levels <- seq(0.1, 0.6, 0.1)
 ```
@@ -59,7 +65,7 @@ marker_levels <- seq(0.1, 0.6, 0.1)
 We simulated our data in a bottom-up fashion:
 $$G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.2),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi$$
 $$ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U$$
-$$Z, W, E_{ij} \sim N(0,\psi_j) \Rightarrow Y = ZW^T+E$$
+$$E_{ij} \sim N(0,\psi_j), Z, W \Rightarrow Y = ZW^T+E$$
 $G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.$
 
 For simulation cases in this report,
@@ -146,11 +152,10 @@ cat("\n")
 save_suffix <- save_suffixs[1]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-cutoffs <- paste0(unique(PR_list$lfsr_means$cutoff), collapse = ",")
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -162,12 +167,11 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
 ```
-
 
 ```{r fig.width=10, fig.height=6.5}
 gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
@@ -192,10 +196,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[2]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -206,9 +210,8 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
                         marker_levels, sub_text)
 ```
 
-
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
@@ -237,10 +240,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[3]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -252,7 +255,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
@@ -281,10 +284,10 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 save_suffix <- save_suffixs[4]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test") +
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+                marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1],
-                      ", \u03B21=0.1, \u03B22=0.2, ..., \u03B26=0.6)"))
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
 ```{r fig.width=12, eval=FALSE, include=FALSE}
@@ -296,7 +299,7 @@ plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff
 ```
 
 ```{r}
-plot_FDR_fixed_cutoff(PR_list$lfsr_list,
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
                                         ", red line: expected)"))
