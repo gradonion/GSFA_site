@@ -123,14 +123,11 @@ print_lfsr_signif_tb(lfsr_mat, 0.05,
                      paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
 ```
 
-### Factor ~ KO Beta PIP
-```{r fig.width=8}
-beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
-rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
-colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
-Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
-        row_title = "Factors",  column_title = "KO Perturbations",
-        cluster_rows = F, cluster_columns = F)
+### Estimate of Factor ~ Perturbation Associations ($\beta$)
+
+```{r fig.width=9, fig.height=7}
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
+                 marker_names = colnames(all_KOs.G_mat))
 ```
 
 ### Factor ~ KO Posterior Association
@@ -153,6 +150,7 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ### Beta PIP vs P-Value
 ```{r fig.width=12, fig.height=5}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-nrow(All_KOs.gibbs_PM$Gamma_pm), ])
 p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
             xlab = "Beta PIP", ylab = "-log10(Association p-value)",
             main = "20 factors x 15 conditions")
@@ -278,10 +276,12 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ## Unguided vs Guided
 
-```{r fig.width=12}
+```{r unguided_vs_guided, fig.width=7, fig.height=7}
 paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
                                pval_vec_2 = unlist(G0.heatmap_matrix),
-                               name_1 = "Guided", name_2 = "Unguided", zoom_in_y = 25)
+                               name_1 = "Guided", name_2 = "Unguided",
+                               zoom_in_start = 1, zoom_in_end = 100,
+                               title_text = "Factor-Perturbation Associations")
 ```
 
 # FLASH
@@ -310,11 +310,12 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ## FLASH vs GSFA
 
-```{r fig.width=12}
+```{r flash_vs_gsfa, fig.width=7, fig.height=7}
 paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
                                pval_vec_2 = unlist(flash_heatmap),
                                name_1 = "Guided", name_2 = "FLASH",
-                               zoom_in_y = 25)
+                               zoom_in_start = 1, zoom_in_end = 100,
+                               title_text = "Factor-Perturbation Associations")
 ```
 
 We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.

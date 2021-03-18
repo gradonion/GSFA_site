@@ -89,7 +89,7 @@ make_flash_res_tb <- function(flashier_obj, G){
 }
 
 dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
-                             marker_names, reorder_markers = NULL,
+                             marker_names, reorder_markers = marker_names,
                              exclude_offset = TRUE){
   # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices
   if (exclude_offset){
@@ -113,15 +113,13 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
   beta_pm_plot_df <- beta_pm_plot_df %>%
     mutate(PIP = beta_pip_plot_df$PIP,
            Factor = factor(Factor, levels = paste0("Factor ", nrow(beta_pip_df):1)),
-           Perturbation = factor(Perturbation))
-  if (!is.null(reorder_markers)){
-    beta_pm_plot_df <- beta_pm_plot_df %>%
-      mutate(Perturbation = factor(Perturbation, levels = reorder_markers))
-  }
-  plot_out <- ggplot(beta_pm_plot_df, aes(x = Perturbation, y = Factor)) +
-    geom_point(aes(size = PIP, color = `Estimated effect size`)) +
-    scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
-                          values = scales::rescale(c(-0.6, 0, 0.6))) +
+           Perturbation = factor(Perturbation, levels = reorder_markers))
+  plot_out <- ggplot(beta_pm_plot_df) +
+    geom_point(aes(x = Perturbation, y = Factor,
+                   size = PIP, color = `Estimated effect size`)) +
+    scale_color_gradient2(low = "navy", mid = "grey90", high = "darkorange1") +
+    # scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
+    #                       values = scales::rescale(c(-0.6, 0, 0.6))) +
     theme_void() +
     theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
           axis.text.y = element_text(size = 13))
