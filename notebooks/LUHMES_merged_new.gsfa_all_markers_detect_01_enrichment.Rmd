@@ -105,14 +105,62 @@ stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
-### Factor ~ KO Beta PIP
-```{r fig.width=8}
-beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
-rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
-colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
-Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
-        row_title = "Factors",  column_title = "Gene Perturbations",
-        cluster_rows = F, cluster_columns = F)
+### Estimate of Factor ~ Perturbation Associations ($\beta$)
+
+```{r fig.width=9, fig.height=7}
+reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5",
+                "CHD8", "CTNND2", "DYRK1A", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                "Nontargeting")
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO)
+```
+
+```{r fig.width=4, fig.height=4, eval=FALSE, include=FALSE}
+interest_factors <- paste0("Factor ", c(10, 11, 13, 15, 17, 18, 20))
+interest_KOs <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5")
+# pdf("reports/figs/LUHMES_beta_of_interest_bubble_plot.pdf", width = 4, height = 4)
+ggplot(beta_pm_plot_df %>% filter(Factor %in% interest_factors,
+                                  Perturbation %in% interest_KOs) %>%
+         mutate(Perturbation = factor(Perturbation, levels = interest_KOs[length(interest_KOs):1])),
+       aes(x = Perturbation, y = Factor)) +
+  geom_point(aes(size = PIP, color = `Estimated effect size`)) +
+  scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
+                        values = scales::rescale(c(-0.6, 0, 0.6))) +
+  theme_void() +
+  theme(axis.text.x = element_text(size = 13, angle = 270, hjust = 0),
+        axis.text.y = element_text(size = 13),
+        legend.title = element_text(size = 13),
+        legend.text = element_text(size = 12))
+# dev.off()
+```
+
+Examples of factor ~ perturbation associations:
+```{r fig.width=6, fig.height=6}
+factor_loading_df <- data.frame(All_KOs.gibbs_PM$Z_pm)
+names(factor_loading_df) <- paste0("Factor_", 1:ncol(factor_loading_df))
+factor_loading_df <- cbind(factor_loading_df, all_KOs.G_mat)
+
+paired_indx <- data.frame(factor = c(15, 13, 18, 20),
+                          marker = c("ADNP", "ASH1L", "CHD2", "PTEN"),
+                          stringsAsFactors = F)
+plot_list <- list()
+for (k in 1:nrow(paired_indx)){
+  i <- paired_indx$factor[k]
+  m <- paired_indx$marker[k]
+  factor_loading_df[[m]] <- factor(factor_loading_df[[m]], levels = c(1, 0))
+  plot_list[[k]] <- ggplot(factor_loading_df,
+              aes_string(x = m, y = paste0("Factor_", i), color = m)) +
+    geom_boxplot() +
+    scale_color_manual(values = c("lightsalmon", "mediumseagreen")) +
+    scale_x_discrete(labels = c(m, "Others")) +
+    labs(y = paste0("Factor ", i, " Loading")) +
+    theme(axis.text.x = element_text(size = 14),
+          axis.title.x = element_blank(),
+          legend.position = "none",
+          panel.grid = element_blank())
+}
+do.call(grid.arrange,
+        c(plot_list, list(top = textGrob("Example Associations", gp = gpar(fontsize = 14)))))
 ```
 
 ### DEGs (LFSR < 0.05) under Each Perturbation
@@ -126,7 +174,7 @@ print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff,
 
 Overlap of DEGs between perturbations:
 
-```{r fig.width=7, fig.height=5.5}
+```{r fig.width=5, fig.height=4}
 num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
 signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
 plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type = "jaccard",
@@ -136,8 +184,13 @@ plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type =
 
 Venn diagram for DEGs found under perturbations ADNP, ARID1B, ASH1L, CHD2:
 
-```{r umap_KO, out.width = '60%'}
+```{r venn, out.width = '60%'}
 knitr::include_graphics("figs/LUHMES_DEGs_venn_diagram_4.png")
+```
+
+SFARI high risk (score 1, 2) genes among the DEGs:
+```{r sfari_network, out.width = '100%'}
+knitr::include_graphics("figs/LUHMES_Marker_SFARI_DEG_network.png")
 ```
 
 # Gene Set Enrichment Analysis
@@ -227,6 +280,8 @@ Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 
     * [Up-regulated](http://www.webgestalt.org/results/1614743225/#): axon development, positive regulation of neurogenesis
     * [Down-regulated](http://www.webgestalt.org/results/1614743342/#)
 
+## Enrichment by DEG degree
+
 # Inspection of Signature Genes
 
 ## Genes targeted by CRISPR knock-down
@@ -247,7 +302,8 @@ for (m in signif_markers){
     cat(paste0(m, " is not detected in > 10% cells."))
     cat("\n")
   } else {
-    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m) %>% select(Name, beta_W, lfsr, pass_lfsr),
+    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m) %>%
+                  dplyr::select(Name, beta_W, lfsr, pass_lfsr),
                 digits = 3,
                 caption = paste0(m, " knock-down")) %>%
     kable_styling())
@@ -255,27 +311,93 @@ for (m in signif_markers){
 }
 ```
 
-## Neuron projection genes ([GO:0010975](http://amigo.geneontology.org/amigo/term/GO:0010975))
+## Neuron projection development genes ([GO:0010975](http://amigo.geneontology.org/amigo/term/GO:0010975))
 
 According to Figure 4E of the [reference paper](https://genome.cshlp.org/content/30/9/1317.full), among these marker genes, mature neuron marker genes are down-regulated and negative regulator genes are up-regulated in ADNP, CHD2 and ASH1L knock-downs; while the opposite happens in PTEN knock-down.
 
 Here we show all the marker genes that passed LFSR < 0.05 under each knock-down. In general, their effect sizes are consistent with the findings of the paper.
 
 ```{r neuron_projection_genes}
-mature_neuron <- c('DPYSL3', 'HSPA5', 'MAP1B', 'CRMP1', 'CRABP2', 'CCDC88A', 'UBE2V2',
+mature_neuron <- c('APBB1', 'DPYSL3', 'HSPA5', 'MAP1B', 'CRMP1', 'CRABP2', 'CCDC88A', 'UBE2V2',
                    'MAPT', 'NEFL', 'MEF2C', 'ZEB2')
-negative_regulators <- c('ITM2C', 'CNTN2', 'ACAP3', 'FKBP4', 'GSK3B', 'EFNA5', 'SERPINF1')
-npg_indx <- match(c(mature_neuron, negative_regulators), genes_df$Name)
+negative_regulators <- c('ITM2C', 'CNTN2', 'ACAP3', 'GSK3B', 'SERPINF1')
+
+npd_genes_df <- data.frame(Name = c(mature_neuron, negative_regulators),
+                           Type = c(rep("neuron maturation", length(mature_neuron)),
+                                    rep("negative regulator", length(negative_regulators))))
+npd_genes_df <- npd_genes_df %>% filter(Name %in% genes_df$Name) %>%
+  mutate(Type = factor(Type, levels = c("neuron maturation", "negative regulator")))
+npd_indx <- match(npd_genes_df$Name, genes_df$Name)
 
 for (m in signif_markers){
-  print(kable(gsfa.DE_list[[m]][npg_indx, ] %>%
+  print(kable(gsfa.DE_list[[m]][npd_indx, ] %>%
+                mutate(Type = npd_genes_df$Type) %>%
                 filter(pass_lfsr) %>%
-                select(Name, beta_W, lfsr) %>%
-                mutate(type = ifelse(Name %in% mature_neuron,
-                                     "mature neuron", "negative regulator")),
+                dplyr::select(Name, Type, beta_W, lfsr),
               digits = 3,
               caption = paste0(m, " knock-down")) %>%
           kable_styling())
 }
+```
+
+```{r fig.width=7, fig.height=5}
+# plot_markers <- c("ADNP", "ASH1L", "CHD2", "PTEN", "SETD5" )
+npd_effect_size_mat <- matrix(nrow = nrow(npd_genes_df),
+                              ncol = length(signif_markers))
+rownames(npd_effect_size_mat) <- npd_genes_df$Name
+colnames(npd_effect_size_mat) <- signif_markers
+for (m in signif_markers){
+  npd_effect_size_mat[, m] <- gsfa.DE_list[[m]][npd_indx, ] %>%
+    mutate(effect_size = ifelse(pass_lfsr, beta_W, NA)) %>%
+    pull(effect_size)
+}
+
+effectsize_colormap <- circlize::colorRamp2(breaks = c(-0.15, 0, 0.15),
+                                            colors = c("blue", "gray90", "red"))
+row_annot <- rowAnnotation(Type = npd_genes_df$Type,
+                           col = list(Type = structure(c("chocolate4", "darkolivegreen"),
+                                                       names = c("neuron maturation", "negative regulator"))),
+                           show_annotation_name = F,
+                           show_legend = F)
+tmp <- npd_effect_size_mat
+tmp[is.na(tmp)] <- 0
+Heatmap(tmp,
+        name = "Effect size (beta*W)",
+        col = effectsize_colormap,
+        na_col = "lightgrey",
+        row_title = NULL, column_title = NULL,
+        cluster_rows = T, cluster_columns = F,
+        show_row_dend = F, show_column_dend = F,
+        split = npd_genes_df$Type) + row_annot
+```
+
+```{r eval=FALSE, include=FALSE}
+library(org.Hs.eg.db)
+all_reg_genes <- select(org.Hs.eg.db, columns = c("SYMBOL"),
+                    keytype = "GO", keys = "GO:0010975")$SYMBOL
+all_reg_genes <- unique(all_reg_genes)
+
+positive_reg_genes <- select(org.Hs.eg.db, columns = c("SYMBOL"),
+                             keytype = "GO", keys = "GO:0010976")$SYMBOL
+positive_reg_genes <- unique(positive_reg_genes)
+negative_reg_genes <- select(org.Hs.eg.db, columns = c("SYMBOL"),
+                             keytype = "GO", keys = "GO:0010977")$SYMBOL
+negative_reg_genes <- unique(negative_reg_genes)
+reg_genes_df <- data.frame(Name = c(positive_reg_genes, negative_reg_genes),
+                           Type = c(rep("positive", length(positive_reg_genes)),
+                                    rep("negative", length(negative_reg_genes))))
+reg_genes_df <- reg_genes_df %>% filter(Name %in% genes_df$Name)
+reg_genes_df$indx <- match(reg_genes_df$Name, genes_df$Name)
+```
+
+```{r eval=FALSE, include=FALSE}
+m <- "CHD2"
+kable(gsfa.DE_list[[m]][reg_genes_df$indx, ] %>%
+              mutate(Type = reg_genes_df$Type) %>%
+              filter(pass_lfsr) %>%
+              dplyr::select(Name, Type, beta_W, lfsr),
+              digits = 3,
+              caption = paste0(m, " knock-down")) %>%
+          kable_styling()
 ```
 

@@ -88,6 +88,48 @@ make_flash_res_tb <- function(flashier_obj, G){
   return(flash_res_tb)
 }
 
+dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
+                             marker_names, reorder_markers = NULL,
+                             exclude_offset = TRUE){
+  # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices
+  if (exclude_offset){
+    beta_pip_matrix <- beta_pip_matrix[, -ncol(beta_pip_matrix)]
+    beta_pm_matrix <- beta_pm_matrix[, -ncol(beta_pm_matrix)]
+  }
+  rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
+  colnames(beta_pip_matrix) <- marker_names
+  beta_pip_df <- as.data.frame(beta_pip_matrix)
+  beta_pip_df$Factor <- paste0("Factor ", 1:nrow(beta_pip_df))
+  beta_pip_plot_df <- reshape2::melt(beta_pip_df, value.name = "PIP")
+  
+  rownames(beta_pm_matrix) <- 1:nrow(beta_pm_matrix)
+  colnames(beta_pm_matrix) <- marker_names
+  beta_pm_df <- as.data.frame(beta_pm_matrix)
+  beta_pm_df$Factor <- paste0("Factor ", 1:nrow(beta_pm_df))
+  beta_pm_plot_df <- reshape2::melt(beta_pm_df, id.var = "Factor",
+                                    variable.name = "Perturbation",
+                                    value.name = "Estimated effect size")
+  # beta_pm_plot_df$PIP <- beta_pip_plot_df$PIP
+  beta_pm_plot_df <- beta_pm_plot_df %>%
+    mutate(PIP = beta_pip_plot_df$PIP,
+           Factor = factor(Factor, levels = paste0("Factor ", nrow(beta_pip_df):1)),
+           Perturbation = factor(Perturbation))
+  if (!is.null(reorder_markers)){
+    beta_pm_plot_df <- beta_pm_plot_df %>%
+      mutate(Perturbation = factor(Perturbation, levels = reorder_markers))
+  }
+  plot_out <- ggplot(beta_pm_plot_df, aes(x = Perturbation, y = Factor)) +
+    geom_point(aes(size = PIP, color = `Estimated effect size`)) +
+    scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
+                          values = scales::rescale(c(-0.6, 0, 0.6))) +
+    theme_void() +
+    theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
+          axis.text.y = element_text(size = 13))
+          # legend.title = element_text(size = 13),
+          # legend.text = element_text(size = 12))
+  return(plot_out)
+}
+
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,
                               row_title = "Factor", column_title = "KO Perturbations"){
   # 'heatmap_matrix' has factors in the rows and SNPs in the columns
@@ -269,36 +311,45 @@ plot_pval_list_grid <- function(pval_list, plot_by = "factor"){
 }
 
 paired_pval_ranked_scatterplot <- function(pval_vec_1, pval_vec_2,
-                                           name_1, name_2, zoom_in_y = NULL){
-  paired_df <- data.frame(V1 = pval_vec_1[order(pval_vec_1)],
-                          V2 = pval_vec_2[order(pval_vec_2)])
-  paired_df <- reshape2::melt(paired_df, value.name = "pval")
-  paired_df <- paired_df %>%
-    mutate(neg_logp = -log10(pval)) %>%
-    mutate(rank = rep(1:length(pval_vec_1), 2)) %>%
-    rename(type = variable) %>%
-    mutate(type = factor(type)) %>%
-    mutate(type = recode(type, V1 = name_1, V2 = name_2))
-  p1 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
-    geom_point(size = 0.8, alpha = 0.6) +
-    labs(y = "-log10(P value)",
-         title = paste(name_1, "vs", name_2, "Factor~KO Associations")) +
-    theme(legend.title = element_blank())
+                                           name_1, name_2,
+                                           fdr_cutoff = 0.05,
+                                           zoom_in_start = NULL, zoom_in_end = NULL,
+                                           title_text = "Factor~KO Associations"){
+  df1 <- data.frame(pval = pval_vec_1,
+                    fdr = p.adjust(pval_vec_1, method = "fdr"),
+                    type = name_1)
+  df1 <- df1 %>% arrange(pval) %>%
+    mutate(rank = 1:nrow(df1),
+           pass_fdr = fdr < fdr_cutoff)
+  df2 <- data.frame(pval = pval_vec_2,
+                    fdr = p.adjust(pval_vec_2, method = "fdr"),
+                    type = name_2)
+  df2 <- df2 %>% arrange(pval) %>%
+    mutate(rank = 1:nrow(df2),
+           pass_fdr = fdr < fdr_cutoff)
+  paired_df <- rbind(df1, df2) %>%
+    mutate(neg_logp = -log10(pval),
+           type = factor(type, levels = c(name_1, name_2)))
 
-  if (is.numeric(zoom_in_y)){
-    p1 <- p1 +
-      geom_hline(yintercept = zoom_in_y, color = "grey", linetype = "dashed") +
-      theme(legend.position = "none")
-    p2 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type)) +
-      geom_point(size = 0.8, alpha = 0.6) +
-      scale_y_continuous(limits = c(0, zoom_in_y)) +
-      labs(y = "-log10(P value)",
-           title = paste0("Zoomed in (Y-axis truncated at ", zoom_in_y, ")")) +
-      theme(legend.title = element_blank())
-    grid.arrange(p1, p2, nrow = 1)
-  } else {
-    print(p1)
+  if (is.numeric(zoom_in_start) | is.numeric(zoom_in_end)){
+    if (is.null(zoom_in_end)){
+      paired_df <- paired_df %>% filter(rank >= zoom_in_start)
+    }
+    if (is.null(zoom_in_start)){
+      paired_df <- paired_df %>% filter(rank <= zoom_in_end)
+    }
+    paired_df <- paired_df %>% filter(rank >= zoom_in_start & rank <= zoom_in_end)
   }
+  p1 <- ggplot(paired_df, aes(x = rank, y = neg_logp, color = type, shape = pass_fdr)) +
+    geom_point(size = 1.2, alpha = 1) +
+    scale_shape_manual(values = c(3, 17)) +
+    labs(title = paste(name_1, "vs", name_2, title_text),
+         y = "-log10(P value)",
+         color = "Method",
+         shape = paste0("FDR < ", fdr_cutoff)) +
+    guides(color = guide_legend(override.aes = list(alpha = 1, size = 1.5)),
+           shape = guide_legend(override.aes = list(alpha = 1, size = 1.5)))
+  print(p1)
 }
 
 plot_PIP_hist_grid <- function(PIP_mat, cutoff = 0.5){

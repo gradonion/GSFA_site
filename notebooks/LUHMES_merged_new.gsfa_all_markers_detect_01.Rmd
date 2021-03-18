@@ -96,7 +96,7 @@ KO_names <- colnames(all_KOs.G_mat)
 
 # Guided results
 
-Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of KO conditions across cells.
+Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
 
 ```{r}
 if (guide == "no_NTC"){
@@ -125,22 +125,22 @@ print_lfsr_signif_tb(lfsr_mat, 0.05,
                      paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
 ```
 
-### Factor ~ KO Beta PIP
-```{r fig.width=8}
-beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-(nmarkers + 1), ])
-rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
-colnames(beta_pip_matrix) <- colnames(all_KOs.G_mat)
-Heatmap(beta_pip_matrix, name = "Beta PIP", col = pip_col_fun,
-        row_title = "Factors",  column_title = "KO Perturbations",
-        cluster_rows = F, cluster_columns = F)
+### Estimate of Factor ~ Perturbation Associations ($\beta$)
+
+```{r fig.width=9, fig.height=7}
+reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5",
+                "CHD8", "CTNND2", "DYRK1A", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                "Nontargeting")
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO)
 ```
 
-### Factor ~ KO Posterior Association
+### Factor ~ Perturbation Association P Values
 ```{r fig.width=10}
 heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
 rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
 colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
-plot_pval_heatmap(heatmap_matrix,
+plot_pval_heatmap(heatmap_matrix[, reorder_KO],
                   factor_annot = All_KOs.gibbs_res_tb$pi)
 guided.heatmap_matrix <- heatmap_matrix
 gsfa_KO_names <- apply(guided.heatmap_matrix, 1,
@@ -155,6 +155,7 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ### Beta PIP vs P-Value
 ```{r fig.width=12, fig.height=5}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-nrow(All_KOs.gibbs_PM$Gamma_pm), ])
 p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
             xlab = "Beta PIP", ylab = "-log10(Association p-value)",
             main = "20 factors x 15 conditions")
@@ -311,10 +312,12 @@ summ_pvalues(unlist(heatmap_matrix),
 
 ## FLASH vs GSFA
 
-```{r fig.width=8}
+```{r fig.width=7, fig.height=5}
 paired_pval_ranked_scatterplot(pval_vec_1 = unlist(guided.heatmap_matrix),
                                pval_vec_2 = unlist(flash_heatmap),
-                               name_1 = "Guided", name_2 = "FLASH")
+                               name_1 = "Guided", name_2 = "FLASH",
+                               zoom_in_start = 1, zoom_in_end = 100,
+                               title_text = "Factor-Perturbation Associations")
 ```
 
 We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.
@@ -389,7 +392,6 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
 
 Gene sets: The [Reactome pathway database](http://www.reactome.org/).
 
-
 ```{r reactome}
 gsfa.Web_ORA_react <-
   readRDS(paste0(wkdir, gsfa_folder,
@@ -403,40 +405,3 @@ knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
              caption = "Summary:") %>%
   kable_styling() %>% scroll_box(width = '100%')
 ```
-
-## KEGG Pathway Over-Representation Analysis
-
-Gene sets: The [KEGG pathway database](http://www.kegg.jp/).
-
-```{r kegg}
-gsfa.Web_ORA_kegg <-
-  readRDS(paste0(wkdir, gsfa_folder,
-                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_KEGG.cutoff_0.95.rds"))
-
-signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_kegg, enrich_type = "KEGG pathways")
-signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
-                              Signif_GO_terms = signif_num,
-                              row.names = NULL))
-knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
-             caption = "Summary:") %>%
-  kable_styling() %>% scroll_box(width = '100%')
-```
-
-## Wikipathway Over-Representation Analysis
-
-Gene sets: The [Wikipathway database](http://www.wikipathway.org/).
-
-```{r wiki}
-gsfa.Web_ORA_wiki <-
-  readRDS(paste0(wkdir, gsfa_folder,
-                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.pathway_Wikipathway.cutoff_0.95.rds"))
-
-signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_wiki, enrich_type = "Wikipathways")
-signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
-                              Signif_GO_terms = signif_num,
-                              row.names = NULL))
-knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
-             caption = "Summary:") %>%
-  kable_styling() %>% scroll_box(width = '100%')
-```
-
