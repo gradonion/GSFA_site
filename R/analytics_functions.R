@@ -117,14 +117,14 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
   plot_out <- ggplot(beta_pm_plot_df) +
     geom_point(aes(x = Perturbation, y = Factor,
                    size = PIP, color = `Estimated effect size`)) +
-    scale_color_gradient2(low = "navy", mid = "grey90", high = "darkorange1") +
+    scale_color_gradient2(low = "purple3", mid = "grey90", high = "darkorange1") +
     # scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
     #                       values = scales::rescale(c(-0.6, 0, 0.6))) +
     theme_void() +
     theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
-          axis.text.y = element_text(size = 13))
-          # legend.title = element_text(size = 13),
-          # legend.text = element_text(size = 12))
+          axis.text.y = element_text(size = 13),
+          legend.title = element_text(size = 13),
+          legend.text = element_text(size = 12))
   return(plot_out)
 }
 
