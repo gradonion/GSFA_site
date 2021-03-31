@@ -90,7 +90,7 @@ make_flash_res_tb <- function(flashier_obj, G){
 
 dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
                              marker_names, reorder_markers = marker_names,
-                             exclude_offset = TRUE){
+                             exclude_offset = TRUE, return_dataframe = FALSE){
   # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices
   if (exclude_offset){
     beta_pip_matrix <- beta_pip_matrix[, -ncol(beta_pip_matrix)]
@@ -125,7 +125,10 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
           axis.text.y = element_text(size = 13),
           legend.title = element_text(size = 13),
           legend.text = element_text(size = 12))
-  return(plot_out)
+  print(plot_out)
+  if (return_dataframe){
+    return(beta_pm_plot_df)
+  }
 }
 
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,

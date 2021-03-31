@@ -296,7 +296,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Evaluation of GSFA on Simulated Data</h1>
-<h3 class="subtitle"><em>– Multiple Markers, Multiple Factors</em></h3>
+<h3 class="subtitle"><em>– Realistic Settings</em></h3>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
 <h4 class="date"><em>2021-03-31</em></h4>
 
@@ -305,9 +305,9 @@ div.tocify {
 
 <div id="simulation-settings" class="section level1">
 <h1><span class="header-section-number">1</span> Simulation Settings</h1>
-<p>We simulated our data in a bottom-up fashion: <span class="math display">\[G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.2),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi\]</span> <span class="math display">\[ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U\]</span> <span class="math display">\[E_{ij} \sim N(0,\psi_j), Z, W \Rightarrow Y = ZW^T+E\]</span> <span class="math inline">\(G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.\)</span></p>
+<p>We simulated our data in a bottom-up fashion: <span class="math display">\[G_{im} \overset{i.i.d.}{\sim} \text{Bern}(0.1),\hspace{3mm} \Phi_{ik} \overset{i.i.d.}{\sim} N(0, 1) \Rightarrow Z = G \beta + \Phi\]</span> <span class="math display">\[ F_{jk} \sim \text{Bern}(\pi_j),\hspace{3mm}  U_{jk} \sim N(0, \sigma_w^2) \Rightarrow W = F \odot U\]</span> <span class="math display">\[E_{ij} \sim N(0,\psi_j), Z, W \Rightarrow Y = ZW^T+E\]</span> <span class="math inline">\(G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb{R}^{N \times K}, W \in \mathbb{R}^{P \times K}, Y \in \mathbb{R}^{N \times P}.\)</span></p>
 <p>For simulation cases in this report,</p>
-<p>Sample size <span class="math inline">\(N = 400\)</span>, gene number <span class="math inline">\(P = 500\)</span>, factor number <span class="math inline">\(K = 10\)</span>, and guide/marker number <span class="math inline">\(M = 6\)</span>;<br />
+<p>Sample size <span class="math inline">\(N = 4000\)</span>, gene number <span class="math inline">\(P = 6000\)</span>, factor number <span class="math inline">\(K = 10\)</span>, and guide/marker number <span class="math inline">\(M = 6\)</span>;<br />
 <span class="math inline">\(\sigma_w^2 = 0.5\)</span>, matrix <span class="math inline">\(\beta\)</span> takes the following form:</p>
 <span class="math display">\[\begin{pmatrix}
 0.1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
@@ -319,24 +319,24 @@ div.tocify {
 \end{pmatrix}\]</span>
 <p>The first 6 factors are each associated with a guide, with the effect sizes varying from 0.1 to 0.6, while the last 4 factors are not associated with any guides.</p>
 <p><strong>We explored 4 cases when the density parameter <span class="math inline">\(\pi_j\)</span> is the same across <span class="math inline">\(j\)</span> but takes a value from 0.1, 0.2, 0.5 to 0.8.</strong></p>
-<p>Under each scenario, 500 random datasets were simulated, and both guided and unguided GSFA models were performed on each dataset for 1000 iterations starting from SVD initialization; posterior means were averaged over the last 500 iterations.</p>
+<p>Under each scenario, 500 random datasets were simulated, and both guided and unguided GSFA models were performed on each dataset for 2000 iterations starting from SVD initialization; posterior means were averaged over the last 1000 iterations.</p>
 </div>
 <div id="estimation-of-effect-sizes-betas" class="section level1">
 <h1><span class="header-section-number">2</span> Estimation of Effect Sizes (<span class="math inline">\(\beta\)</span>s)</h1>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/gridplot_beta_reg-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/gridplot_beta_reg-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="estimation-of-factors-zs" class="section level1">
 <h1><span class="header-section-number">3</span> Estimation of Factors (<span class="math inline">\(Z\)</span>s)</h1>
 <p>We would like to evaluate how different our estimation of the factor matrix, <span class="math inline">\(\hat{Z}\)</span>, is from the true value <span class="math inline">\(Z\)</span>.<br />
 Since the order of latent factors is non-identifiable, we focus on <span class="math inline">\(ZZ^T\)</span> and evaluate its estimation error using <span class="math inline">\(||\hat{Z}\hat{Z}^T - ZZ^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||_F\)</span> is the Frobenius norm, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/plot_rmse_ZZT-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/plot_rmse_ZZT-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="beta-pip-calibration" class="section level1">
 <h1><span class="header-section-number">4</span> Beta PIP Calibration</h1>
 <div id="pi-0.2" class="section level2">
 <h2><span class="header-section-number">4.1</span> <span class="math inline">\(\pi\)</span> = 0.2</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-45-1.png" width="1152" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-46-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-2-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="gene-detection" class="section level1">
@@ -354,31 +354,24 @@ Since the order of latent factors is non-identifiable, we focus on <span class="
 <p>Alternatively, we can simply test each gene directly, measuring whether there is an difference in <span class="math inline">\(Y_j\)</span> between the two groups of samples under guide <span class="math inline">\(m\)</span> using Welch’s t-test.</p>
 <p>To obtain the following ROC curves, we varied the cutoff from 0 to 1 on both LFSR and t-test FDR values.</p>
 <p>The actual cutoff values used are (correspond to the datapoints on an ROC curve from left to right)</p>
-<p>0, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1</p>
-</div>
-<div id="pi-0.1" class="section level2">
-<h2><span class="header-section-number">5.2</span> <span class="math inline">\(\pi\)</span> = 0.1</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-48-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-50-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-51-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>0, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1</p>
 </div>
 <div id="pi-0.2-1" class="section level2">
-<h2><span class="header-section-number">5.3</span> <span class="math inline">\(\pi\)</span> = 0.2</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-53-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-55-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-56-1.png" width="960" style="display: block; margin: auto;" /></p>
+<h2><span class="header-section-number">5.2</span> <span class="math inline">\(\pi\)</span> = 0.2</h2>
+<div id="roc" class="section level3">
+<h3><span class="header-section-number">5.2.1</span> ROC</h3>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
-<div id="pi-0.5" class="section level2">
-<h2><span class="header-section-number">5.4</span> <span class="math inline">\(\pi\)</span> = 0.5</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-58-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-60-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-61-1.png" width="960" style="display: block; margin: auto;" /></p>
+<div id="precision-recall" class="section level3">
+<h3><span class="header-section-number">5.2.2</span> Precision-Recall</h3>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
-<div id="pi-0.8" class="section level2">
-<h2><span class="header-section-number">5.5</span> <span class="math inline">\(\pi\)</span> = 0.8</h2>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-63-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-65-1.png" width="768" style="display: block; margin: auto;" /></p>
-<p><img src="Simulation_multi_markers_n_factors.beta_0.1_0.6_files/figure-html/unnamed-chunk-66-1.png" width="960" style="display: block; margin: auto;" /></p>
+<div id="lfsr-calibration" class="section level3">
+<h3><span class="header-section-number">5.2.3</span> LFSR Calibration</h3>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Simulation_realistic_settings_files/figure-html/unnamed-chunk-9-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 </div>
 

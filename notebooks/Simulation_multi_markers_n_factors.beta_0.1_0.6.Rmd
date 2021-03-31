@@ -46,12 +46,18 @@ pander::panderOptions("table.split.table", Inf)
 ```{r}
 source("/project2/xinhe/yifan/Factor_analysis/simulations/simulation_analytics.R")
 wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
-                "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6_niter1k/")
+                "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6/")
 save_suffixs <- c("G_0.2.K_10.M_6.pi_0.1",
                   "G_0.2.K_10.M_6.pi_0.2",
                   "G_0.2.K_10.M_6.pi_0.5",
                   "G_0.2.K_10.M_6.pi_0.8")
 settings <- c("pi=0.1", "pi=0.2", "pi=0.5", "pi=0.8")
+# wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
+#                 "simulation_results/multi_factors_n_markers/beta_0.1_to_0.6_prior_rb_0.1/")
+# save_suffixs <- c("G_0.2.K_10.M_6.pi_0.1",
+#                   "G_0.2.K_10.M_6.pi_0.2",
+#                   "G_0.2.K_10.M_6.pi_0.3")
+# settings <- c("pi=0.1", "pi=0.2", "pi=0.3")
 marker_levels <- seq(0.1, 0.6, 0.1)
 ```
 
@@ -103,7 +109,7 @@ for (i in 1:length(save_suffixs)){
 ```
 
 ```{r gridplot_beta_reg, fig.width=12, fig.height=9}
-do.call(grid.arrange, paired_beta_plots)
+do.call(grid.arrange, c(paired_beta_plots, nrow = 2))
 ```
 
 # Estimation of Factors ($Z$s)
@@ -115,6 +121,39 @@ Since the order of latent factors is non-identifiable, we focus on $ZZ^T$ and ev
 plot_paired_rmse_zzt_boxplots(zzt_diff_list,
                               sub_text = paste0("(\u03C0 varies from 0.1 to 0.8, ",
                                                 "\u03B2s=", paste(marker_levels, collapse = ", "), ")"))
+```
+
+# Beta PIP Calibration
+
+## $\pi$ = 0.2
+
+```{r make_beta_pip_list}
+i <- 2
+res_list <- readRDS(paste0(wkdir, "raw_results.", save_suffixs[i], ".rds"))
+guided_list <- res_list$gsfa_pm
+sim_list <- res_list$sim_data
+beta_pip_list <- list()
+
+for (i in 1:length(guided_list)){
+  factor_indx <- match_factors(guided_list[[i]], sim_list[[i]], type = "gsfa")
+  if (sum(duplicated(factor_indx)) > 0){
+    # print(paste0("Duplicated factors in set ", i))
+    next
+  }
+  beta_pip_list[[paste0("Set ", i)]] <- guided_list[[i]]$Gamma_pm[, factor_indx]
+}
+```
+
+```{r fig.width=12, fig.height=8}
+plot_beta_PIP_by_effect_size(beta_pip_list, M = 6,
+                             title_text = paste0("Beta PIP Calibration, Pi=",
+                                                 res_list$params$pi_true[1]))
+```
+
+```{r fig.width=6, fig.height=5}
+plot_beta_PIP_pooled(beta_pip_list, M = 6,
+                     title_text = paste0("Beta PIP Calibration (Pooled)\nPi=",
+                                         res_list$params$pi_true[1]))
 ```
 
 # Gene Detection
