@@ -1,0 +1,284 @@
+---
+title: "Functional Analysis on Stimulated T Cell CROP-seq GSFA Results"
+subtitle: "-- 2 donors pooled, batch effect and 3 other covariates corrected"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
+gsfa_folder <- "gsfa_output_detect_01/stimulated_merged/"
+guide <- "All"
+```
+
+# GSFA on LUHMES CROP-seq Data
+
+## Data Processing
+
+Cells:    
+LUHMES cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+
+Genes:    
+**Only genes detected in > 10% of cells were kept, resulted in 6213 genes.**
+
+Normalization:    
+Seurat "LogNormalize": log(count per 10K + 1).   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+## GSFA Results (SVD Initialization)
+
+Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
+
+```{r load meta data}
+metadata <- readRDS(paste0(wkdir, "processed_data/metadata.stimulated_merged.rds"))
+all_KOs.G_mat <- metadata[, 4:24]
+KO_names <- colnames(all_KOs.G_mat)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.
+
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Estimate of Factor ~ Perturbation Associations ($\beta$)
+
+```{r fig.width=9, fig.height=7}
+beta_pm_plot_df <- dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm),
+                                    t(All_KOs.gibbs_PM$beta_pm),
+                                    marker_names = colnames(all_KOs.G_mat),
+                                    return_dataframe = T)
+```
+
+Examples of factor ~ perturbation associations:
+```{r fig.width=6, fig.height=6, eval=FALSE, include=FALSE}
+factor_loading_df <- data.frame(All_KOs.gibbs_PM$Z_pm)
+names(factor_loading_df) <- paste0("Factor_", 1:ncol(factor_loading_df))
+factor_loading_df <- cbind(factor_loading_df, all_KOs.G_mat)
+
+paired_indx <- data.frame(factor = c(15, 13, 18, 20),
+                          marker = c("ADNP", "ASH1L", "CHD2", "PTEN"),
+                          stringsAsFactors = F)
+plot_list <- list()
+for (k in 1:nrow(paired_indx)){
+  i <- paired_indx$factor[k]
+  m <- paired_indx$marker[k]
+  factor_loading_df[[m]] <- factor(factor_loading_df[[m]], levels = c(1, 0))
+  plot_list[[k]] <- ggplot(factor_loading_df,
+              aes_string(x = m, y = paste0("Factor_", i), color = m)) +
+    geom_boxplot() +
+    scale_color_manual(values = c("lightsalmon", "mediumseagreen")) +
+    scale_x_discrete(labels = c(m, "Others")) +
+    labs(y = paste0("Factor ", i, " Loading")) +
+    theme(axis.text.x = element_text(size = 14),
+          axis.title.x = element_blank(),
+          legend.position = "none",
+          panel.grid = element_blank())
+}
+do.call(grid.arrange,
+        c(plot_list, list(top = textGrob("Example Associations", gp = gpar(fontsize = 14)))))
+```
+
+### DEGs (LFSR < 0.05) under Each Perturbation
+
+```{r}
+lfsr_cutoff <- 0.05
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff,
+                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+Overlap of DEGs between perturbations:
+
+```{r fig.width=6, fig.height=5}
+num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type = "jaccard",
+                           label_size = 11,
+                           color_vec = c("#FFEDE6", "#FFA584", "#FF7F50"))
+```
+
+# Gene Set Enrichment Analysis
+
+## Enrichment by factor
+
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6062 genes included in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Gene sets: GO Slim "Biological Process" (non-redundant);    
+Only GO gene sets within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
+
+### Terms of Interest
+
+```{r fig.width=6, fig.height=5}
+interest_factors <- paste0("Factor ", c(7, 8, 9, 11, 13, 14, 17, 18, 19, 20))
+interest_KOs <- c("ARID1A", "CBLB", "CD3D", "CD5", "CDKN1B", "DGKA", "LCP2", "RASA2", "TCEB2")
+
+ggplot(beta_pm_plot_df %>%
+         filter(Factor %in% interest_factors,
+                Perturbation %in% interest_KOs) %>%
+         mutate(Perturbation = factor(Perturbation, levels = interest_KOs[length(interest_KOs):1]),
+                Factor = factor(Factor, levels = paste0("Factor ", 1:nrow(beta_pm_plot_df)))),
+       aes(x = Factor, y = Perturbation)) +
+  geom_point(aes(size = PIP, color = `Estimated effect size`)) +
+  scale_color_gradient2(low = "purple3", mid = "grey90", high = "darkorange1") +
+  theme_void() +
+  theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 0),
+        axis.text.y = element_text(size = 13),
+        legend.title = element_text(size = 13),
+        legend.text = element_text(size = 12))
+```
+
+```{r out.width = "80%"}
+knitr::include_graphics("figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png")
+```
+
+
+### Terms in All Factors of Interest
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_all_factors.svg")
+```
+
+### Terms in Factor 7
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_7.svg")
+```
+
+7: immune response, interleukin production, response to chemokine, cell killing   
+
+### Terms in Factor 8
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_8.svg")
+```
+
+8: cell killing, leukocyte migration    
+
+### Terms in Factor 9
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_9.svg")
+```
+
+9: response to chemokine, interleukin production, leukocyte migration, cell killing, T cell activation    
+
+### Terms in Factor 11
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_11.svg")
+```
+
+11: cell chemotaxis, interleukin production, leukocyte migration, T cell activation   
+
+### Terms in Factor 13
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_13.svg")
+```
+
+13: interleukin production, cell killing, cell chemotaxis, leukocyte migration    
+
+### Terms in Factor 14
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_14.svg")
+```
+
+14: meiotic cell cycle, cytokinesis, chromosome segregation, cell cycle G2/M phase transition   
+
+### Terms in Factor 17
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_17.svg")
+```
+
+17: cell killing, interleukin production, T cell activation, leukocyte proliferation, cell-cell adhesion, leukocyte migration, adaptive immune response, ......   
+
+### Terms in Factor 18
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_18.svg")
+```
+
+18: cell chemotaxis, leukocyte migration, signal transduction by p53 class mediator   
+
+### Terms in Factor 19
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_19.svg")
+```
+
+19: interleukin production, leukocyte migration, leukocyte proliferation, cell killing, B cell activation   
+
+### Terms in Factor 20
+
+```{r out.width = "100%"}
+knitr::include_graphics("figs/cirgo_large_factor_20.svg")
+```
+
+20: T cell activation, cell chemotaxis, cell killing, leukocyte migration, leukocyte proliferation
+
+# Inspection of Signature Genes
+
+## Genes targeted by CRISPR knock-down
+
