@@ -195,90 +195,95 @@ knitr::include_graphics("figs/Stimulated_TCells_merged.foldchange_heatmap_intere
 ### Terms in All Factors of Interest
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_all_factors.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_all_factors.svg")
 ```
 
 ### Terms in Factor 7
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_7.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_7.svg")
 ```
-
-7: immune response, interleukin production, response to chemokine, cell killing   
 
 ### Terms in Factor 8
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_8.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_8.svg")
 ```
-
-8: cell killing, leukocyte migration    
 
 ### Terms in Factor 9
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_9.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_9.svg")
 ```
-
-9: response to chemokine, interleukin production, leukocyte migration, cell killing, T cell activation    
 
 ### Terms in Factor 11
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_11.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_11.svg")
 ```
-
-11: cell chemotaxis, interleukin production, leukocyte migration, T cell activation   
 
 ### Terms in Factor 13
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_13.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_13.svg")
 ```
-
-13: interleukin production, cell killing, cell chemotaxis, leukocyte migration    
 
 ### Terms in Factor 14
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_14.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_14.svg")
 ```
-
-14: meiotic cell cycle, cytokinesis, chromosome segregation, cell cycle G2/M phase transition   
 
 ### Terms in Factor 17
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_17.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_17.svg")
 ```
-
-17: cell killing, interleukin production, T cell activation, leukocyte proliferation, cell-cell adhesion, leukocyte migration, adaptive immune response, ......   
 
 ### Terms in Factor 18
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_18.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_18.svg")
 ```
-
-18: cell chemotaxis, leukocyte migration, signal transduction by p53 class mediator   
 
 ### Terms in Factor 19
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_19.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_19.svg")
 ```
-
-19: interleukin production, leukocyte migration, leukocyte proliferation, cell killing, B cell activation   
 
 ### Terms in Factor 20
 
 ```{r out.width = "100%"}
-knitr::include_graphics("figs/cirgo_large_factor_20.svg")
+knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_factor_20.svg")
 ```
-
-20: T cell activation, cell chemotaxis, cell killing, leukocyte migration, leukocyte proliferation
 
 # Inspection of Signature Genes
 
 ## Genes targeted by CRISPR knock-down
+
+```{r knockdown_targets}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/gene_discovery_functions.R")
+feature.names <- data.frame(fread(paste0(wkdir, "GSE119450_RAW/D1S/genes.tsv"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+genes_indx <- match(rownames(lfsr_mat), feature.names$ID)
+genes_df <- feature.names[genes_indx, ]
+
+gsfa.DE_list <- compute_beta_dot_W(lfsr_mat, All_KOs.gibbs_PM)
+gsfa.DE_list <- lapply(gsfa.DE_list, function(x){ left_join(x, feature.names,
+                                                            by = c("gene_ID" = "ID")) })
+for (m in signif_markers){
+  if (!(m %in% gsfa.DE_list[[m]]$Name)){
+    cat(paste0(m, " is not detected in > 10% cells."))
+    cat("\n")
+  } else {
+    print(kable(gsfa.DE_list[[m]] %>% filter(Name == m) %>%
+                  dplyr::select(Name, beta_W, lfsr, pass_lfsr),
+                digits = 3,
+                caption = paste0(m, " knock-down")) %>%
+    kable_styling())
+  }
+}
+```
 
