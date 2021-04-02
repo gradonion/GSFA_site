@@ -54,11 +54,6 @@ print_signif_tb <- function(signif_num, caption_text){
                      caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-  print_signif_tb(signif_num, caption_text)
-}
-
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
 gsfa_folder <- "gsfa_output_detect_01/stimulated_merged/"
 guide <- "All"
@@ -86,7 +81,7 @@ Normalization:
 Seurat "LogNormalize": log(count per 10K + 1).   
 **Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
 
-```{r load meta data, fig.width=9}
+```{r load meta data}
 metadata <- readRDS(paste0(wkdir, "processed_data/metadata.stimulated_merged.rds"))
 all_KOs.G_mat <- metadata[, 4:24]
 KO_names <- colnames(all_KOs.G_mat)
@@ -117,10 +112,20 @@ All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compu
 
 For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
 
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 ```{r}
+lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, 0.05,
-                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+Number of genes that passed t-test FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.stimulated_merged.detect_01.corrected.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed FDR cutoff of 0.05:"))
 ```
 
 ### Estimate of Factor ~ Perturbation Associations ($\beta$)
@@ -246,17 +251,6 @@ In contrast to the guided version, here we provide no guidance ($G = \vec{0}$) t
 ```{r G0_tb}
 G0.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, "G0.gibbs_obj_k20.svd.restart.PM.rds"))
 G0.gibbs_res_tb <- make_gibbs_res_tb(G0.gibbs_PM, all_KOs.G_mat, compute_pve = F)
-```
-
-## Factor ~ KO Beta PIP
-```{r fig.width=8, fig.height=1}
-beta_pip_matrix <- t(G0.gibbs_PM$Gamma_pm[-2, ])
-colnames(beta_pip_matrix) <- 1:ncol(beta_pip_matrix)
-rownames(beta_pip_matrix) <- "G0"
-Heatmap(beta_pip_matrix,
-        name = "Beta PIP", col = pip_col_fun,column_title = "Factors",
-        cluster_rows = F, cluster_columns = F,
-        heatmap_legend_param = list(legend_direction = "horizontal"))
 ```
 
 ## Factor ~ KO Posterior Association

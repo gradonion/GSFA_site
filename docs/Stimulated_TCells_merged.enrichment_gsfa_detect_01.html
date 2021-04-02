@@ -322,11 +322,12 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>Examples of factor ~ perturbation associations:</p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
+Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -492,8 +493,174 @@ Num_genes
 </tbody>
 </table>
 </div>
+Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Welch’s t-test, # of genes that passed FDR cutoff of 0.05:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+BTLA
+</td>
+<td style="text-align:left;">
+C10orf54
+</td>
+<td style="text-align:left;">
+CBLB
+</td>
+<td style="text-align:left;">
+CD3D
+</td>
+<td style="text-align:left;">
+CD5
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+14
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+15
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+DGKA
+</td>
+<td style="text-align:left;">
+DGKZ
+</td>
+<td style="text-align:left;">
+HAVCR2
+</td>
+<td style="text-align:left;">
+LAG3
+</td>
+<td style="text-align:left;">
+LCP2
+</td>
+<td style="text-align:left;">
+MEF2D
+</td>
+<td style="text-align:left;">
+NonTarget
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+39
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PDCD1
+</td>
+<td style="text-align:left;">
+RASA2
+</td>
+<td style="text-align:left;">
+SOCS1
+</td>
+<td style="text-align:left;">
+STAT6
+</td>
+<td style="text-align:left;">
+TCEB2
+</td>
+<td style="text-align:left;">
+TMEM222
+</td>
+<td style="text-align:left;">
+TNFRSF9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+9
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+73
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <p>Overlap of DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-10-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -508,7 +675,7 @@ Gene sets: GO Slim “Biological Process” (non-redundant);<br />
 Only GO gene sets within the size of 10 ~ 500 and have a test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown in the webpages.</p>
 <div id="terms-of-interest" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Terms of Interest</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-11-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png" width="80%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-all-factors-of-interest" class="section level3">

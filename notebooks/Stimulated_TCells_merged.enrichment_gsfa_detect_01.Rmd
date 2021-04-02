@@ -46,9 +46,6 @@ pander::panderOptions("table.split.table", Inf)
 ```{r}
 source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
 print_signif_tb <- function(signif_num, caption_text){
-  if (length(signif_num) < 15){
-    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
-  }
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
@@ -56,11 +53,6 @@ print_signif_tb <- function(signif_num, caption_text){
                      caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-  print_signif_tb(signif_num, caption_text)
-}
-
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
 gsfa_folder <- "gsfa_output_detect_01/stimulated_merged/"
 guide <- "All"
@@ -140,11 +132,26 @@ do.call(grid.arrange,
 
 ### DEGs (LFSR < 0.05) under Each Perturbation
 
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 ```{r}
 lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff,
-                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+Number of genes that passed t-test FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.stimulated_merged.detect_01.corrected.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed FDR cutoff of 0.05:"))
+```
+
+```{r eval=FALSE, include=FALSE}
+dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
+                                lfsr = lfsr_signif_num,
+                                ttest = DE_signif_counts)
 ```
 
 Overlap of DEGs between perturbations:

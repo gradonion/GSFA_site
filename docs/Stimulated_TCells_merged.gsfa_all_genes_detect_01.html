@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-03-24" />
+<meta name="date" content="2021-04-01" />
 
 <title>Guided Factor Analysis on Stimulated T Cell CROP-seq Data</title>
 
@@ -299,7 +299,7 @@ div.tocify {
 <h1 class="title toc-ignore">Guided Factor Analysis on Stimulated T Cell CROP-seq Data</h1>
 <h3 class="subtitle"><em>– 2 donors pooled, batch effect and 3 other covariates corrected</em></h3>
 <h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-03-24</em></h4>
+<h4 class="date"><em>2021-04-01</em></h4>
 
 </div>
 
@@ -329,6 +329,7 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <div id="local-false-sign-rate-lfsr" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Local False Sign Rate (LFSR)</h3>
 <p>For a given GSFA inference result, we can estimate the effect a certain KO condition <span class="math inline">\(m\)</span> has on the expression of gene <span class="math inline">\(j\)</span> by computing the LFSR of <span class="math inline">\(\beta_{m\cdot} \cdot W_{j\cdot}\)</span>.</p>
+Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -494,23 +495,189 @@ Num_genes
 </tbody>
 </table>
 </div>
+Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Welch’s t-test, # of genes that passed FDR cutoff of 0.05:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:left;">
+BTLA
+</td>
+<td style="text-align:left;">
+C10orf54
+</td>
+<td style="text-align:left;">
+CBLB
+</td>
+<td style="text-align:left;">
+CD3D
+</td>
+<td style="text-align:left;">
+CD5
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+14
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+15
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+6
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+DGKA
+</td>
+<td style="text-align:left;">
+DGKZ
+</td>
+<td style="text-align:left;">
+HAVCR2
+</td>
+<td style="text-align:left;">
+LAG3
+</td>
+<td style="text-align:left;">
+LCP2
+</td>
+<td style="text-align:left;">
+MEF2D
+</td>
+<td style="text-align:left;">
+NonTarget
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+39
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PDCD1
+</td>
+<td style="text-align:left;">
+RASA2
+</td>
+<td style="text-align:left;">
+SOCS1
+</td>
+<td style="text-align:left;">
+STAT6
+</td>
+<td style="text-align:left;">
+TCEB2
+</td>
+<td style="text-align:left;">
+TMEM222
+</td>
+<td style="text-align:left;">
+TNFRSF9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+9
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+73
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">2.1.2</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-15-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-4-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 <div id="factor-ko-posterior-association" class="section level3">
 <h3><span class="header-section-number">2.1.3</span> Factor ~ KO Posterior Association</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-17-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="beta-pip-vs-p-value" class="section level3">
 <h3><span class="header-section-number">2.1.4</span> Beta PIP vs P-Value</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-18-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="correlation-btw-factors" class="section level3">
 <h3><span class="header-section-number">2.1.5</span> Correlation btw Factors</h3>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-20-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="alternative-initializations-and-chain-convergence" class="section level2">
@@ -1072,17 +1239,13 @@ offset
 <div id="unguided-result" class="section level1">
 <h1><span class="header-section-number">3</span> Unguided Result</h1>
 <p>In contrast to the guided version, here we provide no guidance (<span class="math inline">\(G = \vec{0}\)</span>) to our sparse factor analysis model to serve as a comparison.</p>
-<div id="factor-ko-beta-pip" class="section level2">
-<h2><span class="header-section-number">3.1</span> Factor ~ KO Beta PIP</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-23-1.png" width="768" style="display: block; margin: auto;" /></p>
-</div>
 <div id="factor-ko-posterior-association-1" class="section level2">
-<h2><span class="header-section-number">3.2</span> Factor ~ KO Posterior Association</h2>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-24-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-25-1.png" width="960" style="display: block; margin: auto;" /></p>
+<h2><span class="header-section-number">3.1</span> Factor ~ KO Posterior Association</h2>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-13-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="unguided-vs-guided" class="section level2">
-<h2><span class="header-section-number">3.3</span> Unguided vs Guided</h2>
+<h2><span class="header-section-number">3.2</span> Unguided vs Guided</h2>
 <p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unguided_vs_guided-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
@@ -1091,15 +1254,15 @@ offset
 <div id="factor-ko-posterior-association-2" class="section level2">
 <h2><span class="header-section-number">4.1</span> Factor ~ KO Posterior Association</h2>
 <p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/FLASH%20pval%20heatmap-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-26-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-14-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 <div id="flash-vs-gsfa" class="section level2">
 <h2><span class="header-section-number">4.2</span> FLASH vs GSFA</h2>
 <p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/flash_vs_gsfa-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>We matched the factors obtained from GFSA with those from FLASH, and conducted pairwise comparisons for both factors and gene loadings.</p>
 <p><strong>In the following heatmaps, factors are labeled by the KO condition(s) that they have an association p-value &lt; 1e-4 with.</strong></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-28-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-29-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-16-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-17-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="gene-ontology-enrichment-analysis" class="section level1">
@@ -14214,7 +14377,7 @@ CBLB: 7, 9, 11</p>
 <p><strong>Associated factors in GSFA</strong></p>
 <p>CD3D: 7, 13<br />
 LCP2: 2, 4, 7, 13</p>
-<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="reactome-pathway-over-representation-analysis" class="section level2">
