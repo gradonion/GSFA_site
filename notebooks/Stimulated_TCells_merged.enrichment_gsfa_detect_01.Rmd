@@ -52,7 +52,7 @@ print_signif_tb <- function(signif_num, caption_text){
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
-  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+  print(knitr::kable(rbind(signif_num[, 1:7], signif_num[, 8:14], signif_num[, 15:21]),
                      caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
@@ -66,15 +66,16 @@ gsfa_folder <- "gsfa_output_detect_01/stimulated_merged/"
 guide <- "All"
 ```
 
-# GSFA on LUHMES CROP-seq Data
+# GSFA on Stimulated T Cell CROP-seq Data
 
 ## Data Processing
 
 Cells:    
-LUHMES cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation. Cells from 2 donors were pooled together into 1 analysis.   
+All cells have only a single type of gRNA readout. Quality control resulted in 13983 cells.
 
 Genes:    
-**Only genes detected in > 10% of cells were kept, resulted in 6213 genes.**
+**Only genes detected in > 10% of cells were kept, resulted in 6062 genes.**
 
 Normalization:    
 Seurat "LogNormalize": log(count per 10K + 1).   

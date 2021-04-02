@@ -228,6 +228,9 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
 ```
 
 ## $\pi$ = 0.2
+
+### ROC
+
 ```{r}
 save_suffix <- save_suffixs[2]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
@@ -238,7 +241,28 @@ plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
                       "(\u03C0=", PR_list$params$pi_true[1], ")"))
 ```
 
-```{r fig.width=12, eval=FALSE, include=FALSE}
+```{r roc_sva_gridplot, fig.width=12, fig.height=9}
+p1 <- plot_paired_ROC(PR_list$sva_means_2, PR_list$ttest_means, "SVA-2", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- SVA-2 vs t-test\n",
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+p2 <- plot_paired_ROC(PR_list$sva_means_4, PR_list$ttest_means, "SVA-4", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- SVA-4 vs t-test\n",
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+p3 <- plot_paired_ROC(PR_list$sva_means_6, PR_list$ttest_means, "SVA-6", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- SVA-6 vs t-test\n",
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+p4 <- plot_paired_ROC(PR_list$sva_means_8, PR_list$ttest_means, "SVA-8", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- SVA-8 vs t-test\n",
+                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+### LFSR Calibration
+```{r fig.width=12}
 sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
                    ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,

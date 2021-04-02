@@ -303,14 +303,15 @@ div.tocify {
 </div>
 
 
-<div id="gsfa-on-luhmes-crop-seq-data" class="section level1">
-<h1><span class="header-section-number">1</span> GSFA on LUHMES CROP-seq Data</h1>
+<div id="gsfa-on-stimulated-t-cell-crop-seq-data" class="section level1">
+<h1><span class="header-section-number">1</span> GSFA on Stimulated T Cell CROP-seq Data</h1>
 <div id="data-processing" class="section level2">
 <h2><span class="header-section-number">1.1</span> Data Processing</h2>
 <p>Cells:<br />
-LUHMES cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.</p>
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation. Cells from 2 donors were pooled together into 1 analysis.<br />
+All cells have only a single type of gRNA readout. Quality control resulted in 13983 cells.</p>
 <p>Genes:<br />
-<strong>Only genes detected in &gt; 10% of cells were kept, resulted in 6213 genes.</strong></p>
+<strong>Only genes detected in &gt; 10% of cells were kept, resulted in 6062 genes.</strong></p>
 <p>Normalization:<br />
 Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <strong>Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.</strong></p>
@@ -321,7 +322,7 @@ Seurat “LogNormalize”: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-20-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>Examples of factor ~ perturbation associations:</p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
@@ -351,6 +352,12 @@ CBLB
 <td style="text-align:left;">
 CD3D
 </td>
+<td style="text-align:left;">
+CD5
+</td>
+<td style="text-align:left;">
+CDKN1B
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -371,16 +378,16 @@ Num_genes
 <td style="text-align:left;">
 1238
 </td>
+<td style="text-align:left;">
+1264
+</td>
+<td style="text-align:left;">
+0
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
 KO
-</td>
-<td style="text-align:left;">
-CD5
-</td>
-<td style="text-align:left;">
-CDKN1B
 </td>
 <td style="text-align:left;">
 DGKA
@@ -390,31 +397,6 @@ DGKZ
 </td>
 <td style="text-align:left;">
 HAVCR2
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-1264
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-461
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
 </td>
 <td style="text-align:left;">
 LAG3
@@ -428,13 +410,19 @@ MEF2D
 <td style="text-align:left;">
 NonTarget
 </td>
-<td style="text-align:left;">
-PDCD1
-</td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Num_genes
+</td>
+<td style="text-align:left;">
+461
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
 </td>
 <td style="text-align:left;">
 0
@@ -448,6 +436,55 @@ Num_genes
 <td style="text-align:left;">
 0
 </td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+PDCD1
+</td>
+<td style="text-align:left;">
+RASA2
+</td>
+<td style="text-align:left;">
+SOCS1
+</td>
+<td style="text-align:left;">
+STAT6
+</td>
+<td style="text-align:left;">
+TCEB2
+</td>
+<td style="text-align:left;">
+TMEM222
+</td>
+<td style="text-align:left;">
+TNFRSF9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+939
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+1758
+</td>
+<td style="text-align:left;">
+0
+</td>
 <td style="text-align:left;">
 0
 </td>
@@ -456,7 +493,7 @@ Num_genes
 </table>
 </div>
 <p>Overlap of DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-23-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -471,7 +508,7 @@ Gene sets: GO Slim “Biological Process” (non-redundant);<br />
 Only GO gene sets within the size of 10 ~ 500 and have a test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown in the webpages.</p>
 <div id="terms-of-interest" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Terms of Interest</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-24-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png" width="80%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-all-factors-of-interest" class="section level3">
