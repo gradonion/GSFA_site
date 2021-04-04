@@ -46,7 +46,7 @@ pander::panderOptions("table.split.table", Inf)
 ```{r}
 source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
 print_signif_tb <- function(signif_num, caption_text){
-  signif_num <- t(data.frame(KO = names(signif_num),
+  signif_num <- t(data.frame(KO_target = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
   print(knitr::kable(rbind(signif_num[, 1:7], signif_num[, 8:14], signif_num[, 15:21]),
@@ -133,28 +133,72 @@ do.call(grid.arrange,
 ### DEGs (LFSR < 0.05) under Each Perturbation
 
 Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
-```{r}
+
+```{r lfsr}
 lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
 lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+print_signif_tb(lfsr_signif_num, paste0("GSFA, LFSR cutoff at ", lfsr_cutoff))
 ```
 
 Number of genes that passed t-test FDR < 0.05 under each perturbation:
+
 ```{r ttest_DE}
 fdr_cutoff <- 0.05
 DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.stimulated_merged.detect_01.corrected.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
-print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed FDR cutoff of 0.05:"))
+# print_signif_tb(DE_signif_counts, paste0("Welch's t-test, FDR cutoff at ", fdr_cutoff))
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r deseq}
+library(DESeq2)
+deseq_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/stimulated_merged.gRNA_", m,
+                  ".filtered_by_detection_0.1.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  deseq_list[[m]] <- res
+}
+deseq_signif_counts <- sapply(deseq_list, function(x){filter(x, padj < fdr_cutoff) %>% nrow()})
+```
+
+```{r edger}
+# library(edgeR)
+edger_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/stimulated_merged.gRNA_", m,
+                  ".filtered_by_detection_0.1.rds")
+  edger_list[[m]] <- readRDS(fname)
+}
+edger_signif_counts <- sapply(edger_list, function(x){filter(x, FDR < fdr_cutoff) %>% nrow()})
+```
+
+```{r dge_comparison_log, fig.width=10, fig.height=7}
 dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
-                                lfsr = lfsr_signif_num,
-                                ttest = DE_signif_counts)
+                                GSFA = lfsr_signif_num,
+                                edgeR = edger_signif_counts,
+                                DESeq = deseq_signif_counts,
+                                t.test = DE_signif_counts)
+dge_comparison_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                                    variable.name = "Method", value.name = "Num_DEGs")
+ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Number of DEGs + 1", x = "Knock-Out Target") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
-Overlap of DEGs between perturbations:
+```{r dge_comparison, fig.width=10, fig.height=7}
+ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Number of DEGs", x = "Knock-Out Target") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+```
+
+Overlap of GSFA DEGs between perturbations:
 
 ```{r fig.width=6, fig.height=5}
 num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
@@ -172,7 +216,9 @@ Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);
 Backgroud genes: all 6062 genes included in factor analysis;    
 Statistical test: hypergeometric test (over-representation test);    
 Gene sets: GO Slim "Biological Process" (non-redundant);    
-Only GO gene sets within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
+Only GO gene sets within the size of 10 ~ 500 and have an enrichment FC > 2 and FDR < 0.05 are kept.
+
+We used the "Wang" method in `GOSemSim` to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 12 clusters using hierarchical clustering with the "ward.D" agglomeration method. The clustering results of all these GO BP terms are stored [here](https://drive.google.com/drive/folders/1VTXE-bknsCr5mV022HbQqU6NP29qfp_U).
 
 ### Terms of Interest
 
@@ -198,7 +244,6 @@ ggplot(beta_pm_plot_df %>%
 ```{r out.width = "80%"}
 knitr::include_graphics("figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png")
 ```
-
 
 ### Terms in All Factors of Interest
 

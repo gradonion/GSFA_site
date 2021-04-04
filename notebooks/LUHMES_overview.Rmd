@@ -45,6 +45,17 @@ pander::panderOptions("table.split.table", Inf)
 ```{r}
 source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
 ```
 
 # Data Settings
@@ -111,7 +122,7 @@ num_cells.df <- data.frame(locus = names(num_cells_per_guide),
                            count = num_cells_per_guide)
 ggplot(data = num_cells.df, aes(x=locus, y=count)) +
   geom_bar(stat="identity", width = 0.6) +
-  labs(title = "Cell count per knockdown target", x = "# of cells", y = "Count") +
+  labs(title = "Cell count per knockdown target", y = "Number of cells", x = "Perturbation") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size =11))
 ```
 
@@ -121,13 +132,15 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
 knitr::include_graphics("figs/LUHMES_merged.KO_patterns_umap.png")
 ```
 
-## Wilcoxon Differential Expression Test
+## DGE -- Wilcoxon rank sum test on expression without correction
 
 Number of genes that passed FDR < 0.05 under each perturbation:
 ```{r wilcox_DE}
 fdr_cutoff <- 0.05
 DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.all_markers.seurat_wilcox.rds"))
 DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts,
+                paste0("Wilcoxon rank sum test, FDR cutoff at ", fdr_cutoff))
 DE_signif_tb <- t(data.frame(KO = names(DE_signif_counts),
                              DE_genes = DE_signif_counts,
                              row.names = NULL))
@@ -155,4 +168,14 @@ for (m in names(DE_signif_counts)){
 }
 args <- c(plot.lst, list(nrow = 5, top = "Wilcoxon DGE on log(CPM)"))
 do.call(grid.arrange, args)
+```
+
+## DGE -- Welch's t-test on corrected expression data
+
+Number of genes that passed FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.merged_detect_01.corrected_new.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts, paste0("Welch's t-test, FDR cutoff at ", fdr_cutoff))
 ```

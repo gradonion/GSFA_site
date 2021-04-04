@@ -49,23 +49,16 @@ print_signif_tb <- function(signif_num, caption_text){
   if (length(signif_num) < 15){
     signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
   }
-  signif_num <- t(data.frame(KO = names(signif_num),
+  signif_num <- t(data.frame(KD_target = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
   print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
                      caption = caption_text) %>%
     kable_styling() %>% scroll_box(width = '100%'))
 }
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-  print_signif_tb(signif_num, caption_text)
-}
-
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
 gsfa_folder <- "gsfa_output_detect_01/merged_new/"
 guide <- "All"
-pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
-                                    colors = c("black", "purple", "gold"))
 ```
 
 # GSFA on LUHMES CROP-seq Data
@@ -165,14 +158,72 @@ do.call(grid.arrange,
 
 ### DEGs (LFSR < 0.05) under Each Perturbation
 
-```{r}
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
+
+```{r lfsr}
 lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, lfsr_cutoff,
-                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, LFSR cutoff at ", lfsr_cutoff))
 ```
 
-Overlap of DEGs between perturbations:
+Number of genes that passed t-test FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.merged_detect_01.corrected_new.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+# print_signif_tb(DE_signif_counts, paste0("Welch's t-test, FDR cutoff at ", fdr_cutoff))
+```
+
+```{r deseq}
+library(DESeq2)
+deseq_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/merged_new.gRNA_", m,
+                  ".filtered_by_detection_0.1.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  deseq_list[[m]] <- res
+}
+deseq_signif_counts <- sapply(deseq_list, function(x){filter(x, padj < fdr_cutoff) %>% nrow()})
+```
+
+```{r edger}
+# library(edgeR)
+edger_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/merged_new.gRNA_", m,
+                  ".filtered_by_detection_0.1.rds")
+  edger_list[[m]] <- readRDS(fname)
+}
+edger_signif_counts <- sapply(edger_list, function(x){filter(x, FDR < fdr_cutoff) %>% nrow()})
+```
+
+```{r dge_comparison_log, fig.width=10, fig.height=7}
+dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
+                                GSFA = lfsr_signif_num,
+                                edgeR = edger_signif_counts,
+                                DESeq = deseq_signif_counts,
+                                t.test = DE_signif_counts)
+dge_comparison_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                                    variable.name = "Method", value.name = "Num_DEGs")
+ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Number of DEGs + 1", x = "Knock-Down Target") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+```
+
+```{r dge_comparison, fig.width=10, fig.height=7}
+ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Number of DEGs", x = "Knock-Down Target") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+```
+
+Overlap of GSFA DEGs between perturbations:
 
 ```{r fig.width=5, fig.height=4}
 num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
@@ -200,7 +251,29 @@ knitr::include_graphics("figs/LUHMES_Marker_SFARI_DEG_network.png")
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6213 genes included in factor analysis;    
 Statistical test: hypergeometric test (over-representation test);    
-Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
+Only GO terms/pathways within the size of 10 ~ 500 and have have an enrichment FC > 2 and FDR < 0.05 are kept.
+
+### GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+We used the "Wang" method in `GOSemSim` to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 9 clusters using hierarchical clustering with the "ward.D" agglomeration method. The clustering results of all these GO BP terms are stored [here](https://drive.google.com/drive/folders/1yady1-Z_ehJXkfqZxe_CtqEZdFN1TD7Z).
+
+**Terms of interest**
+
+```{r out.width = '100%'}
+knitr::include_graphics("figs/LUHMES_foldchange_heatmap_interest_terms_annotated.png")
+```
+
+**Factors of interest**
+
+* [Factor 10](http://www.webgestalt.org/results/1614731260/#): nerve development, cell fate commitment;   
+* [Factor 11](http://www.webgestalt.org/results/1614731201/#): chromatin remodeling, DNA recombination;   
+* [**Factor 13**](http://www.webgestalt.org/results/1614731171/#): regulation of metal ion transport, axon development, ...;   
+* [**Factor 15**](http://www.webgestalt.org/results/1614731117/#): neuron migration, response to metal ion, CNS neuron development, ...;   
+* [**Factor 18**](http://www.webgestalt.org/results/1614730861/#): CNS neuron differentiation, xxx tissue development, ...;   
+* [Factor 19](http://www.webgestalt.org/results/1614730760/#): axon development;   
+* [**Factor 20**](http://www.webgestalt.org/results/1614730397/#): nerve development, neurotransmitter transport, ....
 
 ### Reactome Pathway Over-Representation Analysis
 
@@ -216,71 +289,6 @@ Gene sets: The [Reactome pathway database](http://www.reactome.org/).
 * [Factor 17](http://www.webgestalt.org/results/1614729171/#): Axon guidance
 * [Factor 19](http://www.webgestalt.org/results/1614729226/#): Activation of NMDA receptors and postsynaptic events, Mitotic phases, Cell Cycle Checkpoints
 * [Factor 20](http://www.webgestalt.org/results/1614729303/#): Neurotransmitter receptors and postsynaptic signal transmission, Ion channel transport
-
-### GO Slim Over-Representation Analysis
-
-Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
-
-**Factors of interest**
-
-* [Factor 10](http://www.webgestalt.org/results/1614731260/#): nerve development, cell fate commitment;   
-* [Factor 11](http://www.webgestalt.org/results/1614731201/#): chromatin remodeling, DNA recombination;   
-* [**Factor 13**](http://www.webgestalt.org/results/1614731171/#): regulation of metal ion transport, axon development, ...;   
-* [**Factor 15**](http://www.webgestalt.org/results/1614731117/#): neuron migration, response to metal ion, CNS neuron development, ...;   
-* [**Factor 18**](http://www.webgestalt.org/results/1614730861/#): CNS neuron differentiation, xxx tissue development, ...;   
-* [Factor 19](http://www.webgestalt.org/results/1614730760/#): axon development;   
-* [**Factor 20**](http://www.webgestalt.org/results/1614730397/#): nerve development, neurotransmitter transport, ....
-
-## Enrichment by perturbation
-
-Target genes: Genes w/ LSFR < 0.05 under each perturbation;    
-Backgroud genes: all 6213 genes included in factor analysis;    
-Statistical test: hypergeometric test (over-representation test);    
-Only GO terms/pathways within the size of 10 ~ 500 and have a test FDR $<$ 0.05 are shown in the webpages.
-
-### Reactome Pathway Over-Representation Analysis
-
-* [ADNP](http://www.webgestalt.org/results/1614735983/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614748228/#)
-    * Down-regulated
-* [ARID1B](http://www.webgestalt.org/results/1614736635/#)
-    * Up-regulated
-    * [Down-regulated](http://www.webgestalt.org/results/1614748345/#)
-* [ASH1L](http://www.webgestalt.org/results/1614736695/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614748437/#)
-    * [Down-regulated](http://www.webgestalt.org/results/1614748499/#): mRNA Splicing, Transcriptional Regulation by TP53
-* [CHD2](http://www.webgestalt.org/results/1614737079/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614748559/#)
-    * [Down-regulated](http://www.webgestalt.org/results/1614748857/#): Axon guidance
-* [PTEN](http://www.webgestalt.org/results/1614737261/#)
-    * Up-regulated
-    * [Down-regulated](http://www.webgestalt.org/results/1614749222/#): Axon guidance
-* [SETD5](http://www.webgestalt.org/results/1614737506/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614749447/#)
-    * [Down-regulated](http://www.webgestalt.org/results/1614749474/#): Axon guidance
-
-### GO Slim Over-Representation Analysis
-
-* [ADNP](http://www.webgestalt.org/results/1614737785/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614741328/#):regulation of metal ion transport, regulation of neurotransmitter levels
-    * Down-regulated
-* [ARID1B](http://www.webgestalt.org/results/1614737823/#)
-    * Up-regulated
-    * [Down-regulated](http://www.webgestalt.org/results/1614741644/#): regulation of metal ion transport
-* [ASH1L](http://www.webgestalt.org/results/1614737877/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614741821/#): regulation of metal ion transport
-    * [Down-regulated](http://www.webgestalt.org/results/1614741971/#)
-* [CHD2](http://www.webgestalt.org/results/1614737909/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614742122/#)
-    * [Down-regulated](http://www.webgestalt.org/results/1614742235/#): central nervous system neuron differentiation
-* [PTEN](http://www.webgestalt.org/results/1614737973/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614742400/#): regulation of ion transmembrane transport, regulation of neuron projection development
-    * [Down-regulated](http://www.webgestalt.org/results/1614743125/#): regulation of metal ion transport
-* [SETD5](http://www.webgestalt.org/results/1614738030/#)
-    * [Up-regulated](http://www.webgestalt.org/results/1614743225/#): axon development, positive regulation of neurogenesis
-    * [Down-regulated](http://www.webgestalt.org/results/1614743342/#)
-
-## Enrichment by DEG degree
 
 # Inspection of Signature Genes
 
@@ -311,7 +319,7 @@ for (m in signif_markers){
 }
 ```
 
-## Neuron projection development genes ([GO:0010975](http://amigo.geneontology.org/amigo/term/GO:0010975))
+## Neuron projection development genes
 
 According to Figure 4E of the [reference paper](https://genome.cshlp.org/content/30/9/1317.full), among these marker genes, mature neuron marker genes are down-regulated and negative regulator genes are up-regulated in ADNP, CHD2 and ASH1L knock-downs; while the opposite happens in PTEN knock-down.
 
