@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-04-01" />
+<meta name="date" content="2021-04-04" />
 
 <title>Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</title>
 
@@ -21,6 +21,15 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
@@ -28,12 +37,16 @@
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
-<style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -46,37 +59,10 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
 
 
-</head>
 
-<body>
+
 
 <style type = "text/css">
 .main-container {
@@ -84,13 +70,8 @@ h6 {
   margin-left: auto;
   margin-right: auto;
 }
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -101,44 +82,56 @@ img {
 button.code-folding-btn:focus {
   outline: none;
 }
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 60px;
-  padding-bottom: 40px;
+.dropdown-submenu {
+  position: relative;
 }
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
 }
-
-.section h2 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
 }
-.section h3 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
 }
-.section h4 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
 }
-.section h5 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu.pull-left {
+  float: none;
 }
-.section h6 {
-  padding-top: 65px;
-  margin-top: -65px;
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -149,54 +142,85 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
-
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 
 
-
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <style type="text/css">
 
@@ -210,6 +234,12 @@ $(document).ready(function ()  {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -245,8 +275,6 @@ div.tocify {
 
 .tocify-subheader .tocify-item {
   font-size: 0.90em;
-  padding-left: 25px;
-  text-indent: 0;
 }
 
 .tocify .list-group-item {
@@ -256,14 +284,24 @@ div.tocify {
 
 </style>
 
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
-<div class="col-xs-12 col-sm-4 col-md-3">
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
 
 
 
@@ -291,14 +329,14 @@ div.tocify {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div class="fluid-row" id="header">
+<div id="header">
 
 
 
 <h1 class="title toc-ignore">Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</h1>
-<h3 class="subtitle"><em>– 2 donors pooled, batch effect and 3 other covariates corrected</em></h3>
-<h4 class="author"><em>Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</em></h4>
-<h4 class="date"><em>2021-04-01</em></h4>
+<h3 class="subtitle">-- 2 donors pooled, batch effect and 3 other covariates corrected</h3>
+<h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
+<h4 class="date">2021-04-04</h4>
 
 </div>
 
@@ -313,354 +351,25 @@ All cells have only a single type of gRNA readout. Quality control resulted in 1
 <p>Genes:<br />
 <strong>Only genes detected in &gt; 10% of cells were kept, resulted in 6062 genes.</strong></p>
 <p>Normalization:<br />
-Seurat “LogNormalize”: log(count per 10K + 1).<br />
+Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <strong>Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.</strong></p>
 </div>
 <div id="gsfa-results-svd-initialization" class="section level2">
 <h2><span class="header-section-number">1.2</span> GSFA Results (SVD Initialization)</h2>
-<p>Here, our “guide”, <span class="math inline">\(G\)</span> matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.</p>
+<p>Here, our &quot;guide&quot;, <span class="math inline">\(G\)</span> matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.</p>
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>Examples of factor ~ perturbation associations:</p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
-Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA, # of genes that passed LFSR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-BTLA
-</td>
-<td style="text-align:left;">
-C10orf54
-</td>
-<td style="text-align:left;">
-CBLB
-</td>
-<td style="text-align:left;">
-CD3D
-</td>
-<td style="text-align:left;">
-CD5
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-499
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-2484
-</td>
-<td style="text-align:left;">
-1238
-</td>
-<td style="text-align:left;">
-1264
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-DGKA
-</td>
-<td style="text-align:left;">
-DGKZ
-</td>
-<td style="text-align:left;">
-HAVCR2
-</td>
-<td style="text-align:left;">
-LAG3
-</td>
-<td style="text-align:left;">
-LCP2
-</td>
-<td style="text-align:left;">
-MEF2D
-</td>
-<td style="text-align:left;">
-NonTarget
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-461
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-3194
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-PDCD1
-</td>
-<td style="text-align:left;">
-RASA2
-</td>
-<td style="text-align:left;">
-SOCS1
-</td>
-<td style="text-align:left;">
-STAT6
-</td>
-<td style="text-align:left;">
-TCEB2
-</td>
-<td style="text-align:left;">
-TMEM222
-</td>
-<td style="text-align:left;">
-TNFRSF9
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-939
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-1758
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-Welch’s t-test, # of genes that passed FDR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:left;">
-BTLA
-</td>
-<td style="text-align:left;">
-C10orf54
-</td>
-<td style="text-align:left;">
-CBLB
-</td>
-<td style="text-align:left;">
-CD3D
-</td>
-<td style="text-align:left;">
-CD5
-</td>
-<td style="text-align:left;">
-CDKN1B
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-14
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-15
-</td>
-<td style="text-align:left;">
-5
-</td>
-<td style="text-align:left;">
-6
-</td>
-<td style="text-align:left;">
-1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-DGKA
-</td>
-<td style="text-align:left;">
-DGKZ
-</td>
-<td style="text-align:left;">
-HAVCR2
-</td>
-<td style="text-align:left;">
-LAG3
-</td>
-<td style="text-align:left;">
-LCP2
-</td>
-<td style="text-align:left;">
-MEF2D
-</td>
-<td style="text-align:left;">
-NonTarget
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-39
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-PDCD1
-</td>
-<td style="text-align:left;">
-RASA2
-</td>
-<td style="text-align:left;">
-SOCS1
-</td>
-<td style="text-align:left;">
-STAT6
-</td>
-<td style="text-align:left;">
-TCEB2
-</td>
-<td style="text-align:left;">
-TMEM222
-</td>
-<td style="text-align:left;">
-TNFRSF9
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-9
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-5
-</td>
-<td style="text-align:left;">
-73
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-1
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>Overlap of DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-10-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison_log-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>Overlap of GSFA DEGs between perturbations:</p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-4-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -671,11 +380,12 @@ Num_genes
 <p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
 Backgroud genes: all 6062 genes included in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
-Gene sets: GO Slim “Biological Process” (non-redundant);<br />
-Only GO gene sets within the size of 10 ~ 500 and have a test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown in the webpages.</p>
+Gene sets: GO Slim &quot;Biological Process&quot; (non-redundant);<br />
+Only GO gene sets within the size of 10 ~ 500 and have an enrichment FC &gt; 2 and FDR &lt; 0.05 are kept.</p>
+<p>We used the &quot;Wang&quot; method in <code>GOSemSim</code> to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 12 clusters using hierarchical clustering with the &quot;ward.D&quot; agglomeration method. The clustering results of all these GO BP terms are stored <a href="https://drive.google.com/drive/folders/1VTXE-bknsCr5mV022HbQqU6NP29qfp_U">here</a>.</p>
 <div id="terms-of-interest" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Terms of Interest</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-11-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png" width="80%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-all-factors-of-interest" class="section level3">
@@ -728,302 +438,6 @@ Only GO gene sets within the size of 10 ~ 500 and have a test FDR <span class="m
 <h1><span class="header-section-number">3</span> Inspection of Signature Genes</h1>
 <div id="genes-targeted-by-crispr-knock-down" class="section level2">
 <h2><span class="header-section-number">3.1</span> Genes targeted by CRISPR knock-down</h2>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-ARID1A knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ARID1A
-</td>
-<td style="text-align:right;">
-0.003
-</td>
-<td style="text-align:right;">
-0.376
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-CBLB knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-CBLB
-</td>
-<td style="text-align:right;">
--0.003
-</td>
-<td style="text-align:right;">
-0.308
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-CD3D knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-CD3D
-</td>
-<td style="text-align:right;">
--0.016
-</td>
-<td style="text-align:right;">
-0.17
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-CD5 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-CD5
-</td>
-<td style="text-align:right;">
--0.009
-</td>
-<td style="text-align:right;">
-0.086
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-DGKA knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-DGKA
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0.878
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-LCP2 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-LCP2
-</td>
-<td style="text-align:right;">
--0.034
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-RASA2 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-RASA2
-</td>
-<td style="text-align:right;">
-0.014
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-</tr>
-</tbody>
-</table>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-TCEB2 knock-down
-</caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-Name
-</th>
-<th style="text-align:right;">
-beta_W
-</th>
-<th style="text-align:right;">
-lfsr
-</th>
-<th style="text-align:left;">
-pass_lfsr
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-TCEB2
-</td>
-<td style="text-align:right;">
--0.043
-</td>
-<td style="text-align:right;">
-0.002
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 
@@ -1038,13 +452,56 @@ TRUE
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
 });
 
 
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

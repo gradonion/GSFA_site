@@ -359,17 +359,16 @@ Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-7-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p>Examples of factor ~ perturbation associations: <img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-9-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p>Examples of factor ~ perturbation associations: <img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-4-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
 <p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
-<p>Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:</p>
 <p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/dge_comparison_log-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/dge_comparison-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Overlap of GSFA DEGs between perturbations:</p>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-10-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-5-1.png" width="480" style="display: block; margin: auto;" /></p>
 <p>Venn diagram for DEGs found under perturbations ADNP, ARID1B, ASH1L, CHD2:</p>
 <p><img src="figs/LUHMES_DEGs_venn_diagram_4.png" width="60%" style="display: block; margin: auto;" /></p>
 <p>SFARI high risk (score 1, 2) genes among the DEGs: <img src="figs/LUHMES_Marker_SFARI_DEG_network.png" width="100%" style="display: block; margin: auto;" /></p>
@@ -434,7 +433,7 @@ Only GO terms/pathways within the size of 10 ~ 500 and have have an enrichment F
 <h2><span class="header-section-number">3.2</span> Neuron projection development genes</h2>
 <p>According to Figure 4E of the <a href="https://genome.cshlp.org/content/30/9/1317.full">reference paper</a>, among these marker genes, mature neuron marker genes are down-regulated and negative regulator genes are up-regulated in ADNP, CHD2 and ASH1L knock-downs; while the opposite happens in PTEN knock-down.</p>
 <p>Here we show all the marker genes that passed LFSR &lt; 0.05 under each knock-down. In general, their effect sizes are consistent with the findings of the paper.</p>
-<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 

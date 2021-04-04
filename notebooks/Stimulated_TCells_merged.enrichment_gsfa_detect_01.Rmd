@@ -141,8 +141,6 @@ lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
 print_signif_tb(lfsr_signif_num, paste0("GSFA, LFSR cutoff at ", lfsr_cutoff))
 ```
 
-Number of genes that passed t-test FDR < 0.05 under each perturbation:
-
 ```{r ttest_DE}
 fdr_cutoff <- 0.05
 DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.stimulated_merged.detect_01.corrected.rds"))
@@ -186,7 +184,9 @@ ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) 
   geom_bar(position = "dodge", stat = "identity") +
   scale_y_log10() +
   scale_fill_brewer(palette = "Set2") +
-  labs(y = "Number of DEGs + 1", x = "Knock-Out Target") +
+  labs(x = "Knock-Out Target",
+       y = "Number of DEGs + 1",
+       title = "Number of DEGs using different methods (LFSR or FDR cutoff at 0.05)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
@@ -194,7 +194,9 @@ ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) 
 ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs, fill = Method)) +
   geom_bar(position = "dodge", stat = "identity") +
   scale_fill_brewer(palette = "Set2") +
-  labs(y = "Number of DEGs", x = "Knock-Out Target") +
+  labs(x = "Knock-Out Target",
+       y = "Number of DEGs",
+       title = "Number of DEGs using different methods (LFSR or FDR cutoff at 0.05)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 

@@ -95,7 +95,6 @@ Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the po
 ```{r svd_tb}
 All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
 stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
-All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
 ### Estimate of Factor ~ Perturbation Associations ($\beta$)
@@ -167,7 +166,6 @@ lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
 print_signif_tb(lfsr_signif_num, paste0("GSFA, LFSR cutoff at ", lfsr_cutoff))
 ```
 
-Number of genes that passed t-test FDR < 0.05 under each perturbation:
 ```{r ttest_DE}
 fdr_cutoff <- 0.05
 DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.merged_detect_01.corrected_new.rds"))
@@ -211,7 +209,9 @@ ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) 
   geom_bar(position = "dodge", stat = "identity") +
   scale_y_log10() +
   scale_fill_brewer(palette = "Set2") +
-  labs(y = "Number of DEGs + 1", x = "Knock-Down Target") +
+  labs(x = "Knock-Down Target",
+       y = "Number of DEGs + 1",
+       title = "Number of DEGs using different methods (LFSR or FDR cutoff at 0.05)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
@@ -219,7 +219,9 @@ ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) 
 ggplot(dge_comparison_df, aes(x = Perturbation, y = Num_DEGs, fill = Method)) +
   geom_bar(position = "dodge", stat = "identity") +
   scale_fill_brewer(palette = "Set2") +
-  labs(y = "Number of DEGs", x = "Knock-Down Target") +
+  labs(x = "Knock-Down Target",
+       y = "Number of DEGs",
+       title = "Number of DEGs using different methods (LFSR or FDR cutoff at 0.05)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
