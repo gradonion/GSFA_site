@@ -136,17 +136,27 @@ Z_corr_across_pi <- list()
 plot_list <- list()
 for (i in 1:length(save_suffixs)){
   res_list <- readRDS(paste0(wkdir, "raw_results.", save_suffixs[i], ".rds"))
-  Z_corr_list <- compute_matched_Z_corr(res_list)
-  Z_corr_df <- rbind(as.data.frame(Z_corr_list$guided_corr) %>% mutate(Model = "Guided"),
-                     as.data.frame(Z_corr_list$G0_corr) %>% mutate(Model = "Unguided"))
+  flash_res <- readRDS(paste0(wkdir, "flash_results.", save_suffixs[i], ".rds"))
+  Z_corr_df1 <- compute_matched_Z_corr(FA_list = res_list$gsfa_pm,
+                                       sim_list = res_list$sim_data,
+                                       type = "gsfa", model_name = "Guided")$corr
+  Z_corr_df2 <- compute_matched_Z_corr(FA_list = res_list$G0_pm,
+                                       sim_list = res_list$sim_data,
+                                       type = "gsfa", model_name = "Unguided")$corr
+  Z_corr_df3 <- compute_matched_Z_corr(FA_list = flash_res$flash,
+                                       sim_list = res_list$sim_data,
+                                       type = "flash", model_name = "FLASH")$corr
+  Z_corr_df <- rbind(Z_corr_df1, Z_corr_df2, Z_corr_df3)
   Z_corr_df <- reshape2::melt(Z_corr_df, id.var = "Model",
                               variable.name = "Factor", value.name = "Correlation")
   levels(Z_corr_df$Factor) <- 1:res_list$params$K
-  Z_corr_df <- Z_corr_df %>% mutate(pi = res_list$params$pi_true[1])
+  Z_corr_df <- Z_corr_df %>% mutate(Model = factor(Model, levels = c("Guided", "Unguided", "FLASH")),
+                                    pi = res_list$params$pi_true[1])
   Z_corr_across_pi[[i]] <- Z_corr_df
   plot_list[[i]] <- ggplot(Z_corr_df, aes(x = Factor, y = abs(Correlation), color = Model)) +
     geom_boxplot() +
-    scale_color_manual(values = c('#F8766D','#7CAE00')) +
+    scale_color_brewer(palette = "Set2") +
+    # scale_color_manual(values = c('#F8766D','#7CAE00')) +
     labs(y = "|Correlation|",
          title = paste0("Correlation between matched true and inferred factors\n",
                         "(\u03C0=", res_list$params$pi_true[1], ")")) +
@@ -161,7 +171,8 @@ Z_corr_across_pi_df <- Z_corr_across_pi_df %>%
 levels(Z_corr_across_pi_df$pi) <- settings
 ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = Model)) +
   geom_boxplot() +
-  scale_color_manual(values = c('#F8766D','#7CAE00')) +
+  scale_color_brewer(palette = "Set2") +
+  # scale_color_manual(values = c('#F8766D','#7CAE00')) +
   labs(x = "True Density of Factors",
        y = "|Correlation|",
        title = paste0("Correlation between matched true and inferred factors\n",
