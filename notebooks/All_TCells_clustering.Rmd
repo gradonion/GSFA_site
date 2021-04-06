@@ -66,7 +66,7 @@ All cells were pooled together into 1 analysis.
 
 ## Preprocessing
 
-There are 24955 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression < 10 and number of unique gene count > 500.
+There are 24955 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression < 10 and number of unique genes > 500.
 
 ```{r load seurat object}
 combined_obj <-
@@ -130,13 +130,13 @@ for (m in marker_genes){
                            aes_string(x = "UMAP_1", y = "UMAP_2", color = m)) +
     geom_point(size = 0.3) +
     scale_color_gradientn(colors = c("#91bfdb", "#ffffbf", "#fc8d59")) +
-    labs(x = "UMAP 1", y = "UMAP 2", title = m, color = "log-normalized\nexpression") +
+    labs(x = "UMAP 1", y = "UMAP 2", title = m, color = "log(normalized\nexpression)") +
     theme(panel.grid = element_blank())
 }
 do.call(grid.arrange, plot_list)
 ```
 
-Cluster 1, 2 and 3: resting cell states
+Cluster 1, 2 and 3: resting state
 
 Cluste 5 and 6: proliferation
 
@@ -152,7 +152,7 @@ ggplot(data = num_cells.df, aes(x=locus, y=count)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size =11))
 ```
 
-## Over/Under-Representation of gRNAs in Clusters
+## Over/Under-Representation of gRNA Targets in Clusters
 
 ```{r chisq_test}
 targets <- colnames(combined_meta)[4:24]
@@ -160,10 +160,27 @@ chisq_stdres <- matrix(nrow = length(levels(combined_meta$seurat_clusters)),
                        ncol = length(targets))
 colnames(chisq_stdres) <- targets
 rownames(chisq_stdres) <- paste0("Cluster ", 1:nrow(chisq_stdres))
+chisq_pval <- chisq_stdres
 for (m in targets){
   test <- chisq.test(table(factor(combined_meta[[m]]), combined_meta$seurat_clusters))
   chisq_stdres[, m] <- test$stdres[2, ]
+  for (k in 1:nrow(chisq_stdres)){
+    chisq_pval[k, m] <- chisq.test(table(factor(combined_meta[[m]]),
+                                         combined_meta$seurat_clusters == k))$p.value
+  }
 }
+```
+
+```{r chisq_test_pval_heatmap, eval=FALSE, include=FALSE}
+Heatmap(t(-log10(chisq_pval)),
+        name = "chi-square \n-log10(p value)",
+        cluster_rows = F, cluster_columns = F)
+```
+
+Number of chi-square tests that passed Bonferroni FWER of 0.05:
+
+```{r}
+sum(unlist(chisq_pval) < 0.05/length(unlist(chisq_pval)))
 ```
 
 ```{r chisq_test_heatmap}
@@ -172,27 +189,42 @@ stdres_colormap <- circlize::colorRamp2(breaks = c(-3, 0, 3),
 Heatmap(t(chisq_stdres),
         col = stdres_colormap,
         name = "chi-square \nstandardized residual",
-        cluster_rows = F, cluster_columns = F)
+        cluster_rows = T, cluster_columns = T)
 ```
 
 Selected clusters and gRNA targets:
 
-```{r chisq_test_barplot_selected}
+```{r chisq_test_barplot_selected, fig.width=10, fig.height=7}
 cluster_indx <- paste0("Cluster ", c(1, 2, 5, 6))
-marker_indx <- c("CBLB", "CD5", "CDKN1B", "SOCS1", "TCEB2",
+marker_indx <- c("ARID1A", "CBLB", "CD5", "CDKN1B", "SOCS1", "TCEB2",
                  "RASA2", "LCP2", "CD3D", "NonTarget")
 marker_indx <- marker_indx[length(marker_indx):1]
-selected_df <- as.data.frame(t(chisq_stdres[cluster_indx, marker_indx]))
-selected_df <- selected_df %>% mutate(target = factor(marker_indx, levels = marker_indx))
+selected_stdres_df <- as.data.frame(t(chisq_stdres[cluster_indx, marker_indx])) %>%
+  mutate(target = factor(marker_indx, levels = marker_indx))
+selected_stdres_df <- reshape2::melt(selected_stdres_df, id.var = "target",
+                                     variable.name = "cluster", value.name = "stdres")
 
-combined_selected_df <- reshape2::melt(selected_df, id.var = "target",
-                                       variable.name = "cluster", value.name = "stdres")
+selected_pval_df <- as.data.frame(t(chisq_pval[cluster_indx, marker_indx])) %>%
+  mutate(target = factor(marker_indx, levels = marker_indx))
+selected_pval_df <- reshape2::melt(selected_pval_df, id.var = "target",
+                                   variable.name = "cluster", value.name = "pval")
+combined_selected_df <- inner_join(selected_stdres_df, selected_pval_df,
+                                   by = c("target", "cluster")) %>%
+  mutate(neg_logp = -log10(pval)) %>%
+  mutate(sign_logp = ifelse(stdres > 0, neg_logp, -neg_logp))
+pval_range <- range(combined_selected_df$sign_logp)
 ggplot(combined_selected_df,
-       aes(y = target, x = stdres, fill = stdres)) +
+       aes(y = target, x = stdres, fill = sign_logp)) +
   facet_wrap(~ cluster) +
   geom_col() +
-  scale_fill_gradient2(low = scales::muted("blue"), high = scales::muted("red")) +
-  labs(x = "chi-square stardardized residual") +
-  theme(legend.position = "none", axis.title.y = element_blank())
+  # scale_fill_gradient2(low = scales::muted("blue"), high = scales::muted("red")) +
+  scale_fill_gradientn(colors = c(scales::muted("blue"), scales::muted("blue"), "white",
+                                  scales::muted("red"), scales::muted("red")),
+                       values = scales::rescale(c(pval_range[1], -4, 0, 4, pval_range[2])),
+                       breaks = seq(-6, 6, 3)) +
+  labs(x = "Chi-square test stardardized residual",
+       fill = "Polarized \n-log10(p value)") +
+  theme(axis.title.y = element_blank(),
+        strip.text = element_text(size = 14))
 ```
 

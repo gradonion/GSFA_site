@@ -356,7 +356,7 @@ All cells were pooled together into 1 analysis.</p>
 <h1><span class="header-section-number">2</span> scRNA-seq data</h1>
 <div id="preprocessing" class="section level2">
 <h2><span class="header-section-number">2.1</span> Preprocessing</h2>
-<p>There are 24955 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression &lt; 10 and number of unique gene count &gt; 500.</p>
+<p>There are 24955 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression &lt; 10 and number of unique genes &gt; 500.</p>
 <p><img src="All_TCells_clustering_files/figure-html/QC-1.png" width="768" style="display: block; margin: auto;" /></p>
 <p>Gene expressions were normalized as log(count per <span class="math inline">\(10^4\)</span> + 1), and then scaled.</p>
 <p><strong>Library size and mitochondria percentage were corrected for, while batch effect was not.</strong></p>
@@ -371,18 +371,20 @@ All cells were pooled together into 1 analysis.</p>
 <p>Running Louvain algorithm... Maximum modularity in 10 random starts: 0.8667 Number of communities: 8 Elapsed time: 4 seconds <img src="All_TCells_clustering_files/figure-html/umap_cell_clusters-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Expression patterns of marker genes:<br />
 activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB) in the reference paper. <img src="All_TCells_clustering_files/figure-html/umap_marker_genes-1.png" width="1152" style="display: block; margin: auto;" /></p>
-<p>Cluster 1, 2 and 3: resting cell states</p>
+<p>Cluster 1, 2 and 3: resting state</p>
 <p>Cluste 5 and 6: proliferation</p>
 </div>
 </div>
 <div id="crispr-perturbations" class="section level1">
 <h1><span class="header-section-number">3</span> CRISPR Perturbations</h1>
 <p><img src="All_TCells_clustering_files/figure-html/num_gRNA_cells-1.png" width="768" style="display: block; margin: auto;" /></p>
-<div id="overunder-representation-of-grnas-in-clusters" class="section level2">
-<h2><span class="header-section-number">3.1</span> Over/Under-Representation of gRNAs in Clusters</h2>
+<div id="overunder-representation-of-grna-targets-in-clusters" class="section level2">
+<h2><span class="header-section-number">3.1</span> Over/Under-Representation of gRNA Targets in Clusters</h2>
+<p>Number of chi-square tests that passed Bonferroni FWER of 0.05:</p>
+<p>[1] 5</p>
 <p><img src="All_TCells_clustering_files/figure-html/chisq_test_heatmap-1.png" width="768" style="display: block; margin: auto;" /></p>
 <p>Selected clusters and gRNA targets:</p>
-<p><img src="All_TCells_clustering_files/figure-html/chisq_test_barplot_selected-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="All_TCells_clustering_files/figure-html/chisq_test_barplot_selected-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 
