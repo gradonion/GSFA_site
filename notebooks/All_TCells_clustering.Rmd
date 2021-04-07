@@ -196,7 +196,9 @@ Selected clusters and gRNA targets:
 
 ```{r chisq_test_barplot_selected, fig.width=10, fig.height=7}
 cluster_indx <- paste0("Cluster ", c(1, 2, 5, 6))
-marker_indx <- c("ARID1A", "CBLB", "CD5", "CDKN1B", "SOCS1", "TCEB2",
+# marker_indx <- c("ARID1A", "CBLB", "CD5", "CDKN1B", "SOCS1", "TCEB2",
+#                  "RASA2", "LCP2", "CD3D", "NonTarget")
+marker_indx <- c("ARID1A", "CBLB", "CD5", "TCEB2",
                  "RASA2", "LCP2", "CD3D", "NonTarget")
 marker_indx <- marker_indx[length(marker_indx):1]
 selected_stdres_df <- as.data.frame(t(chisq_stdres[cluster_indx, marker_indx])) %>%
@@ -227,4 +229,3 @@ ggplot(combined_selected_df,
   theme(axis.title.y = element_blank(),
         strip.text = element_text(size = 14))
 ```
-

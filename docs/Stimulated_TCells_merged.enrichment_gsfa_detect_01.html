@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-04-04" />
+<meta name="date" content="2021-04-06" />
 
 <title>Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</title>
 
@@ -336,7 +336,7 @@ div.tocify {
 <h1 class="title toc-ignore">Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</h1>
 <h3 class="subtitle">-- 2 donors pooled, batch effect and 3 other covariates corrected</h3>
 <h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
-<h4 class="date">2021-04-04</h4>
+<h4 class="date">2021-04-06</h4>
 
 </div>
 
@@ -361,15 +361,13 @@ Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
 <p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p>Examples of factor ~ perturbation associations:</p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
 <p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
 <p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison_log-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Overlap of GSFA DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-4-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -385,8 +383,8 @@ Only GO gene sets within the size of 10 ~ 500 and have an enrichment FC &gt; 2 a
 <p>We used the &quot;Wang&quot; method in <code>GOSemSim</code> to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 12 clusters using hierarchical clustering with the &quot;ward.D&quot; agglomeration method. The clustering results of all these GO BP terms are stored <a href="https://drive.google.com/drive/folders/1VTXE-bknsCr5mV022HbQqU6NP29qfp_U">here</a>.</p>
 <div id="terms-of-interest" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Terms of Interest</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="576" style="display: block; margin: auto;" /></p>
-<p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms.png" width="80%" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/gsfa_barplot_selected-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms_annotated.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-all-factors-of-interest" class="section level3">
 <h3><span class="header-section-number">2.1.2</span> Terms in All Factors of Interest</h3>
