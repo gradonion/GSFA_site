@@ -16,6 +16,7 @@ factor_matrix_regression <- function(factors, G_mat){
   colnames(pval_tb) <- paste0("pval-", colnames(G_mat))
   colnames(beta_reg_tb) <- paste0("beta_reg-", colnames(G_mat))
   for (i in 1:ncol(factors)){
+    print(i)
     for (j in 1:ncol(G_mat)){
       regress_mat <- data.frame(G = G_mat[, j], Z = factors[, i])
       lm.summary <- summary(lm(Z ~ G, data = regress_mat))
