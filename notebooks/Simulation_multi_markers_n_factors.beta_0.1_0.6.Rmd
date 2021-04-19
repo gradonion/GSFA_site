@@ -16,11 +16,11 @@ library(data.table)
 library(Matrix)
 library(tidyverse)
 library(ggplot2)
-theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
-                             axis.title = element_text(size = 14),
-                             axis.text = element_text(size = 12),
-                             legend.title = element_text(size = 13),
-                             legend.text = element_text(size = 12),
+theme_set(theme_bw() + theme(plot.title = element_text(size = 16, hjust = 0.5),
+                             axis.title = element_text(size = 16),
+                             axis.text = element_text(size = 14),
+                             legend.title = element_text(size = 15),
+                             legend.text = element_text(size = 14),
                              panel.grid.minor = element_blank())
 )
 library(gridExtra)
@@ -96,12 +96,15 @@ paired_beta_plots <- list()
 zzt_diff_list <- list()
 for (i in 1:length(save_suffixs)){
   betaZ_list <- readRDS(paste0(wkdir, "regression_beta_n_rmse_ZZT.", save_suffixs[i], ".rds"))
-  sub_text <- paste0("(\u03C0=", betaZ_list$params$pi_true[1], ")")
+  sub_text <- paste0("True Factor Density \u03C0=", betaZ_list$params$pi_true[1])
   paired_beta_plots[[i]] <- plot_paired_beta_reg_boxplots(betaZ_list$regression_stats,
                                                           marker_levels, sub_text) +
     scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1),
                        minor_breaks = seq(0.1, 1, 0.1)) +
-    theme(panel.grid.minor = element_line(size = 0.5))
+    theme(panel.grid.minor = element_line(size = 0.5),
+          plot.title = element_text(size = 16, hjust = 0.5),
+          axis.title = element_text(size = 16),
+          axis.text = element_text(size = 14))
   
   betaZ_list$rmse_ZZT$Setting <- settings[i]
   zzt_diff_list[[i]] <- betaZ_list$rmse_ZZT
@@ -131,37 +134,61 @@ plot_paired_rmse_zzt_boxplots(zzt_diff_list,
 On the other hand, since we know the true $Z$'s, we can match each of other inferred factors $\hat{Z}$'s 
 with the true $Z$'s by maximum absolute Pearson correlation.
 
-```{r compute_matching_ZZ_corr}
+```{r compute_matching_ZZ_corr, eval=FALSE, include=FALSE}
 Z_corr_across_pi <- list()
 plot_list <- list()
 for (i in 1:length(save_suffixs)){
   res_list <- readRDS(paste0(wkdir, "raw_results.", save_suffixs[i], ".rds"))
-  flash_res <- readRDS(paste0(wkdir, "flash_results.", save_suffixs[i], ".rds"))
   Z_corr_df1 <- compute_matched_Z_corr(FA_list = res_list$gsfa_pm,
                                        sim_list = res_list$sim_data,
                                        type = "gsfa", model_name = "Guided")$corr
   Z_corr_df2 <- compute_matched_Z_corr(FA_list = res_list$G0_pm,
                                        sim_list = res_list$sim_data,
                                        type = "gsfa", model_name = "Unguided")$corr
-  Z_corr_df3 <- compute_matched_Z_corr(FA_list = flash_res$flash,
-                                       sim_list = res_list$sim_data,
-                                       type = "flash", model_name = "FLASH")$corr
-  Z_corr_df <- rbind(Z_corr_df1, Z_corr_df2, Z_corr_df3)
+  # flash_res <- readRDS(paste0(wkdir, "flash_results.", save_suffixs[i], ".rds"))
+  # Z_corr_df3 <- compute_matched_Z_corr(FA_list = flash_res$flash,
+  #                                      sim_list = res_list$sim_data,
+  #                                      type = "flash", model_name = "FLASH")$corr
+  # Z_corr_df <- rbind(Z_corr_df1, Z_corr_df2, Z_corr_df3)
+  Z_corr_df <- rbind(Z_corr_df1, Z_corr_df2)
   Z_corr_df <- reshape2::melt(Z_corr_df, id.var = "Model",
                               variable.name = "Factor", value.name = "Correlation")
   levels(Z_corr_df$Factor) <- 1:res_list$params$K
-  Z_corr_df <- Z_corr_df %>% mutate(Model = factor(Model, levels = c("Guided", "Unguided", "FLASH")),
-                                    pi = res_list$params$pi_true[1])
+  Z_corr_df <- Z_corr_df %>%
+    mutate(Model = factor(Model, levels = c("Guided", "Unguided")), # levels = c("Guided", "Unguided", "FLASH")),
+           pi = res_list$params$pi_true[1])
   Z_corr_across_pi[[i]] <- Z_corr_df
   plot_list[[i]] <- ggplot(Z_corr_df, aes(x = Factor, y = abs(Correlation), color = Model)) +
     geom_boxplot() +
-    scale_color_brewer(palette = "Set2") +
-    # scale_color_manual(values = c('#F8766D','#7CAE00')) +
+    # scale_color_brewer(palette = "Set2") +
+    scale_color_manual(values = c('#F8766D','#7CAE00')) +
     labs(y = "|Correlation|",
          title = paste0("Correlation between matched true and inferred factors\n",
                         "(\u03C0=", res_list$params$pi_true[1], ")")) +
     theme(legend.position = "bottom")
 }
+```
+
+```{r load_matching_ZZ_corr}
+Z_corr_across_pi <- list()
+for (i in 1:length(save_suffixs)){
+  Z_corr_across_pi[[i]] <- readRDS(paste0(wkdir, "matched_ZZ_correlation", save_suffixs[i], ".rds"))
+}
+```
+
+```{r fig.height=4, fig.width=5, eval=FALSE, include=FALSE}
+Z_corr_across_pi_df <- do.call(rbind, Z_corr_across_pi)
+Z_corr_across_pi_df <- Z_corr_across_pi_df %>%
+  mutate(pi = factor(pi)) %>% filter(Model == "Guided")
+levels(Z_corr_across_pi_df$pi) <- settings
+ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = pi)) +
+  geom_boxplot() +
+  scale_color_brewer(palette = "Set2") +
+  labs(x = "True Density of Factors",
+       y = "|Correlation|",
+       title = paste0("Correlation between matched true and inferred factors\n",
+                      "(pooled over all factors)")) +
+  theme(legend.position = "none")
 ```
 
 ```{r fig.height=5, fig.width=7}
@@ -171,8 +198,8 @@ Z_corr_across_pi_df <- Z_corr_across_pi_df %>%
 levels(Z_corr_across_pi_df$pi) <- settings
 ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = Model)) +
   geom_boxplot() +
-  scale_color_brewer(palette = "Set2") +
-  # scale_color_manual(values = c('#F8766D','#7CAE00')) +
+  # scale_color_brewer(palette = "Set2") +
+  scale_color_manual(values = c('#F8766D','#7CAE00')) +
   labs(x = "True Density of Factors",
        y = "|Correlation|",
        title = paste0("Correlation between matched true and inferred factors\n",
@@ -180,14 +207,25 @@ ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = Model)) +
 ```
 
 ```{r fig.height=10, fig.width=12}
-do.call(grid.arrange, plot_list)
+# do.call(grid.arrange, plot_list)
+ggplot(Z_corr_across_pi_df, aes(x = Factor, y = abs(Correlation), color = Model)) +
+  geom_boxplot() +
+  facet_wrap(~ pi) +
+  # scale_color_brewer(palette = "Set2") +
+  scale_color_manual(values = c('#F8766D','#7CAE00')) +
+  labs(y = "|Correlation|"
+       # title = paste0("Correlation between matched true and inferred factors\n",
+       #                "(\u03C0=", res_list$params$pi_true[1], ")")
+       ) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(size = 16))
 ```
 
 # Beta PIP Calibration
 
 ## $\pi$ = 0.2
 
-```{r make_beta_pip_list}
+```{r make_beta_pip_list, eval=FALSE, include=FALSE}
 i <- 3
 res_list <- readRDS(paste0(wkdir, "raw_results.", save_suffixs[i], ".rds"))
 guided_list <- res_list$gsfa_pm
@@ -204,13 +242,13 @@ for (i in 1:length(guided_list)){
 }
 ```
 
-```{r fig.width=12, fig.height=8}
+```{r fig.width=12, fig.height=8, eval=FALSE, include=FALSE}
 plot_beta_PIP_by_effect_size(beta_pip_list, M = 6,
                              title_text = paste0("Beta PIP Calibration, Pi=",
                                                  res_list$params$pi_true[1]))
 ```
 
-```{r fig.width=6, fig.height=5}
+```{r fig.width=6, fig.height=5, eval=FALSE, include=FALSE}
 plot_beta_PIP_pooled(beta_pip_list, M = 6,
                      title_text = paste0("Beta PIP Calibration (Pooled)\nPi=",
                                          res_list$params$pi_true[1]))
@@ -246,56 +284,56 @@ cat("\n")
 ```
 
 ### $\pi$ = 0.05
-```{r}
+```{r fig.height=5, fig.width=7}
 save_suffix <- save_suffixs[1]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
-  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
 ```
 
 ### $\pi$ = 0.1
-```{r}
+```{r fig.height=5, fig.width=7}
 save_suffix <- save_suffixs[2]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
-  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
 ```
 
 ### $\pi$ = 0.2
 
-```{r}
+```{r fig.height=5, fig.width=7}
 save_suffix <- save_suffixs[3]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
-  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
 ```
 
 ### $\pi$ = 0.5
 
-```{r}
+```{r fig.height=5, fig.width=7}
 save_suffix <- save_suffixs[4]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
-  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
 ```
 
 ## FDR Calibration at LFSR 0.05
 
 ### Pooled
 
-```{r fig.width=6, fig.height=5}
+```{r fig.width=5, fig.height=4}
 pooled_fdr_list <- list()
 for (i in 1:length(save_suffixs)){
   PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffixs[i], ".rds"))
@@ -307,11 +345,12 @@ pooled_fdr_df <- do.call(rbind, pooled_fdr_list)
 
 ggplot(pooled_fdr_df, aes(x = setting, y = pooled_fdr, color = setting)) +
   geom_boxplot() +
-    geom_hline(yintercept = 0.05, color = "red", linetype = "dotted") +
-    labs(x = "True Factor Density",
-         y = "Observed FDR",
-         title = paste0("GSFA observed DEG FDR at LFSR cutoff of 0.05\n",
-                        "(pooled over all markers)")) +
+  geom_hline(yintercept = 0.05, color = "black", linetype = "dotted") +
+  scale_color_brewer(palette = "Set2") +
+  labs(x = "True Density of Factors",
+       y = "Observed FDR of Genes",
+       title = paste0("GSFA observed DEG FDR at LFSR cutoff of 0.05\n",
+                      "(pooled over all guides, black line: 0.05)")) +
   theme(legend.position = "none")
 ```
 
@@ -359,11 +398,11 @@ plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
 
 ### $\pi$ = 0.2
 
-```{r}
+```{r fig.height=5, fig.width=7}
 save_suffix <- save_suffixs[3]
 PR_list <- readRDS(paste0(wkdir, "lfsr_vs_DE.PR_curves.", save_suffix, ".rds"))
 
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
   labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
                       "(\u03C0=", PR_list$params$pi_true[1], ")"))

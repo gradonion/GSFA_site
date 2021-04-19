@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-04-12" />
+<meta name="date" content="2021-04-19" />
 
 <title>Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</title>
 
@@ -36,6 +36,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -336,7 +338,7 @@ div.tocify {
 <h1 class="title toc-ignore">Functional Analysis on Stimulated T Cell CROP-seq GSFA Results</h1>
 <h3 class="subtitle">-- 2 donors pooled, batch effect and 3 other covariates corrected</h3>
 <h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
-<h4 class="date">2021-04-12</h4>
+<h4 class="date">2021-04-19</h4>
 
 </div>
 
@@ -360,7 +362,7 @@ Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-35-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>We compared the CDF of GSFA factor-guide association p values (20 <span class="math inline">\(\times\)</span> 21 in total) with the CDF of p values obtained from chi-square tests that assess over/under-representation of guides in cell clusters (presented <a href="All_TCells_clustering.html">here</a>).</p>
 <p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/plot_pval_comparison-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
@@ -369,115 +371,469 @@ Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
 <p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison_log-1.png" width="720" style="display: block; margin: auto;" /></p>
 <p>Overlap of GSFA DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-36-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
-<div id="gene-set-enrichment-analysis" class="section level1">
-<h1><span class="header-section-number">2</span> Gene Set Enrichment Analysis</h1>
-<div id="gsea" class="section level2">
-<h2><span class="header-section-number">2.1</span> GSEA</h2>
-<div id="reactome-pathway" class="section level3">
-<h3><span class="header-section-number">2.1.1</span> Reactome Pathway</h3>
-<p><strong>Using the weights on all 6k genes:</strong></p>
-<p>Factor 7: NA<br />
-<a href="http://www.webgestalt.org/results/1617769050/">Factor 8</a><br />
+<div id="gene-set-enrichment-analysis-gsea" class="section level1">
+<h1><span class="header-section-number">2</span> Gene Set Enrichment Analysis (GSEA)</h1>
+<p>WebGestalt parameter settings:<br />
+gene set size: 10-500, fdr &lt; 0.1, num_perm: 1000, num_categories_expect: 10.</p>
+<p>Gene weights <span class="math inline">\(W\)</span> in each factor are used as the &quot;fold changes&quot; in GSEA;<br />
+1000 permutations were used to determine the significance of the enrichment score;<br />
+NES stands for normalized enrichment score, which is normalized to account for the size of each gene set;<br />
+Positive NES: genes in this set tend to be up-regulated;<br />
+Negative NES: genes in this set tend to be down-regulated.</p>
+<p>Only gene sets within the size of 10 ~ 500 and have an enrichment FDR &lt; 0.1 are kept.</p>
+<div id="reactome-pathway-gsea-all-6k-genes" class="section level2">
+<h2><span class="header-section-number">2.1</span> Reactome pathway GSEA (all 6k genes)</h2>
+<p>Factor 8 : 68 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 9 : 7 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 68 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 14 : 226 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 16 : 34 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 17 : 1 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 18 : 35 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 19 : 1 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 20 : 10 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Factor 8<br />
 Up-regulated: rRNA processing;<br />
 Down-regulated: Adaptive Immune System, MHC antigen presentation, Interferon Signaling<br />
-<a href="http://www.webgestalt.org/results/1617768152/">Factor 9</a><br />
+</li>
+<li>Factor 9<br />
 Up-regulated: MHC antigen presentation, Interferon Signaling<br />
-<a href="http://www.webgestalt.org/results/1617767491/">Factor 11</a><br />
+</li>
+<li>Factor 11<br />
 Down-regulated: Platelet activation, signaling and aggregation, PD-1 signaling<br />
-Factor 13: NA<br />
-<a href="http://www.webgestalt.org/results/1617766826/">Factor 14</a><br />
+</li>
+<li>Factor 14<br />
 Up-regulated: RUNX1 regulates genes in differentiation of HSCs (hematopoietic stem cells), Apoptosis;<br />
 Down-regulated: Mitotic Prometaphase, Metaphase and Anaphase<br />
-<a href="http://www.webgestalt.org/results/1617766548/">Factor 17</a><br />
+</li>
+<li>Factor 17<br />
 Up-regulated: MHC class II antigen presentation<br />
-<a href="http://www.webgestalt.org/results/1617766234/">Factor 18</a><br />
+</li>
+<li>Factor 18<br />
 Down-regulated: rRNA processing, Translation<br />
-<a href="http://www.webgestalt.org/results/1617765675/">Factor 19</a><br />
+</li>
+<li>Factor 19<br />
 Up-regulated: Transcriptional regulation by RUNX1<br />
-<a href="http://www.webgestalt.org/results/1617766049/">Factor 20</a><br />
-Down-regulated: MHC class II antigen presentation, Interferon Signaling</p>
-<p><strong>Using only the gene weights of genes w/ PIP &gt; 0.95 in each factor:</strong><br />
-GSEA results are similar to before in general, and on top of that, factor 7 and 13 now have enriched terms as well.</p>
-<p><a href="http://www.webgestalt.org/results/1617870532/#">Factor 7</a><br />
+</li>
+<li>Factor 20<br />
+Down-regulated: MHC class II antigen presentation, Interferon Signaling</li>
+</ul>
+</div>
+<div id="reactome-pathway-gsea-only-the-genes-w-pip-0.95-in-each-factor" class="section level2">
+<h2><span class="header-section-number">2.2</span> Reactome pathway GSEA (only the genes w/ PIP &gt; 0.95 in each factor)</h2>
+<p>Factor 7 : 3 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 8 : 71 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 9 : 12 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 11 : 58 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 13 : 12 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 14 : 140 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 16 : 52 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 17 : 13 significant Reactome</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 18 : 39 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 19 : 1 significant Reactome</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Factor 20 : 8 significant Reactome</td>
+</tr>
+</tbody>
+</table>
+<p>GSEA results are similar to before in general, and on top of that, factor 7 and 13 now have enriched terms as well.</p>
+<ul>
+<li>Factor 7<br />
 Down-regulated: Cytokine Signaling in Immune system, MHC class II antigen presentation, Signaling by Interleukins<br />
-<a href="http://www.webgestalt.org/results/1617870635/#">Factor 8</a><br />
-<a href="http://www.webgestalt.org/results/1617872315/#">Factor 9</a><br />
-<a href="http://www.webgestalt.org/results/1617873168/#">Factor 11</a><br />
-<a href="http://www.webgestalt.org/results/1617873305/#">Factor 13</a><br />
-Down-regulated: Cytokine Signaling in Immune system, ER-Phagosome pathway, Interferon Signaling<br />
-<a href="http://www.webgestalt.org/results/1617873376/#">Factor 14</a><br />
-<a href="http://www.webgestalt.org/results/1617876144/#">Factor 17</a><br />
-<a href="http://www.webgestalt.org/results/1617876687/#">Factor 18</a><br />
-<a href="http://www.webgestalt.org/results/1617876735/#">Factor 19</a><br />
-<a href="http://www.webgestalt.org/results/1617876802/#">Factor 20</a></p>
+</li>
+<li>Factor 8<br />
+Up-regulated: rRNA processing;<br />
+Down-regulated: Adaptive Immune System, MHC antigen presentation, Interferon Signaling<br />
+</li>
+<li>Factor 9<br />
+Up-regulated: MHC antigen presentation, PD-1 signaling<br />
+</li>
+<li>Factor 11<br />
+Down-regulated: Platelet activation, signaling and aggregation, PD-1 signaling</li>
+<li>Factor 13<br />
+Down-regulated: Antigen Presentation, Cytokine Signaling in Immune system, Interferon Signaling<br />
+</li>
+<li>Factor 14<br />
+Up-regulated: RUNX1 regulates genes in differentiation of HSCs (hematopoietic stem cells), Apoptosis;<br />
+Down-regulated: Mitotic Prometaphase, Metaphase and Anaphase<br />
+</li>
+<li>Factor 17<br />
+Up-regulated: MHC class II antigen presentation<br />
+</li>
+<li>Factor 18<br />
+Down-regulated: rRNA processing, Translation</li>
+<li>Factor 19<br />
+Up-regulated: Signaling by Interleukins<br />
+</li>
+<li>Factor 20<br />
+Down-regulated: MHC class II antigen presentation, Interferon Signaling</li>
+</ul>
 </div>
 </div>
-<div id="over-representation-analysis" class="section level2">
-<h2><span class="header-section-number">2.2</span> Over-representation Analysis</h2>
+<div id="gene-set-over-representation-analysis-ora" class="section level1">
+<h1><span class="header-section-number">3</span> Gene Set Over-representation Analysis (ORA)</h1>
+<div id="go-slim-ora" class="section level2">
+<h2><span class="header-section-number">3.1</span> GO Slim ORA</h2>
 <p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
 Backgroud genes: all 6062 genes included in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Gene sets: GO Slim &quot;Biological Process&quot; (non-redundant);<br />
 Only GO gene sets within the size of 10 ~ 500 and have an enrichment FC &gt; 2 and FDR &lt; 0.05 are kept.</p>
+<p>Factor 7 : 36 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 8 : 27 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 9 : 81 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 11 : 31 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 13 : 57 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 14 : 20 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 16 : 6 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 17 : 106 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 18 : 50 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 19 : 120 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Factor 20 : 75 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Summary:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+81
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+31
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+106
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+120
+</td>
+<td style="text-align:right;">
+75
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="clusering-of-significant-gene-ontology-bp-terms" class="section level2">
+<h2><span class="header-section-number">3.2</span> Clusering of Significant Gene Ontology BP Terms</h2>
 <p>We used the &quot;Wang&quot; method in <code>GOSemSim</code> to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 12 clusters using hierarchical clustering with the &quot;ward.D&quot; agglomeration method. The clustering results of all these GO BP terms are stored <a href="https://drive.google.com/drive/folders/1VTXE-bknsCr5mV022HbQqU6NP29qfp_U">here</a>.</p>
-<div id="go-bp-terms-of-interest" class="section level3">
-<h3><span class="header-section-number">2.2.1</span> GO BP Terms of Interest</h3>
+<p>Gene Ontology BP terms of interest:</p>
 <p><img src="figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms_annotated.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="go-bp-terms-in-all-factors-of-interest" class="section level3">
-<h3><span class="header-section-number">2.2.2</span> GO BP Terms in All Factors of Interest</h3>
+<div id="significant-go-bp-terms-and-their-clustering-presented-using-cirgo" class="section level2">
+<h2><span class="header-section-number">3.3</span> Significant GO BP terms (and their clustering) presented using CirGO</h2>
+<div id="terms-in-all-factors-of-interest" class="section level3">
+<h3><span class="header-section-number">3.3.1</span> Terms in All Factors of Interest</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_all_factors.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-7" class="section level3">
-<h3><span class="header-section-number">2.2.3</span> Terms in Factor 7</h3>
+<h3><span class="header-section-number">3.3.2</span> Terms in Factor 7</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_7.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-8" class="section level3">
-<h3><span class="header-section-number">2.2.4</span> Terms in Factor 8</h3>
+<h3><span class="header-section-number">3.3.3</span> Terms in Factor 8</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_8.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-9" class="section level3">
-<h3><span class="header-section-number">2.2.5</span> Terms in Factor 9</h3>
+<h3><span class="header-section-number">3.3.4</span> Terms in Factor 9</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_9.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-11" class="section level3">
-<h3><span class="header-section-number">2.2.6</span> Terms in Factor 11</h3>
+<h3><span class="header-section-number">3.3.5</span> Terms in Factor 11</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_11.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-13" class="section level3">
-<h3><span class="header-section-number">2.2.7</span> Terms in Factor 13</h3>
+<h3><span class="header-section-number">3.3.6</span> Terms in Factor 13</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_13.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-14" class="section level3">
-<h3><span class="header-section-number">2.2.8</span> Terms in Factor 14</h3>
+<h3><span class="header-section-number">3.3.7</span> Terms in Factor 14</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_14.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-17" class="section level3">
-<h3><span class="header-section-number">2.2.9</span> Terms in Factor 17</h3>
+<h3><span class="header-section-number">3.3.8</span> Terms in Factor 17</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_17.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-18" class="section level3">
-<h3><span class="header-section-number">2.2.10</span> Terms in Factor 18</h3>
+<h3><span class="header-section-number">3.3.9</span> Terms in Factor 18</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_18.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-19" class="section level3">
-<h3><span class="header-section-number">2.2.11</span> Terms in Factor 19</h3>
+<h3><span class="header-section-number">3.3.10</span> Terms in Factor 19</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_19.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="terms-in-factor-20" class="section level3">
-<h3><span class="header-section-number">2.2.12</span> Terms in Factor 20</h3>
+<h3><span class="header-section-number">3.3.11</span> Terms in Factor 20</h3>
 <p><img src="figs/Stimulated_TCells_merged.cirgo_clustered_factor_20.svg" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
 <div id="inspection-of-signature-genes" class="section level1">
-<h1><span class="header-section-number">3</span> Inspection of Signature Genes</h1>
+<h1><span class="header-section-number">4</span> Inspection of Signature Genes</h1>
 <div id="genes-targeted-by-crispr-knock-down" class="section level2">
-<h2><span class="header-section-number">3.1</span> Genes targeted by CRISPR knock-down</h2>
+<h2><span class="header-section-number">4.1</span> Genes targeted by CRISPR knock-down</h2>
 </div>
 </div>
 

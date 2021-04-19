@@ -276,52 +276,95 @@ plot_pairwise.corr_heatmap(lfsr_mat[, signif_markers] < lfsr_cutoff, corr_type =
                            color_vec = c("#FFEDE6", "#FFA584", "#FF7F50"))
 ```
 
-# Gene Set Enrichment Analysis
+# Gene Set Enrichment Analysis (GSEA)
 
-## GSEA
+WebGestalt parameter settings:    
+gene set size: 10-500, fdr < 0.1, num_perm: 1000, num_categories_expect: 10.
 
-### Reactome Pathway
+Gene weights $W$ in each factor are used as the "fold changes" in GSEA;   
+1000 permutations were used to determine the significance of the enrichment score;    
+NES stands for normalized enrichment score, which is normalized to account for the size of each gene set;   
+Positive NES: genes in this set tend to be up-regulated;    
+Negative NES: genes in this set tend to be down-regulated.
 
-**Using the weights on all 6k genes:**
+Only gene sets within the size of 10 ~ 500 and have an enrichment FDR < 0.1 are kept.
 
-Factor 7: NA  
-[Factor 8](http://www.webgestalt.org/results/1617769050/)  
+## Reactome pathway GSEA (all 6k genes)
+
+```{r}
+feature.names <- data.frame(fread(paste0(wkdir, "GSE119450_RAW/D1S/genes.tsv"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+gsea_res <- readRDS(paste0(wkdir, gsfa_folder, "WebGestalt_GSEA/All.gibbs_obj_k20.svd.pathway_Reactome.rds"))
+```
+
+```{r}
+signif_num <- print_enrich_GSEA_tb(gsea_res,
+                                   print_index = c(7, 8, 9, 11, 13, 14, 16, 17, 18, 19, 20),
+                                   enrich_type = "Reactome",
+                                   convert_genes = T,
+                                   gene_map = feature.names)
+```
+
+* Factor 8  
 Up-regulated: rRNA processing;  
 Down-regulated: Adaptive Immune System, MHC antigen presentation, Interferon Signaling  
-[Factor 9](http://www.webgestalt.org/results/1617768152/)  
+* Factor 9  
 Up-regulated: MHC antigen presentation, Interferon Signaling    
-[Factor 11](http://www.webgestalt.org/results/1617767491/)  
+* Factor 11  
 Down-regulated: Platelet activation, signaling and aggregation, PD-1 signaling    
-Factor 13: NA  
-[Factor 14](http://www.webgestalt.org/results/1617766826/)  
+* Factor 14  
 Up-regulated: RUNX1 regulates genes in differentiation of HSCs (hematopoietic stem cells), Apoptosis;  
 Down-regulated: Mitotic Prometaphase, Metaphase and Anaphase    
-[Factor 17](http://www.webgestalt.org/results/1617766548/)  
+* Factor 17  
 Up-regulated: MHC class II antigen presentation  
-[Factor 18](http://www.webgestalt.org/results/1617766234/)  
+* Factor 18  
 Down-regulated: rRNA processing, Translation  
-[Factor 19](http://www.webgestalt.org/results/1617765675/)  
+* Factor 19  
 Up-regulated: Transcriptional regulation by RUNX1  
-[Factor 20](http://www.webgestalt.org/results/1617766049/)  
+* Factor 20  
 Down-regulated: MHC class II antigen presentation, Interferon Signaling
 
-**Using only the gene weights of genes w/ PIP > 0.95 in each factor:**    
+## Reactome pathway GSEA (only the genes w/ PIP > 0.95 in each factor)
+
+```{r}
+gsea_res <- readRDS(paste0(wkdir, gsfa_folder,
+                           "WebGestalt_GSEA/All.gibbs_obj_k20.svd.pathway_Reactome.pip_cutoff_0.95.rds"))
+signif_num <- print_enrich_GSEA_tb(gsea_res,
+                                   print_index = c(7, 8, 9, 11, 13, 14, 16, 17, 18, 19, 20),
+                                   enrich_type = "Reactome",
+                                   convert_genes = T,
+                                   gene_map = feature.names)
+```
+
 GSEA results are similar to before in general, and on top of that, factor 7 and 13 now have enriched terms as well. 
 
-[Factor 7](http://www.webgestalt.org/results/1617870532/#)  
+* Factor 7  
 Down-regulated: Cytokine Signaling in Immune system, MHC class II antigen presentation, Signaling by Interleukins    
-[Factor 8](http://www.webgestalt.org/results/1617870635/#)  
-[Factor 9](http://www.webgestalt.org/results/1617872315/#)  
-[Factor 11](http://www.webgestalt.org/results/1617873168/#)  
-[Factor 13](http://www.webgestalt.org/results/1617873305/#)  
-Down-regulated: Cytokine Signaling in Immune system, ER-Phagosome pathway, Interferon Signaling  
-[Factor 14](http://www.webgestalt.org/results/1617873376/#)  
-[Factor 17](http://www.webgestalt.org/results/1617876144/#)  
-[Factor 18](http://www.webgestalt.org/results/1617876687/#)  
-[Factor 19](http://www.webgestalt.org/results/1617876735/#)  
-[Factor 20](http://www.webgestalt.org/results/1617876802/#)  
+* Factor 8  
+Up-regulated: rRNA processing;  
+Down-regulated: Adaptive Immune System, MHC antigen presentation, Interferon Signaling  
+* Factor 9  
+Up-regulated: MHC antigen presentation, PD-1 signaling    
+* Factor 11  
+Down-regulated: Platelet activation, signaling and aggregation, PD-1 signaling 
+* Factor 13  
+Down-regulated: Antigen Presentation, Cytokine Signaling in Immune system, Interferon Signaling  
+* Factor 14  
+Up-regulated: RUNX1 regulates genes in differentiation of HSCs (hematopoietic stem cells), Apoptosis;  
+Down-regulated: Mitotic Prometaphase, Metaphase and Anaphase    
+* Factor 17  
+Up-regulated: MHC class II antigen presentation  
+* Factor 18  
+Down-regulated: rRNA processing, Translation 
+* Factor 19  
+Up-regulated: Signaling by Interleukins  
+* Factor 20  
+Down-regulated: MHC class II antigen presentation, Interferon Signaling
 
-## Over-representation Analysis
+# Gene Set Over-representation Analysis (ORA)
+
+## GO Slim ORA
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6062 genes included in factor analysis;    
@@ -329,15 +372,37 @@ Statistical test: hypergeometric test (over-representation test);
 Gene sets: GO Slim "Biological Process" (non-redundant);    
 Only GO gene sets within the size of 10 ~ 500 and have an enrichment FC > 2 and FDR < 0.05 are kept.
 
+```{r}
+gsfa.Web_ORA_go_bp <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.GO_bp.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp,
+                                  print_index = c(7, 8, 9, 11, 13, 14, 16, 17, 18, 19, 20),
+                                  enrich_type = "GO terms",
+                                  convert_genes = T,
+                                  gene_map = feature.names)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+## Clusering of Significant Gene Ontology BP Terms
+
 We used the "Wang" method in `GOSemSim` to measure the similarity between GO BP terms, and all the significant terms in factors of interest were further grouped into 12 clusters using hierarchical clustering with the "ward.D" agglomeration method. The clustering results of all these GO BP terms are stored [here](https://drive.google.com/drive/folders/1VTXE-bknsCr5mV022HbQqU6NP29qfp_U).
 
-### GO BP Terms of Interest
+Gene Ontology BP terms of interest:
 
 ```{r out.width = "100%"}
 knitr::include_graphics("figs/Stimulated_TCells_merged.foldchange_heatmap_interest_terms_annotated.png")
 ```
 
-### GO BP Terms in All Factors of Interest
+## Significant GO BP terms (and their clustering) presented using CirGO 
+
+### Terms in All Factors of Interest
 
 ```{r out.width = "100%"}
 knitr::include_graphics("figs/Stimulated_TCells_merged.cirgo_clustered_all_factors.svg")

@@ -16,7 +16,6 @@ factor_matrix_regression <- function(factors, G_mat){
   colnames(pval_tb) <- paste0("pval-", colnames(G_mat))
   colnames(beta_reg_tb) <- paste0("beta_reg-", colnames(G_mat))
   for (i in 1:ncol(factors)){
-    print(i)
     for (j in 1:ncol(G_mat)){
       regress_mat <- data.frame(G = G_mat[, j], Z = factors[, i])
       lm.summary <- summary(lm(Z ~ G, data = regress_mat))
@@ -178,15 +177,15 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
 
 plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
                                        name_1 = NULL, name_2 = NULL,
-                                       corr_type = "pearson",
+                                       corr_type = c("pearson", "jaccard", "prop_overlap"),
                                        return_corr = FALSE,
                                        label_size = 8,
                                        color_vec = NULL){
   # Please store samples in the columns of 'input_mat'.
-  # 'corr_type' can be either "pearson" or "jaccard"
-  stopifnot(corr_type %in% c("pearson","jaccard"))
   if (is.null(input_mat_2)){
     input_mat_2 <- input_mat_1
+  }
+  if (is.null(name_2)){
     name_2 <- name_1
   }
   stopifnot(nrow(input_mat_1) == nrow(input_mat_2))
@@ -201,7 +200,7 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
       } else if (corr_type == "jaccard"){
         corr_mat[i, j] <- sum(vec_1 * vec_2) / sum(vec_1 + vec_2 > 0)
       } else {
-        stop("Please provide a valid method to compute pairwise correlation.")
+        corr_mat[i, j] <- sum(vec_1 * vec_2) / sum(vec_1)
       }
     }
   }
@@ -228,8 +227,9 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
     }
     
   }
-  if (corr_type == "jaccard"){
-    legend_name <- "Jaccard Index"
+  if (corr_type == "jaccard" | corr_type == "prop_overlap"){
+    legend_name <- ifelse(corr_type == "jaccard",
+                          "Jaccard Index", "% of Shared Non-Zero Genes")
     if (is.null(color_vec)){
       colormap <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
                                        colors = c("black", "purple", "gold"))
@@ -413,9 +413,16 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
   return(signif_num)
 }
 
-print_enrich_ORA_tb <- function(enrich_list, fdr_cutoff = 0.05, FC_cutoff = 2,
-                                enrich_type = "GO terms", list_type = "per_factor"){
-  
+print_enrich_ORA_tb <- function(enrich_list,
+                                fdr_cutoff = 0.05, FC_cutoff = 2,
+                                print_index = NULL,
+                                enrich_type = "GO terms",
+                                list_type = c("per_factor", "per_marker"),
+                                convert_genes = FALSE,
+                                gene_map = NULL){
+  if (is.null(print_index)){
+    print_index <- 1:length(enrich_list)
+  }
   signif_num <- rep(0, length(enrich_list))
   for (i in 1:length(enrich_list)){
     if (is.null(enrich_list[[i]])){ next }
@@ -425,22 +432,103 @@ print_enrich_ORA_tb <- function(enrich_list, fdr_cutoff = 0.05, FC_cutoff = 2,
     signif_tb <- signif_tb %>%
       mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
       mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
-      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio) %>%
-      arrange(-enrichmentRatio)
+      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio, userId) %>%
+      arrange(-enrichmentRatio) %>%
+      dplyr::rename(enrichRatio = enrichmentRatio, geneIDs = userId)
+    signif_tb$enrichRatio <- signif(signif_tb$enrichRatio, digits = 3)
+    signif_tb$pValue <- format(signif_tb$pValue, digits = 3)
+    signif_tb$FDR <- format(signif_tb$FDR, digits = 3)
     signif_num[i] <- nrow(signif_tb)
     
-    if (list_type == "per_factor"){
-      caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
+    if (i %in% print_index){
+      if (convert_genes){
+        stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
+        signif_tb <- signif_tb %>% rowwise() %>%
+          mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
+          select(-geneIDs)
+      }
+      if (list_type == "per_factor"){
+        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      if (list_type == "per_marker"){
+        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      cat(caption_text)
+      cat("\n")
+      print(signif_tb %>%
+              kable(escape = FALSE, format = "html") %>%
+              kable_styling() %>%
+              column_spec(column = 2, width = "12em; display: inline-block;") %>%
+              column_spec(column = 7, width = "50em; display: inline-block;") %>%
+              scroll_box(width = "100%", height = '400px'))
+      cat("\n")
+      cat("------------")
+      cat("\n")
     }
-    if (list_type == "per_marker"){
-      caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
-    }
-    print(kable(signif_tb, caption = caption_text) %>%
-            kable_styling() %>%
-            scroll_box(width = '100%', height = '400px'))
-    cat("\n")
-    cat("------------")
-    cat("\n")
   }
   return(signif_num)
 }
+
+print_enrich_GSEA_tb <- function(enrich_list,
+                                 fdr_cutoff = 0.1,
+                                 print_index = NULL,  
+                                 enrich_type = "GO terms",
+                                 list_type = c("per_factor", "per_marker"),
+                                 convert_genes = FALSE,
+                                 gene_map = NULL){
+  if (is.null(print_index)){
+    print_index <- 1:length(enrich_list)
+  }
+  signif_num <- rep(0, length(enrich_list))
+  for (i in 1:length(enrich_list)){
+    if (is.null(enrich_list[[i]])){ next }
+    signif_tb <- enrich_list[[i]] %>%
+      dplyr::filter(FDR <= fdr_cutoff)
+    if (nrow(signif_tb) == 0){ next }
+    signif_tb <- signif_tb %>%
+      mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
+      select(GeneSet, description, normalizedEnrichmentScore, pValue, FDR, size, leadingEdgeNum, userId) %>%
+      arrange(-normalizedEnrichmentScore) %>%
+      dplyr::rename(NES = normalizedEnrichmentScore, numLeadGenes = leadingEdgeNum, geneIDs = userId)
+    signif_tb$NES <- signif(signif_tb$NES, digits = 3)
+    signif_tb$pValue <- format(signif_tb$pValue, digits = 3)
+    signif_tb$FDR <- format(signif_tb$FDR, digits = 3)
+    signif_num[i] <- nrow(signif_tb)
+    
+    if (i %in% print_index){
+      if (convert_genes){
+        stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
+        signif_tb <- signif_tb %>% rowwise() %>%
+          mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
+          select(-geneIDs)
+      }
+      if (list_type == "per_factor"){
+        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      if (list_type == "per_marker"){
+        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      cat(caption_text)
+      cat("\n")
+      print(signif_tb %>%
+              mutate(NES = cell_spec(NES, color = ifelse(NES > 0, "firebrick", "forestgreen"))) %>%
+              kable(escape = FALSE, format = "html") %>%
+              kable_styling(full_width = F) %>%
+              column_spec(column = 2, width = "12em; display: inline-block;") %>%
+              column_spec(column = 8, width = "50em; display: inline-block;") %>%
+              scroll_box(width = "100%", height = '400px'))
+      cat("\n")
+      cat("------------")
+      cat("\n")
+    }
+  }
+  return(signif_num)
+}
+
+convert_IDs_to_Symbols <- function(gene_id_string, gene_map){
+  gene_ids <- strsplit(gene_id_string, split = ";")[[1]]
+  gene_symbols <- gene_map %>% filter(ID %in% gene_ids) %>% pull(Name)
+  gene_symbol_string <- paste(gene_symbols, collapse = "; ")
+  return(gene_symbol_string)
+}
+
