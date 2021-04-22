@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
+
+<meta name="date" content="2021-04-22" />
+
+<title>Guided Factor Analysis on Unstimulated T Cell CROP-seq Data</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">GSFA</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Guided Factor Analysis on Unstimulated T Cell CROP-seq Data</h1>
+<h3 class="subtitle">-- 2 donors pooled, batch effect and 3 other covariates corrected</h3>
+<h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
+<h4 class="date">2021-04-22</h4>
+
+</div>
+
+
+<div id="single-cell-expression-data" class="section level1">
+<h1><span class="header-section-number">1</span> Single cell expression data</h1>
+<p>Source:<br />
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/">Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function</a>, GEO accession: GSE119450.</p>
+<p>Perturbations:<br />
+CRISPR knock-out of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Guide conditions were defined on the target gene level; target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.<br />
+Guide RNAs were introduced into T cells through a novel procedure called sgRNA lentiviral infection with Cas9 protein electroporation (SLICE).</p>
+<p>Cells:<br />
+Primary human CD8+ T cells from two healthy donors, without T cell receptor (TCR) stimulation.<br />
+Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 10644 cells.</p>
+<p>Genes:<br />
+<strong>Only genes detected in &gt; 10% of cells were kept, resulted in 5314 genes.</strong></p>
+<p>Normalization:<br />
+Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
+<strong>Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.</strong></p>
+</div>
+<div id="guided-results" class="section level1">
+<h1><span class="header-section-number">2</span> Guided results</h1>
+<p>Here, our &quot;guide&quot;, <span class="math inline">\(G\)</span> matrix, consists of 21 types (20 genes + negative control) of KO conditions across cells.</p>
+<p>In each case, Gibbs sampling was conducted for 2000 iterations, and the posterior mean estimates were averaged over the last 500 iterations.</p>
+<div id="svd-initialization" class="section level2">
+<h2><span class="header-section-number">2.1</span> SVD Initialization</h2>
+<div id="local-false-sign-rate-lfsr" class="section level3">
+<h3><span class="header-section-number">2.1.1</span> Local False Sign Rate (LFSR)</h3>
+<p>For a given GSFA inference result, we can estimate the effect a certain KO condition <span class="math inline">\(m\)</span> has on the expression of gene <span class="math inline">\(j\)</span> by computing the LFSR of <span class="math inline">\(\beta_{m\cdot} \cdot W_{j\cdot}\)</span>.</p>
+<p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
+<p>Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:</p>
+</div>
+<div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
+<h3><span class="header-section-number">2.1.2</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-4-1.png" width="864" style="display: block; margin: auto;" /></p>
+</div>
+<div id="factor-ko-posterior-association" class="section level3">
+<h3><span class="header-section-number">2.1.3</span> Factor ~ KO Posterior Association</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="beta-pip-vs-p-value" class="section level3">
+<h3><span class="header-section-number">2.1.4</span> Beta PIP vs P-Value</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="correlation-btw-factors" class="section level3">
+<h3><span class="header-section-number">2.1.5</span> Correlation btw Factors</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-9-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="alternative-initializations-and-chain-convergence" class="section level2">
+<h2><span class="header-section-number">2.2</span> Alternative Initializations and Chain Convergence</h2>
+<p>Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.</p>
+<div id="association-results-for-2-randomly-initialized-gsfa-runs" class="section level3">
+<h3><span class="header-section-number">2.2.1</span> Association results for 2 randomly initialized GSFA runs</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/rand_01-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/rand_02-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="chain-mixing-and-convergence-evaluation" class="section level3">
+<h3><span class="header-section-number">2.2.2</span> Chain mixing and convergence evaluation</h3>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+1st Qu.
+</th>
+<th style="text-align:right;">
+Median
+</th>
+<th style="text-align:right;">
+Mean
+</th>
+<th style="text-align:right;">
+3rd Qu.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ARID1A
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+1.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTLA
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C10orf54
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CBLB
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CD3D
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CD5
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDKN1B
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.09
+</td>
+<td style="text-align:right;">
+1.13
+</td>
+<td style="text-align:right;">
+1.72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DGKA
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+DGKZ
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HAVCR2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LAG3
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LCP2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.27
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEF2D
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.14
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NonTarget
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+PDCD1
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RASA2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SOCS1
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.06
+</td>
+<td style="text-align:right;">
+1.29
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+STAT6
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TCEB2
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+1.05
+</td>
+<td style="text-align:right;">
+1.63
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TMEM222
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TNFRSF9
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+offset
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="difference-btw-methods-in-factor-estimation" class="section level3">
+<h3><span class="header-section-number">2.2.3</span> Difference btw methods in factor estimation</h3>
+<p>For a pair of <span class="math inline">\(Z\)</span> estimations from 2 inference methods, <span class="math inline">\(Z_1, Z_2\)</span>, we quantify the pairwise estimation difference as <span class="math inline">\(||Z_1Z_1^T - Z_2Z_2^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||\)</span> is the Frobenius norm of a matrix, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
+<p>Guided SVD vs Rand_01: 0.388</p>
+<p>Guided SVD vs Rand_02: 0.377</p>
+<p>Rand_01 vs Rand_02: 0.314</p>
+</div>
+</div>
+</div>
+<div id="comparison-w-factors-from-stimulated-cells" class="section level1">
+<h1><span class="header-section-number">3</span> Comparison w/ Factors from Stimulated Cells</h1>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+<div id="gene-set-over-representation-analysis-ora" class="section level1">
+<h1><span class="header-section-number">4</span> Gene Set Over-representation Analysis (ORA)</h1>
+<p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
+Backgroud genes: all 6062 genes used in factor analysis;<br />
+Statistical test: hypergeometric test (over-representation test);<br />
+Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq\)</span> 2 and test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown below.</p>
+<div id="go-slim-ora" class="section level2">
+<h2><span class="header-section-number">4.1</span> GO Slim ORA</h2>
+<p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
+<p>Factor 2 : 41 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 4 : 16 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 5 : 13 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 7 : 7 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 10 : 58 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 92 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 15 : 112 significant GO terms</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 16 : 44 significant GO terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 19 : 37 significant GO terms</td>
+</tr>
+</tbody>
+</table>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Summary:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+41
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+58
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+92
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+112
+</td>
+<td style="text-align:right;">
+44
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="factors-of-interest" class="section level3">
+<h3><span class="header-section-number">4.1.1</span> Factors of interest</h3>
+<p><img src="Unstimulated_TCells_merged.gsfa_all_genes_detect_01_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="reactome-pathway-ora" class="section level2">
+<h2><span class="header-section-number">4.2</span> Reactome Pathway ORA</h2>
+<p>Gene sets: The <a href="http://www.reactome.org/">Reactome pathway database</a>.</p>
+<p>Factor 2 : 40 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 4 : 44 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 5 : 51 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 7 : 29 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 10 : 45 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 39 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 15 : 62 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 16 : 40 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 18 : 38 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 19 : 41 significant Reactome pathways</p>
+<hr />
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Summary:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+44
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+41
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+45
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Factor
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Signif_GO_terms
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+82
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+40
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:right;">
+41
+</td>
+<td style="text-align:right;">
+15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="gene-set-enrichment-analysis-gsea" class="section level1">
+<h1><span class="header-section-number">5</span> Gene Set Enrichment Analysis (GSEA)</h1>
+<p>WebGestalt parameter settings:<br />
+gene set size: 10-500, fdr &lt; 0.1, num_perm: 1000, num_categories_expect: 10.</p>
+<p>Gene weights <span class="math inline">\(W\)</span> in each factor are used as the &quot;fold changes&quot; in GSEA;<br />
+1000 permutations were used to determine the significance of the enrichment score;<br />
+NES stands for normalized enrichment score, which is normalized to account for the size of each gene set;<br />
+Positive NES: genes in this set tend to be up-regulated;<br />
+Negative NES: genes in this set tend to be down-regulated.</p>
+<p>Only gene sets within the size of 10 ~ 500 and have an enrichment FDR &lt; 0.1 are kept.</p>
+<div id="reactome-pathway-gsea-all-6k-genes" class="section level2">
+<h2><span class="header-section-number">5.1</span> Reactome pathway GSEA (all 6k genes)</h2>
+<p>Factor 2 : 37 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 4 : 41 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 5 : 87 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 7 : 28 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 11 : 1 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 15 : 3 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 16 : 4 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 18 : 1 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 19 : 82 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="reactome-pathway-gsea-only-the-genes-w-pip-0.95-in-each-factor" class="section level2">
+<h2><span class="header-section-number">5.2</span> Reactome pathway GSEA (only the genes w/ PIP &gt; 0.95 in each factor)</h2>
+<p>Factor 2 : 38 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 4 : 61 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 5 : 80 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 7 : 63 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 10 : 43 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 10 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 15 : 7 significant Reactome pathways</p>
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor 16 : 38 significant Reactome pathways</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Factor 18 : 14 significant Reactome pathways</td>
+</tr>
+</tbody>
+</table>
+<p>Factor 19 : 38 significant Reactome pathways</p>
+<hr />
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

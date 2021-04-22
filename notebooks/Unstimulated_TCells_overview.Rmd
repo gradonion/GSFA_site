@@ -1,0 +1,171 @@
+---
+title: "Overview on Unstimulated T Cell CROP-seq Data"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(Seurat)
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+# source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
+```
+
+# Data Settings
+
+Source:   
+[Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/), GEO accession: GSE119450.
+
+Perturbations:    
+CRISPR knock-out of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Guide conditions were defined on the target gene level; target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.    
+Guide RNAs were introduced into T cells through a novel procedure called sgRNA lentiviral infection with Cas9 protein electroporation (SLICE).
+
+Cells:    
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.   
+Cells from 2 donors were pooled together into 1 analysis.
+
+# scRNA-seq data
+
+## Preprocessing
+
+There are 13983 cells with a single type of gRNA readout using the quality control criteria of % mitochondria gene expression < 10 and total UMI count < 2e+4.
+
+```{r load seurat object}
+combined_obj <-
+  readRDS(paste0(wkdir, "processed_data/seurat_obj.unstimulated_merged.detect_01.corrected.rds"))
+feature.names <- data.frame(fread(paste0(wkdir, "GSE119450_RAW/D1N/genes.tsv"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+```
+
+```{r QC, fig.height=5}
+VlnPlot(combined_obj, features = c("nFeature_RNA", "nCount_RNA", "percent_mt"), pt.size = 0.1)
+```
+
+Only genes detected in > 10% of cells were kept, resulting in 6062 genes.
+
+Seurat "LogNormalize": log(count per $10^4$ + 1).
+
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for.**
+
+## UMAP representation of cells after correction
+
+```{r umap_batch, fig.width=6.5, fig.height=5}
+DimPlot(combined_obj, reduction = "umap", group.by = "orig.ident")
+```
+
+#### Cell cycle effect
+
+Cells are colored by the mean expression of signature genes at the corresponding cell cycle stage:
+```{r umap_CC, fig.height=9}
+CC_genes_df <- data.frame(fread("/project2/xinhe/shared_data/cell_cycle_genes.csv"))
+norm.rna <- combined_obj@assays$RNA@data
+for (i in 1:ncol(CC_genes_df)){
+  gene_ids <- feature.names %>% filter(V2 %in% na.omit(CC_genes_df[, i])) %>% pull(V1)
+  phase <- names(CC_genes_df)[i]
+  phase.exp <- Matrix::colMeans(norm.rna[gene_ids, ])
+  combined_obj[[phase]] <- phase.exp
+}
+FeaturePlot(combined_obj, features = names(CC_genes_df))
+```
+
+#### Expression patterns of marker genes
+
+From the reference paper: activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB).
+```{r umap_markers, fig.height=6.5}
+marker_genes <- c("IL7R", "CCR7" , "MKI67", "GZMB")
+for (m in marker_genes){
+  gene_id <- feature.names$V1[feature.names$V2 == m]
+  combined_obj[[m]] <- norm.rna[gene_id, ]
+}
+FeaturePlot(combined_obj, features = marker_genes,
+            min.cutoff = 1,
+            cols = c("lightgrey", "pink1", "blue"))
+```
+
+The expression of MKI67 coincides with cells at the mitotic stage.
+
+# CRISPR Perturbations
+
+```{r load meta data, fig.width=9, fig.height=5}
+metadata_mat <- readRDS(paste0(wkdir, "processed_data/metadata.unstimulated_merged.rds"))
+guides <- names(metadata_mat)[4:24]
+num_cells_per_guide <- colSums(metadata_mat[, 4:24])
+num_cells.df <- data.frame(locus = names(num_cells_per_guide),
+                           count = num_cells_per_guide)
+ggplot(data = num_cells.df, aes(x = locus, y = count)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  labs(title = "Cell count per gene KO target", x = "KO Target", y = "# of cells") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+```
+
+## Distribution of Knock-out Perturbations
+
+```{r umap_KO, fig.width=12, fig.height=12}
+plot_data <- DimPlot(combined_obj, reduction = 'umap', group.by = 'NonTarget')
+plot.lst <- list()
+for (i in guides){
+  plot_data$data[[i]] <- factor(combined_obj[[i]][, 1])
+  p <- ggplot(plot_data$data, aes_string(x = "UMAP_1", y = "UMAP_2", color = i)) +
+    geom_point(alpha = 0.6, size = 0.3) +
+    scale_color_manual(values = c("lightgrey", "red")) +
+    labs(title = i) +
+    theme(legend.position = "None",
+          axis.title = element_blank())
+  plot.lst[[i]] <- p
+}
+args <- c(plot.lst, list(left = textGrob("UMAP 1", rot = 90, gp = gpar(fontsize = 14)),
+                         bottom = textGrob("UMAP 2", gp=gpar(fontsize = 14))))
+do.call(grid.arrange, args)
+```
+
+## Differential gene expression t-test
+
+Number of genes that passed FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.unstimulated_merged.detect_01.corrected.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+DE_signif_tb <- t(data.frame(KO = names(DE_signif_counts),
+                             DE_genes = DE_signif_counts,
+                             row.names = NULL))
+knitr::kable(rbind(DE_signif_tb[, 1:7],
+                   DE_signif_tb[, 8:14],
+                   DE_signif_tb[, 15:21])) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```

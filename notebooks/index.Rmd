@@ -90,10 +90,12 @@ CRISPR **knock-out** of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Tar
 
 #### Analyses
 
-* [Data overview](Stimulated_TCells_overview.html);
-* [GSFA, stimulated T cells pooled over 2 donors, batch effect corrected](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);
-* [Enrichment analysis on GSFA result](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);
-* [Clustering analysis of all cells, similar to reference paper](All_TCells_clustering.html).
+* [Clustering analysis of all cells, similar to reference paper](All_TCells_clustering.html);  
+* [Stimulated T cells data overview](Stimulated_TCells_overview.html);  
+[GSFA, stimulated T cells pooled over 2 donors, batch effect corrected](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);  
+[Enrichment analysis on GSFA factors](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
+* [Un-stimulated T cells data overview](Unstimulated_TCells_overview.html);  
+[GSFA, unstimulated T cells pooled over 2 donors, batch effect corrected](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
 
 ### MCF10A CROP-seq Study
 
