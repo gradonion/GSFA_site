@@ -16,11 +16,11 @@ library(data.table)
 library(Matrix)
 library(tidyverse)
 library(ggplot2)
-theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
-                             axis.title = element_text(size = 14),
-                             axis.text = element_text(size = 12),
-                             legend.title = element_text(size = 13),
-                             legend.text = element_text(size = 12),
+theme_set(theme_bw() + theme(plot.title = element_text(size = 16, hjust = 0.5),
+                             axis.title = element_text(size = 16),
+                             axis.text = element_text(size = 14),
+                             legend.title = element_text(size = 15),
+                             legend.text = element_text(size = 14),
                              panel.grid.minor = element_blank())
 )
 library(gridExtra)
@@ -47,8 +47,10 @@ pander::panderOptions("table.split.table", Inf)
 source("/project2/xinhe/yifan/Factor_analysis/simulations/simulation_analytics.R")
 wkdir <- paste0("/project2/xinhe/yifan/Factor_analysis/simulations/",
                 "simulation_results/multi_factors_n_markers/realistic_beta_0.1_to_0.6/")
-folders <- c("prior_sb_5.prior_rb_0.2.pi_0.2/")
-settings <- c("pi=0.2")
+folders <- c("prior_sb_5.prior_rb_0.2.pi_0.05/",
+             "prior_sb_5.prior_rb_0.2.pi_0.1/",
+             "prior_sb_5.prior_rb_0.2.pi_0.2/")
+settings <- c("pi=0.05", "pi=0.1", "pi=0.2")
 marker_levels <- seq(0.1, 0.6, 0.1)
 ```
 
@@ -76,7 +78,7 @@ $\sigma_w^2 = 0.5$, matrix $\beta$ takes the following form:
 
 The first 6 factors are each associated with a guide, with the effect sizes varying from 0.1 to 0.6, while the last 4 factors are not associated with any guides.
 
-**We explored 4 cases when the density parameter $\pi_j$ is the same across $j$ but takes a value from 0.1, 0.2, 0.5 to 0.8.**
+**We explored 3 cases when the density parameter $\pi_j$ is the same across $j$ but takes a value from 0.05, 0.1 to 0.2.**
 
 Under each scenario, 500 random datasets were simulated, and both guided and unguided GSFA models were performed on each dataset for 2000 iterations starting from SVD initialization; posterior means were averaged over the last 1000 iterations. 
 
@@ -88,7 +90,7 @@ zzt_diff_list <- list()
 for (i in 1:length(folders)){
   betaZ_list <- readRDS(paste0(wkdir, folders[i],
                                "regression_beta_n_rmse_ZZT.nrep_500.rds"))
-  sub_text <- paste0("(\u03C0=", betaZ_list$params$pi_true[1], ")")
+  sub_text <- paste0("True Factor Density \u03C0=", betaZ_list$params$pi_true[1])
   paired_beta_plots[[i]] <- plot_paired_beta_reg_boxplots(betaZ_list$regression_stats,
                                                           marker_levels, sub_text) +
     scale_y_continuous(breaks = c(0.2, 0.4, 0.6, 0.8, 1),
@@ -100,8 +102,8 @@ for (i in 1:length(folders)){
 }
 ```
 
-```{r gridplot_beta_reg, fig.width=12, fig.height=9}
-do.call(grid.arrange, c(paired_beta_plots))
+```{r gridplot_beta_reg, fig.width=11, fig.height=8}
+do.call(grid.arrange, c(paired_beta_plots, nrow = 2))
 ```
 
 # Estimation of Factors ($Z$s)
@@ -109,27 +111,86 @@ do.call(grid.arrange, c(paired_beta_plots))
 We would like to evaluate how different our estimation of the factor matrix, $\hat{Z}$, is from the true value $Z$.   
 Since the order of latent factors is non-identifiable, we focus on $ZZ^T$ and evaluate its estimation error using  $||\hat{Z}\hat{Z}^T - ZZ^T||_F/N$, where $||\cdot||_F$ is the Frobenius norm, and $N$ is the number of rows (samples) in $Z$.
 
-```{r plot_rmse_ZZT}
+```{r plot_rmse_ZZT, fig.height=5, fig.width=7}
 plot_paired_rmse_zzt_boxplots(zzt_diff_list,
-                              sub_text = paste0("(\u03C0=0.2, ",
-                                                "\u03B2s=", paste(marker_levels, collapse = ", "), ")"))
+                              sub_text = paste0("various \u03C0s"))
+```
+
+## Correlation between matching $Z$ and $\hat{Z}$
+
+On the other hand, since we know the true $Z$'s, we can match each of other inferred factors $\hat{Z}$'s 
+with the true $Z$'s by maximum absolute Pearson correlation.
+
+```{r load_matching_ZZ_corr}
+Z_corr_across_pi <- list()
+for (i in 1:length(folders)){
+  Z_corr_across_pi[[i]] <- readRDS(paste0(wkdir, folders[i], "matched_ZZ_correlation.nrep_500.rds"))
+}
+```
+
+```{r fig.height=4, fig.width=5, eval=FALSE, include=FALSE}
+Z_corr_across_pi_df <- do.call(rbind, Z_corr_across_pi)
+Z_corr_across_pi_df <- Z_corr_across_pi_df %>%
+  mutate(pi = factor(pi)) %>% filter(Model == "Guided")
+levels(Z_corr_across_pi_df$pi) <- settings
+ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = pi)) +
+  geom_boxplot() +
+  scale_color_brewer(palette = "Set2") +
+  labs(x = "True Density of Factors",
+       y = "|Correlation|",
+       title = paste0("Correlation between matched true and inferred factors\n",
+                      "(pooled over all factors)")) +
+  theme(legend.position = "none")
+```
+
+```{r fig.height=5, fig.width=7}
+Z_corr_across_pi_df <- do.call(rbind, Z_corr_across_pi)
+Z_corr_across_pi_df <- Z_corr_across_pi_df %>%
+  mutate(pi = factor(pi))
+levels(Z_corr_across_pi_df$pi) <- settings
+ggplot(Z_corr_across_pi_df, aes(x = pi, y = abs(Correlation), color = Model)) +
+  geom_boxplot() +
+  # scale_color_brewer(palette = "Set2") +
+  scale_color_manual(values = c('#F8766D','#7CAE00')) +
+  labs(x = "True Density of Factors",
+       y = "|Correlation|",
+       title = paste0("Correlation between matched true and inferred factors\n",
+                      "(pooled over all factors)"))
+```
+
+```{r fig.height=10, fig.width=12}
+ggplot(Z_corr_across_pi_df, aes(x = Factor, y = abs(Correlation), color = Model)) +
+  geom_boxplot() +
+  facet_wrap(~ pi, nrow = 2) +
+  # scale_color_brewer(palette = "Set2") +
+  scale_color_manual(values = c('#F8766D','#7CAE00')) +
+  labs(y = "|Correlation|"
+       # title = paste0("Correlation between matched true and inferred factors\n",
+       #                "(\u03C0=", res_list$params$pi_true[1], ")")
+       ) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(size = 16))
 ```
 
 # Beta PIP Calibration
 
-## $\pi$ = 0.2
-
-```{r fig.width=12, fig.height=8}
-i <- 1
-beta_pip_list <- readRDS(paste0(wkdir, folders[1], "beta_pip_list.nrep_500.rds"))
+```{r fig.height=8, fig.width=12, eval=FALSE, include=FALSE}
+# Beta PIP break down by marker
+i <- 3
+beta_pip_list <- readRDS(paste0(wkdir, folders[3], "beta_pip_list.nrep_500.rds"))
 plot_beta_PIP_by_effect_size(beta_pip_list, M = 6,
-                             title_text = paste0("Beta PIP Calibration, N=4000, P=6000, Pi=0.2"))
+                             title_text = paste0("Beta PIP Calibration, \u03C0=0.2"))
 ```
 
-```{r fig.width=6, fig.height=5}
-plot_beta_PIP_pooled(beta_pip_list, M = 6,
-                     title_text = paste0("Beta PIP Calibration (Pooled)",
-                                         "\nN=4000, P=6000, Pi=0.2"))
+```{r fig.width=9, fig.height=8}
+PIP_pooled_plots <- list()
+for (i in 1:length(folders)){
+  beta_pip_list <- readRDS(paste0(wkdir, folders[i], "beta_pip_list.nrep_500.rds"))
+  PIP_pooled_plots[[i]] <- plot_beta_PIP_pooled(beta_pip_list, M = 6,
+                                                title_text = paste0("Beta PIP Calibration (Pooled)\n",
+                                                                    settings[i]))
+}
+do.call(grid.arrange, c(PIP_pooled_plots, nrow = 2))
 ```
 
 # Gene Detection
@@ -147,6 +208,8 @@ $$\text{LFSR}_{mj} = \text{min} \Big\{\text{Pr}(\sum_{k=1}^K \beta_{mk}W_{jk} \g
 
 Alternatively, we can simply test each gene directly, measuring whether there is an difference in $Y_j$ between the two groups of samples under guide $m$ using Welch's t-test.
 
+## ROC
+
 To obtain the following ROC curves, we varied the cutoff from 0 to 1 on both LFSR and t-test FDR values.
 
 The actual cutoff values used are (correspond to the datapoints on an ROC curve from left to right)
@@ -158,32 +221,80 @@ cat(cutoffs)
 cat("\n")
 ```
 
-## $\pi$ = 0.2
+### $\pi$ = 0.05
 
-### ROC
+```{r fig.height=5, fig.width=7}
+i <- 1
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
 
-```{r}
-PR_list <- readRDS(paste0(wkdir, folders[1], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
-
-plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "lfsr", "t-test",
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
                 marker_levels = marker_levels) +
-  labs(title = paste0("ROC -- LFSR vs t-test FDR thresholding\n",
-                      "(\u03C0=", PR_list$params$pi_true[1], ")"))
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
 ```
 
-### Precision-Recall
+### $\pi$ = 0.1
 
-```{r fig.width=12}
-sub_text <- paste0("(\u03C0=", PR_list$params$pi_true[1],
-                   ", \u03B2s=", paste(marker_levels, collapse = ", "), ")")
+```{r fig.height=5, fig.width=7}
+i <- 2
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
+
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
+```
+
+### $\pi$ = 0.2
+
+```{r fig.height=5, fig.width=7}
+i <- 3
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
+
+plot_paired_ROC(PR_list$lfsr_means, PR_list$ttest_means, "GSFA", "t-test",
+                marker_levels = marker_levels) +
+  labs(title = paste0("ROC -- GSFA LFSR vs t-test FDR thresholding\n",
+                      "True Factor Density \u03C0=", PR_list$params$pi_true[1]))
+```
+
+```{r fig.width=12, eval=FALSE, include=FALSE}
+# Precision-Recall
+sub_text <- paste0("True Factor Density \u03C0=", PR_list$params$pi_true[1])
 plot_paired_PR_boxplots(PR_list$lfsr_list$cutoff_0.05, PR_list$ttest_list$cutoff_0.05,
                         "GSFA LFSR<0.05", "t-test FDR<0.05",
                         marker_levels, sub_text)
 ```
 
-### LFSR Calibration
+## FDR Calibration at LFSR 0.05
+
+### Pooled
+
+```{r fig.width=5, fig.height=4}
+pooled_fdr_list <- list()
+for (i in 1:length(folders)){
+  PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
+  precision_samples_df <- PR_list$lfsr_list$cutoff_0.05 %>% select(starts_with("precision"))
+  pooled_fdr_list[[i]] <- data.frame(pooled_fdr = na.omit(unlist(1 - precision_samples_df)),
+                                     setting = settings[i])
+}
+pooled_fdr_df <- do.call(rbind, pooled_fdr_list)
+
+ggplot(pooled_fdr_df, aes(x = setting, y = pooled_fdr, color = setting)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0.05, color = "black", linetype = "dotted") +
+  scale_color_brewer(palette = "Set2") +
+  labs(x = "True Density of Factors",
+       y = "Observed FDR of Genes",
+       title = paste0("GSFA observed DEG FDR at LFSR cutoff of 0.05\n",
+                      "(pooled over all guides, black line: 0.05)")) +
+  theme(legend.position = "none")
+```
+
+### $\pi$ = 0.05
 
 ```{r}
+i <- 1
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
 plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
                       marker_levels = marker_levels,
                       sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
@@ -200,12 +311,45 @@ gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
                               n_row = 2)
 ```
 
+### $\pi$ = 0.1
+
+```{r}
+i <- 2
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
 ```{r fig.width=10, fig.height=6.5}
-gridplot_lfsr_vs_observed_fdr(means_df = PR_list$ttest_means,
-                              sds_df = PR_list$ttest_sds,
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
                               marker_levels = marker_levels,
-                              title_text = paste0("T-Test Calibration (\u03C0 = ",
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
                                                   PR_list$params$pi_true[1],
                                                   ", mean±sd)"),
-                              n_row = 2, x_label = "t-test p value cutoff")
+                              n_row = 2)
 ```
+
+### $\pi$ = 0.2
+
+```{r}
+i <- 3
+PR_list <- readRDS(paste0(wkdir, folders[i], "lfsr_vs_DE.PR_curves.nrep_500.rds"))
+plot_FDR_fixed_cutoff(PR_list$lfsr_list$cutoff_0.05, cutoff = 0.05,
+                      marker_levels = marker_levels,
+                      sub_text = paste0("(\u03C0 = ", PR_list$params$pi_true[1],
+                                        ", red line: expected)"))
+```
+
+```{r fig.width=10, fig.height=6.5}
+gridplot_lfsr_vs_observed_fdr(means_df = PR_list$lfsr_means,
+                              sds_df = PR_list$lfsr_sds,
+                              marker_levels = marker_levels,
+                              title_text = paste0("LFSR Calibration (\u03C0 = ",
+                                                  PR_list$params$pi_true[1],
+                                                  ", mean±sd)"),
+                              n_row = 2)
+```
+

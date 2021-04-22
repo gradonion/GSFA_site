@@ -513,7 +513,7 @@ print_enrich_GSEA_tb <- function(enrich_list,
       print(signif_tb %>%
               mutate(NES = cell_spec(NES, color = ifelse(NES > 0, "firebrick", "forestgreen"))) %>%
               kable(escape = FALSE, format = "html") %>%
-              kable_styling(full_width = F) %>%
+              kable_styling() %>%
               column_spec(column = 2, width = "12em; display: inline-block;") %>%
               column_spec(column = 8, width = "50em; display: inline-block;") %>%
               scroll_box(width = "100%", height = '400px'))

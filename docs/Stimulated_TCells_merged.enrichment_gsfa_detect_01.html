@@ -362,16 +362,15 @@ Seurat &quot;LogNormalize&quot;: log(count per 10K + 1).<br />
 <p>Gibbs sampling was initiated from SVD, and conducted for 2000 iterations; the posterior mean estimates were averaged over the last 500 iterations.</p>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">1.2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-35-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-2-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>We compared the CDF of GSFA factor-guide association p values (20 <span class="math inline">\(\times\)</span> 21 in total) with the CDF of p values obtained from chi-square tests that assess over/under-representation of guides in cell clusters (presented <a href="All_TCells_clustering.html">here</a>).</p>
 <p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/plot_pval_comparison-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="degs-lfsr-0.05-under-each-perturbation" class="section level3">
 <h3><span class="header-section-number">1.2.2</span> DEGs (LFSR &lt; 0.05) under Each Perturbation</h3>
 <p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/dge_comparison_log-1.png" width="720" style="display: block; margin: auto;" /></p>
 <p>Overlap of GSFA DEGs between perturbations:</p>
-<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-36-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="Stimulated_TCells_merged.enrichment_gsfa_detect_01_files/figure-html/unnamed-chunk-3-1.png" width="576" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -387,51 +386,51 @@ Negative NES: genes in this set tend to be down-regulated.</p>
 <p>Only gene sets within the size of 10 ~ 500 and have an enrichment FDR &lt; 0.1 are kept.</p>
 <div id="reactome-pathway-gsea-all-6k-genes" class="section level2">
 <h2><span class="header-section-number">2.1</span> Reactome pathway GSEA (all 6k genes)</h2>
-<p>Factor 8 : 68 significant Reactome</p>
+<p>Factor 8 : 68 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 9 : 7 significant Reactome</th>
+<th>Factor 9 : 7 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 11 : 68 significant Reactome</td>
+<td>Factor 11 : 68 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
-<p>Factor 14 : 226 significant Reactome</p>
+<p>Factor 14 : 226 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 16 : 34 significant Reactome</th>
+<th>Factor 16 : 34 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 17 : 1 significant Reactome</td>
+<td>Factor 17 : 1 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
-<p>Factor 18 : 35 significant Reactome</p>
+<p>Factor 18 : 35 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 19 : 1 significant Reactome</th>
+<th>Factor 19 : 1 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 20 : 10 significant Reactome</td>
+<td>Factor 20 : 10 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
@@ -465,62 +464,62 @@ Down-regulated: MHC class II antigen presentation, Interferon Signaling</li>
 </div>
 <div id="reactome-pathway-gsea-only-the-genes-w-pip-0.95-in-each-factor" class="section level2">
 <h2><span class="header-section-number">2.2</span> Reactome pathway GSEA (only the genes w/ PIP &gt; 0.95 in each factor)</h2>
-<p>Factor 7 : 3 significant Reactome</p>
+<p>Factor 7 : 3 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 8 : 71 significant Reactome</th>
+<th>Factor 8 : 71 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 9 : 12 significant Reactome</td>
+<td>Factor 9 : 12 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
-<p>Factor 11 : 58 significant Reactome</p>
+<p>Factor 11 : 58 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 13 : 12 significant Reactome</th>
+<th>Factor 13 : 12 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 14 : 140 significant Reactome</td>
+<td>Factor 14 : 140 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
-<p>Factor 16 : 52 significant Reactome</p>
+<p>Factor 16 : 52 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Factor 17 : 13 significant Reactome</th>
+<th>Factor 17 : 13 significant Reactome pathways</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Factor 18 : 39 significant Reactome</td>
+<td>Factor 18 : 39 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
-<p>Factor 19 : 1 significant Reactome</p>
+<p>Factor 19 : 1 significant Reactome pathways</p>
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <tbody>
 <tr class="odd">
-<td>Factor 20 : 8 significant Reactome</td>
+<td>Factor 20 : 8 significant Reactome pathways</td>
 </tr>
 </tbody>
 </table>
