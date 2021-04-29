@@ -1,0 +1,280 @@
+---
+title: "MUSIC Topic Modeling of LUHMES CROP-seq Data"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 13),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+# library(MUSIC)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+gsfa_folder <- "gsfa_output_detect_01/merged_new/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+## Single cell expression data
+
+Source:   
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+Perturbations:    
+CRISPR knock-down of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+Cells:    
+Lund human mesencephalic (LUHMES) neural progenitor cell line.   
+Cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout.
+
+## MUSIC pipeline
+
+### Preprocessing
+
+* Cell quality control    
+* SAVER data imputation   
+* Filtering cells with invalid edits    
+(if a cell's differentially expressed gene profile is more similar to the control
+cells than to the other cells with the same perturbation.)  
+* Selecting genes with large dispersion difference between case and control  
+* Normalizing and rounding the expression values to non-negative integers
+
+Final gene and cell size:
+```{r}
+crop_seq_vargene <- readRDS(paste0(wkdir, "music_output/music_vargene.merged.rds"))
+print(dim(crop_seq_vargene$expression_profile))
+perturb_information <- crop_seq_vargene$perturb_information
+```
+
+### Result interpretation
+
+**Annotating the functions of each topic:**
+
+MUSIC obtains the occurrence probabilities of genes available in each topic. It then selects the top 10% genes of each topic based on their occurrence probabilities, and perform functional enrichment analysis using all genes in topic modeling as background.
+
+**Characterizing topc-perturbation relationships:**
+
+For a specific topic, MUSIC prioritizes the perturbation effect by calculating the specific topic probability difference (TPD) between the case and control groups.
+
+For the $i$-th perturbation on the $j$-th topic, the TPD against the control group is computed as the Student's $t$-statistics between $\{z_{mj}\}_{m\in \text{perturbtion }i}$ and $\{z_{nj}\}_{n\in \text{control}}$,  
+where $z_{mj}$ is the probability of topic $j$ in cell $m$ normalized _w.r.t._ the control group: $z_{mj} = \frac{\theta_{mj}-\mu_{\text{control}}}{\sigma_{\text{control}}}$.
+
+```{r}
+guide_mat <- data.frame(matrix(nrow = length(perturb_information),
+                               ncol = length(names(table(perturb_information)))))
+rownames(guide_mat) <- names(perturb_information)
+colnames(guide_mat) <- names(table(perturb_information))
+for (i in colnames(guide_mat)){
+  guide_mat[[i]] <- (perturb_information == i) * 1
+}
+```
+
+## 5 Topics
+
+```{r}
+topic_res <- readRDS(paste0(wkdir, "music_output/music_merged_5_topics.rds"))
+topic_res_annot <- readRDS(paste0(wkdir, "music_output/enrich_res/",
+                                 "5_topics.go_enrich.top_10_percent.rds"))
+```
+
+### Topic annotations
+
+```{r fig.height=6, fig.width=10}
+signif_res <- plot_top_enrich_terms(topic_res_annot, top_num = 5, plot = T)
+```
+
+```{r}
+signif_num.df <- t(data.frame(Topic = 1:length(signif_res$signif_num),
+                              Signif_GO_terms = signif_res$signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df,
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '60%')
+```
+
+**Neural-related topic(s):**
+
+Topic 1
+
+### Topic-perturbation relationship
+
+```{r fig.width=6, fig.height=5}
+distri_diff <- MUSIC::Diff_topic_distri(topic_res$models[[1]],
+                                        perturb_information, plot = F)
+t_D_diff_matrix <- dcast(distri_diff %>% dplyr::select(knockout, variable, t_D_diff),
+                         knockout ~ variable)
+rownames(t_D_diff_matrix) <- t_D_diff_matrix$knockout
+t_D_diff_matrix$knockout <- NULL
+Heatmap(t_D_diff_matrix,
+        name = "Topic probability difference\n(vs ctrl)",
+        cluster_rows = T, cluster_columns = T,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+
+```{r fig.width=5, fig.height=5}
+association_list <- factor_matrix_regression(topic_res$models[[1]]@gamma, guide_mat)
+pval_mat <- association_list$pval
+rownames(pval_mat) <- paste("Topic", 1:nrow(pval_mat))
+colnames(pval_mat) <- colnames(guide_mat)
+Heatmap(-log10(t(pval_mat)),
+        name = "-log10(Topic~Guide\np value)",
+        col = circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick")),
+        row_title = "KD Perturbations", column_title = "Topic",
+        cluster_rows = F, cluster_columns = F,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+
+## 10 Topics
+
+```{r}
+topic_res <- readRDS(paste0(wkdir, "music_output/music_merged_10_topics.rds"))
+topic_res_annot <- readRDS(paste0(wkdir, "music_output/enrich_res/",
+                                 "10_topics.go_enrich.top_10_percent.rds"))
+```
+
+### Topic annotations
+
+```{r fig.height=9, fig.width=10}
+signif_res <- plot_top_enrich_terms(topic_res_annot, top_num = 5, plot = T)
+```
+
+```{r}
+signif_num.df <- t(data.frame(Topic = 1:length(signif_res$signif_num),
+                              Signif_GO_terms = signif_res$signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df[, 1:10],
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+**Neural-related topic(s):**
+
+Topic 4, 5, 10
+
+### Topic-perturbation relationship
+
+```{r fig.width=8, fig.height=5}
+distri_diff <- MUSIC::Diff_topic_distri(topic_res$models[[1]],
+                                        perturb_information, plot = F)
+t_D_diff_matrix <- dcast(distri_diff %>% dplyr::select(knockout, variable, t_D_diff),
+                         knockout ~ variable)
+rownames(t_D_diff_matrix) <- t_D_diff_matrix$knockout
+t_D_diff_matrix$knockout <- NULL
+Heatmap(t_D_diff_matrix,
+        name = "Topic probability difference\n(vs ctrl)",
+        cluster_rows = T, cluster_columns = T,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+
+```{r fig.width=7, fig.height=5}
+association_list <- factor_matrix_regression(topic_res$models[[1]]@gamma, guide_mat)
+pval_mat <- association_list$pval
+rownames(pval_mat) <- paste("Topic", 1:nrow(pval_mat))
+colnames(pval_mat) <- colnames(guide_mat)
+Heatmap(-log10(t(pval_mat)),
+        name = "-log10(Topic~Guide\np value)",
+        col = circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick")),
+        row_title = "KD Perturbations", column_title = "Topic",
+        cluster_rows = F, cluster_columns = F,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+
+## 20 Topics
+
+```{r}
+topic_res <- readRDS(paste0(wkdir, "music_output/music_merged_20_topics.rds"))
+topic_res_annot <- readRDS(paste0(wkdir, "music_output/enrich_res/",
+                                 "20_topics.go_enrich.top_10_percent.rds"))
+```
+
+### Topic annotations
+
+```{r fig.height=12, fig.width=12}
+signif_res <- plot_top_enrich_terms(topic_res_annot, top_num = 5, plot = T)
+```
+
+```{r}
+signif_num.df <- t(data.frame(Topic = 1:length(signif_res$signif_num),
+                              Signif_GO_terms = signif_res$signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+**Neural-related topic(s):**
+
+Topic 1, 4, 9
+
+### Topic-perturbation relationship
+
+```{r fig.width=12, fig.height=5}
+distri_diff <- MUSIC::Diff_topic_distri(topic_res$models[[1]],
+                                        perturb_information, plot = F)
+t_D_diff_matrix <- dcast(distri_diff %>% dplyr::select(knockout, variable, t_D_diff),
+                         knockout ~ variable)
+rownames(t_D_diff_matrix) <- t_D_diff_matrix$knockout
+t_D_diff_matrix$knockout <- NULL
+Heatmap(t_D_diff_matrix,
+        name = "Topic probability difference\n(vs ctrl)",
+        cluster_rows = T, cluster_columns = T,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+
+```{r fig.width=12, fig.height=5}
+association_list <- factor_matrix_regression(topic_res$models[[1]]@gamma, guide_mat)
+pval_mat <- association_list$pval
+rownames(pval_mat) <- paste("Topic", 1:nrow(pval_mat))
+colnames(pval_mat) <- colnames(guide_mat)
+Heatmap(-log10(t(pval_mat)),
+        name = "-log10(Topic~Guide\np value)",
+        col = circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick")),
+        row_title = "KD Perturbations", column_title = "Topic",
+        cluster_rows = F, cluster_columns = F,
+        column_names_rot = 45,
+        heatmap_legend_param = list(title_gp = gpar(fontsize = 12, fontface = "bold")))
+```
+

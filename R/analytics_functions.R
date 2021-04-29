@@ -131,11 +131,16 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
 }
 
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,
-                              row_title = "Factor", column_title = "KO Perturbations"){
+                              row_title = "Factor",
+                              column_title = "KO Perturbations",
+                              legend_title = "-log10(Factor~Guide\np value)"){
   # 'heatmap_matrix' has factors in the rows and SNPs in the columns
   # col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
   col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
-  main_lgd <- Legend(col_fun = col_fun, title = "-log10(Factor~Guide\np value)", at = seq(0, 15, 3))
+  main_lgd <- Legend(col_fun = col_fun,
+                     title = legend_title,
+                     at = seq(0, 15, 3),
+                     title_gp = gpar(fontsize = 12, fontface = "bold"))
   lgd_list <- list(main = main_lgd)
   
   if (is.null(snp_annot)){
@@ -170,6 +175,7 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
   ht <- Heatmap(-log10(heatmap_matrix), col = col_fun, name = "-log10(p value)",
                 row_title = row_title, column_title = column_title,
                 cluster_rows = F, cluster_columns = F,
+                column_names_rot = 45,
                 show_heatmap_legend = F,
                 top_annotation = column_annot) + row_annot
   draw(ht, annotation_legend_list = lgd_list)
@@ -411,6 +417,51 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
     }
   }
   return(signif_num)
+}
+
+plot_top_enrich_terms <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
+                                  top_num = 5, plot = T){
+  signif_num <- rep(0, length(enrich_list))
+  top_list <- list()
+  for (i in 1:length(enrich_list)){
+    enrich_df <- enrich_list[[i]]@result
+    tg_ratio <- enrich_df %>% pull(GeneRatio)
+    tg_mat <- do.call(rbind, strsplit(tg_ratio, split = "/"))
+    enrich_df$tg_1 <- as.numeric(tg_mat[, 1])
+    enrich_df$tg_2 <- as.numeric(tg_mat[, 2])
+    
+    bg_ratio <- enrich_df %>% pull(BgRatio)
+    bg_mat <- do.call(rbind, strsplit(bg_ratio, split = "/"))
+    enrich_df$bg_1 <- as.numeric(bg_mat[, 1])
+    enrich_df$bg_2 <- as.numeric(bg_mat[, 2])
+    
+    enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
+    signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
+      filter(FoldChange >= FC_cutoff) %>%
+      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
+      arrange(-FoldChange) %>%
+      mutate(index = paste0("Topic ", i))
+    signif_num[i] <- nrow(signif_tb)
+    top_list[[i]] <- signif_tb %>% slice(1:top_num)
+  }
+  top_terms_df <- do.call(rbind, top_list)
+  uniq_terms <- unique(top_terms_df$Description)
+  uniq_indices <- unique(top_terms_df$index)
+  top_terms_df <- top_terms_df %>%
+    mutate(Description = factor(Description, levels = uniq_terms[length(uniq_terms):1]),
+           index = factor(index, levels = uniq_indices))
+  if (plot){
+    plot_out <- ggplot(top_terms_df) +
+      geom_point(aes(x = index, y = Description,
+                     size = FoldChange, color = -log10(qvalue))) +
+      scale_color_gradientn(colors = c("blue", "red")) +
+      scale_size_continuous(breaks = seq(2, 8, 2)) +
+      theme_bw() +
+      theme(axis.title = element_blank(),
+            axis.text.x = element_text(angle = 45, hjust = 1))
+    print(plot_out)
+  }
+  return(list(top_terms = top_terms_df, signif_num = signif_num))
 }
 
 print_enrich_ORA_tb <- function(enrich_list,
