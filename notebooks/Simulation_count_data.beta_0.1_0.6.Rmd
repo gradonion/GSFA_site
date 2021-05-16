@@ -65,7 +65,7 @@ $G \in \mathbb{R}^{N \times M}, \beta \in \mathbb{R}^{M \times K}, Z \in \mathbb
 
 We further generated count data $C$ from a Poisson distribution based on our simulated continuous gene expression levels $Y$:
 $$C_{ij} \sim \text{Pois}(L \text{ exp}(\mu+Y_{ij}))$$
-with $L=50000, \mu=\text{log}(10/L)$, which ensures an average read count of 10. Note that, because of the residual errors, the resulting count data are over-dispersed with respect to a Poisson distribution.
+with $L=50000, \mu=\text{log}(1/L)$, which ensures an average read count of 1. Note that, because of the residual errors, the resulting count data are over-dispersed with respect to a Poisson distribution.
 
 For simulation cases in this report,
 
