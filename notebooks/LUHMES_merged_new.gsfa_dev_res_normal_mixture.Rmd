@@ -1,0 +1,324 @@
+---
+title: "Guided Factor Analysis on LUHMES CROP-seq Data"
+subtitle: "-- Deviance residual transformed + 4 covariates corrected"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%'))
+}
+print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
+  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+  print_signif_tb(signif_num, caption_text)
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+gsfa_folder <- "gsfa_output_detect_01/dev_res_normal_mixture/"
+guide <- "All"
+pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+                                    colors = c("black", "purple", "gold"))
+```
+
+# Single cell expression data
+
+Source:   
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+Perturbations:    
+CRISPR knock-down of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+Cells:    
+Lund human mesencephalic (LUHMES) neural progenitor cell line.   
+Cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+
+Genes:    
+**Top 6000 genes ranked by the multinomial deviance statistics were kept.**
+
+Normalization:    
+Deviance residual transformation.   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, "processed_data/merged_metadata.rds"))
+all_KOs.G_mat <- metadata[, 4:18]
+KO_names <- colnames(all_KOs.G_mat)
+```
+
+# Guided results
+
+Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
+
+```{r}
+if (guide == "no_NTC"){
+  KO_names <- KO_names[KO_names != "Nontargeting"]
+  all_KOs.G_mat <- all_KOs.G_mat[, KO_names]
+}
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations.
+
+## SVD Initialization
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+### Local False Sign Rate (LFSR)
+
+For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
+
+```{r}
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+print_lfsr_signif_tb(lfsr_mat, 0.05,
+                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+Number of genes that passed t-test FDR < 0.05 under each perturbation:
+```{r ttest_DE}
+fdr_cutoff <- 0.05
+DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.merged_detect_01.corrected_new.rds"))
+DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed FDR cutoff of 0.05:"))
+```
+
+### Estimate of Factor ~ Perturbation Associations ($\beta$)
+
+```{r fig.width=9, fig.height=7}
+reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
+                "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                "Nontargeting")
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO)
+```
+
+### Factor ~ Perturbation Association P Values
+```{r fig.width=10}
+heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
+plot_pval_heatmap(heatmap_matrix[, reorder_KO],
+                  factor_annot = All_KOs.gibbs_res_tb$pi)
+guided.heatmap_matrix <- heatmap_matrix
+gsfa_KO_names <- apply(guided.heatmap_matrix, 1,
+                       function(x){ paste(colnames(all_KOs.G_mat)[x < 1e-4], collapse = ",") })
+gsfa_KO_names <- paste(1:nrow(guided.heatmap_matrix), gsfa_KO_names, sep = " - ")
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA All KOs (K=20, SVD)")
+```
+
+### Beta PIP vs P-Value
+```{r fig.width=12, fig.height=5}
+beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-nrow(All_KOs.gibbs_PM$Gamma_pm), ])
+p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "20 factors x 15 conditions")
+p2 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
+            ylim = c(0, 10),
+            xlab = "Beta PIP", ylab = "-log10(Association p-value)",
+            main = "Y-axis truncated at 10")
+grid.arrange(p1, p2, nrow = 1)
+```
+
+### Correlation btw Factors
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
+```
+
+```{r}
+plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
+                           corr_type = "jaccard",
+                           name_1 = "Binarized Gene Loadings (F.pm > 0.95)")
+```
+
+## Alternative Initializations and Chain Convergence
+
+Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.
+
+```{r}
+rand_1.gibbs_PM <- 
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_01.restart.PM.rds"))
+rand_2.gibbs_PM <-
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_02.restart.PM.rds"))
+```
+
+### Chain mixing and convergence evaluation
+
+```{r show_R_hat_summary}
+converg_mat <-
+  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.beta_W_converg_mat.2k-3k.rds"))
+knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Difference btw methods in factor estimation
+
+For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_F/N$, where $||\cdot||$ is the Frobenius norm of a matrix, and $N$ is the number of rows (samples) in $Z$.
+
+```{r}
+cat("Guided SVD vs Rand_01:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Guided SVD vs Rand_02:",
+    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+cat("Rand_01 vs Rand_02:",
+    ZZT_mean_diff(rand_1.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
+cat("\n\n")
+```
+
+# Gene Set Enrichment Analysis by Factor
+
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6000 genes used in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
+```{r}
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+```
+
+## GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+```{r go_bp}
+gsfa.Web_ORA_go_bp <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.cutoff_0.95.rds"))
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp, enrich_type = "GO terms",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Factors of interest
+
+4, 9, 15, 16
+
+## Reactome Pathway Over-Representation Analysis
+
+Gene sets: The [Reactome pathway database](http://www.reactome.org/).
+
+```{r reactome}
+gsfa.Web_ORA_react <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.Reactome.cutoff_0.95.rds"))
+
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_react, enrich_type = "Reactome pathways",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df[, 1:10], signif_num.df[, 11:20]),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+
+# Gene Set Enrichment Analysis by Perturbation
+
+Target genes: Genes w/ LFSR < 0.05 under each perturbation marker gene;    
+Backgroud genes: all 6000 genes used in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
+## GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+```{r go_bp_by_marker}
+Web_ORA_go_bp.by_marker <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_marker.lfsr_0.05.rds"))
+signif_num <- print_enrich_ORA_tb(Web_ORA_go_bp.by_marker,
+                                  enrich_type = "GO terms", list_type = "per_marker",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Marker = names(Web_ORA_go_bp.by_marker),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+## Reactome Pathway Over-Representation Analysis
+
+Gene sets: The [Reactome pathway database](http://www.reactome.org/).
+
+```{r reactome_by_marker}
+Web_ORA_react.by_marker <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.Reactome.by_marker.lfsr_0.05.rds"))
+
+signif_num <- print_enrich_ORA_tb(Web_ORA_react.by_marker,
+                                  enrich_type = "Reactome pathways", list_type = "per_marker",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Marker = names(Web_ORA_react.by_marker),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```

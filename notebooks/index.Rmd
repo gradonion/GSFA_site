@@ -69,11 +69,12 @@ CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3
 
 #### Analyses
 * [Data overview](LUHMES_overview.html);
-* [GSFA, 4 confounding factors corrected, NTC condition included](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
-* [Enrichment analysis on GSFA result](LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html);
+* [GSFA, normal-mixture prior on W](LUHMES_merged_new.gsfa_dev_res_normal_mixture.html);
+* [GSFA, spike-and-slab prior on W, 4 confounding factors corrected](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
+* [Enrichment analysis on GSFA result (spike-and-slab)](LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html);
 * [Gene discovery using LFSR, and comparison with DGE](LUHMES_lfsr.html);
 * [Permutation results](LUHMES_merged_new.permutation_detect_01.html);
-* [(GSFA, 3 confounding factors corrected, NTC condition included)](LUHMES_merged.gsfa_all_markers_detect_01.html);
+* [(GSFA, 3 confounding factors corrected)](LUHMES_merged.gsfa_all_markers_detect_01.html);
 * [MUSIC topic modeling result](LUHMES_merged_new.music.html)
 
 ### Primary Human T Cell CROP-seq Study
@@ -94,10 +95,13 @@ CRISPR **knock-out** of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Tar
 
 * [Clustering analysis of all cells, similar to reference paper](All_TCells_clustering.html);  
 * [Stimulated T cells data overview](Stimulated_TCells_overview.html);  
-[GSFA, stimulated T cells pooled over 2 donors, batch effect corrected](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);  
-[Enrichment analysis on GSFA factors](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
+Stimulated T cells pooled over 2 donors, batch effect corrected  
+[GSFA, normal-mixture prior on W](Stimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
+[GSFA, spike-and-slab prior on W](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);  
+[Enrichment analysis on GSFA result (spike-and-slab)](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
 * [Un-stimulated T cells data overview](Unstimulated_TCells_overview.html);  
-[GSFA, unstimulated T cells pooled over 2 donors, batch effect corrected](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
+Unstimulated T cells pooled over 2 donors, batch effect corrected  
+[GSFA, spike-and-slab prior on W](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
 
 ### MCF10A CROP-seq Study
 
