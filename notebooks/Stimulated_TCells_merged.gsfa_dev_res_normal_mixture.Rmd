@@ -50,9 +50,9 @@ print_signif_tb <- function(signif_num, caption_text){
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
-  print(knitr::kable(rbind(signif_num[, 1:7], signif_num[, 8:14], signif_num[, 15:21]),
+  knitr::kable(rbind(signif_num[, 1:7], signif_num[, 8:14], signif_num[, 15:21]),
                      caption = caption_text) %>%
-    kable_styling() %>% scroll_box(width = '100%'))
+    kable_styling() %>% scroll_box(width = '100%')
 }
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
 gsfa_folder <- "gsfa_output_detect_01/dev_res_normal_mixture/"
