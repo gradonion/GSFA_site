@@ -53,13 +53,9 @@ print_signif_tb <- function(signif_num, caption_text){
   signif_num <- t(data.frame(KO = names(signif_num),
                              Num_genes = signif_num,
                              row.names = NULL))
-  print(knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+  knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
                      caption = caption_text) %>%
-    kable_styling() %>% scroll_box(width = '100%'))
-}
-print_lfsr_signif_tb <- function(lfsr_mat, lfsr_cutoff, caption_text){
-  signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-  print_signif_tb(signif_num, caption_text)
+    kable_styling() %>% scroll_box(width = '100%')
 }
 
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
@@ -120,9 +116,10 @@ All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compu
 For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
 
 ```{r}
+lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-print_lfsr_signif_tb(lfsr_mat, 0.05,
-                     paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
 ```
 
 Number of genes that passed t-test FDR < 0.05 under each perturbation:
@@ -225,6 +222,68 @@ cat("\n\n")
 ```
 
 # Gene Set Enrichment Analysis by Factor
+
+```{r}
+print_enrich_ORA_tb <- function(enrich_list,
+                                fdr_cutoff = 0.05, FC_cutoff = 2,
+                                print_index = NULL,
+                                enrich_type = "GO terms",
+                                list_type = c("per_factor", "per_marker"),
+                                convert_genes = FALSE,
+                                gene_map = NULL){
+  if (is.null(print_index)){
+    print_index <- 1:length(enrich_list)
+  }
+  signif_num <- rep(0, length(enrich_list))
+  for (i in 1:length(enrich_list)){
+    if (is.null(enrich_list[[i]])){ next }
+    signif_tb <- enrich_list[[i]] %>%
+      filter(enrichmentRatio >= FC_cutoff, FDR <= fdr_cutoff)
+    if (nrow(signif_tb) == 0){ next }
+    signif_tb <- signif_tb %>%
+      mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
+      mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
+      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio, userId) %>%
+      arrange(-enrichmentRatio) %>%
+      dplyr::rename(enrichRatio = enrichmentRatio, geneIDs = userId)
+    signif_tb$enrichRatio <- signif(signif_tb$enrichRatio, digits = 3)
+    signif_tb$pValue <- format(signif_tb$pValue, digits = 3)
+    signif_tb$FDR <- format(signif_tb$FDR, digits = 3)
+    signif_num[i] <- nrow(signif_tb)
+    
+    if (i %in% print_index){
+      if (convert_genes){
+        stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
+        signif_tb <- signif_tb %>% rowwise() %>%
+          mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
+          select(-geneIDs)
+      }
+      if (list_type == "per_factor"){
+        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      if (list_type == "per_marker"){
+        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
+      }
+      cat(caption_text)
+      cat("\n")
+      print(knitr::kable(signif_tb, caption = caption_text) %>%
+        kable_styling() %>%
+        scroll_box(width = "100%", height = '400px'))
+      # print(signif_tb %>%
+      #         kable(escape = FALSE, format = "html") %>%
+      #         kable_styling() %>%
+      #         column_spec(column = 2, width = "12em; display: inline-block;") %>%
+      #         column_spec(column = 7, width = "50em; display: inline-block;") %>%
+      #         scroll_box(width = "100%", height = '400px'))
+      cat('\n\n<!-- -->\n\n')
+      cat("\n")
+      cat("------------")
+      cat("\n")
+    }
+  }
+  return(signif_num)
+}
+```
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6000 genes used in factor analysis;    

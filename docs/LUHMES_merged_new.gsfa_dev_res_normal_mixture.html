@@ -15,7 +15,7 @@
 
 <title>Guided Factor Analysis on LUHMES CROP-seq Data</title>
 
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/jquery-3.5.1/jquery-3.5.1.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
@@ -298,12 +298,12 @@ div.tocify {
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
 <div class="row">
-<div class="col-sm-12 col-md-4 col-lg-3">
+<div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
 </div>
 
-<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -367,7 +367,265 @@ Deviance residual transformation.<br />
 <div id="local-false-sign-rate-lfsr" class="section level3">
 <h3><span class="header-section-number">2.1.1</span> Local False Sign Rate (LFSR)</h3>
 <p>For a given GSFA inference result, we can estimate the effect a certain KO condition <span class="math inline">\(m\)</span> has on the expression of gene <span class="math inline">\(j\)</span> by computing the LFSR of <span class="math inline">\(\beta_{m\cdot} \cdot W_{j\cdot}\)</span>.</p>
-<p>Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:</p>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+GSFA, # of genes that passed LFSR cutoff of 0.05:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+ADNP
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ASH1L
+</td>
+<td style="text-align:left;">
+CHD2
+</td>
+<td style="text-align:left;">
+CHD8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+772
+</td>
+<td style="text-align:left;">
+338
+</td>
+<td style="text-align:left;">
+334
+</td>
+<td style="text-align:left;">
+769
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CTNND2
+</td>
+<td style="text-align:left;">
+DYRK1A
+</td>
+<td style="text-align:left;">
+HDAC5
+</td>
+<td style="text-align:left;">
+MECP2
+</td>
+<td style="text-align:left;">
+MYT1L
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+130
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+Nontargeting
+</td>
+<td style="text-align:left;">
+POGZ
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+RELN
+</td>
+<td style="text-align:left;">
+SETD5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+906
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+370
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+Welch's t-test, # of genes that passed FDR cutoff of 0.05:
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+ADNP
+</td>
+<td style="text-align:left;">
+ARID1B
+</td>
+<td style="text-align:left;">
+ASH1L
+</td>
+<td style="text-align:left;">
+CHD2
+</td>
+<td style="text-align:left;">
+CHD8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+72
+</td>
+<td style="text-align:left;">
+12
+</td>
+<td style="text-align:left;">
+24
+</td>
+<td style="text-align:left;">
+192
+</td>
+<td style="text-align:left;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+CTNND2
+</td>
+<td style="text-align:left;">
+DYRK1A
+</td>
+<td style="text-align:left;">
+HDAC5
+</td>
+<td style="text-align:left;">
+MECP2
+</td>
+<td style="text-align:left;">
+MYT1L
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+2
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:left;">
+Nontargeting
+</td>
+<td style="text-align:left;">
+POGZ
+</td>
+<td style="text-align:left;">
+PTEN
+</td>
+<td style="text-align:left;">
+RELN
+</td>
+<td style="text-align:left;">
+SETD5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num_genes
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:left;">
+11
+</td>
+<td style="text-align:left;">
+235
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
 <h3><span class="header-section-number">2.1.2</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
@@ -811,87 +1069,125 @@ Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq
 <h2><span class="header-section-number">3.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
 <p>Factor 1 : 12 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 2 : 44 significant GO terms</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>Factor 3 : 12 significant GO terms</td>
+<td>Factor 2 : 44 significant GO terms</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>Factor 4 : 56 significant GO terms</p>
+<p>Factor 3 : 12 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 5 : 13 significant GO terms</th>
+<tbody>
+<tr class="odd">
+<td>Factor 4 : 56 significant GO terms</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>Factor 5 : 13 significant GO terms</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>Factor 6 : 4 significant GO terms</td>
 </tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
 </tbody>
 </table>
 <p>Factor 7 : 21 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 8 : 7 significant GO terms</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>Factor 9 : 72 significant GO terms</td>
+<td>Factor 8 : 7 significant GO terms</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>Factor 11 : 8 significant GO terms</p>
+<p>Factor 9 : 72 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 13 : 2 significant GO terms</th>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 8 significant GO terms</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>Factor 13 : 2 significant GO terms</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>Factor 15 : 20 significant GO terms</td>
 </tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
 </tbody>
 </table>
 <p>Factor 16 : 2 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 17 : 2 significant GO terms</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>Factor 18 : 12 significant GO terms</td>
+<td>Factor 17 : 2 significant GO terms</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>Factor 19 : 11 significant GO terms</p>
-<hr />
+<p>Factor 18 : 12 significant GO terms</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Factor 19 : 11 significant GO terms</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -1034,96 +1330,128 @@ Signif_GO_terms
 <h2><span class="header-section-number">3.2</span> Reactome Pathway Over-Representation Analysis</h2>
 <p>Gene sets: The <a href="http://www.reactome.org/">Reactome pathway database</a>.</p>
 <p>Factor 1 : 165 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 2 : 217 significant Reactome pathways</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>Factor 3 : 33 significant Reactome pathways</td>
+<td>Factor 2 : 217 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>Factor 4 : 48 significant Reactome pathways</p>
+<p>Factor 3 : 33 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 5 : 152 significant Reactome pathways</th>
+<tbody>
+<tr class="odd">
+<td>Factor 4 : 48 significant Reactome pathways</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>Factor 5 : 152 significant Reactome pathways</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>Factor 6 : 2 significant Reactome pathways</td>
 </tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
 </tbody>
 </table>
 <p>Factor 7 : 54 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 8 : 37 significant Reactome pathways</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>Factor 9 : 36 significant Reactome pathways</td>
+<td>Factor 8 : 37 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>Factor 11 : 62 significant Reactome pathways</p>
+<p>Factor 9 : 36 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>Factor 13 : 1 significant Reactome pathways</th>
+<tbody>
+<tr class="odd">
+<td>Factor 11 : 62 significant Reactome pathways</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>Factor 13 : 1 significant Reactome pathways</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>Factor 15 : 1 significant Reactome pathways</td>
 </tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
 </tbody>
 </table>
 <p>Factor 16 : 38 significant Reactome pathways</p>
-<table style="width:17%;">
-<colgroup>
-<col width="16%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Factor 17 : 7 significant Reactome pathways</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Factor 18 : 33 significant Reactome pathways</td>
-</tr>
-</tbody>
-</table>
-<p>Factor 19 : 37 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
 <tbody>
 <tr class="odd">
-<td>Factor 20 : 14 significant Reactome pathways</td>
+<td>Factor 17 : 7 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
+<p>Factor 18 : 33 significant Reactome pathways</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>Factor 19 : 37 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>Factor 20 : 14 significant Reactome pathways</p>
+<!-- -->
+<hr />
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -1285,38 +1613,52 @@ Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq
 <h2><span class="header-section-number">4.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
 <p>ADNP : 25 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>ARID1B : 20 significant GO terms</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>ASH1L : 33 significant GO terms</td>
+<td>ARID1B : 20 significant GO terms</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>CHD2 : 21 significant GO terms</p>
+<p>ASH1L : 33 significant GO terms</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>DYRK1A : 2 significant GO terms</th>
+<tbody>
+<tr class="odd">
+<td>CHD2 : 21 significant GO terms</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>DYRK1A : 2 significant GO terms</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>PTEN : 22 significant GO terms</td>
 </tr>
+<tr class="even">
+<td><!-- --></td>
+</tr>
 </tbody>
 </table>
 <p>SETD5 : 24 significant GO terms</p>
+<!-- -->
 <hr />
 <div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -1384,34 +1726,47 @@ Signif_GO_terms
 <h2><span class="header-section-number">4.2</span> Reactome Pathway Over-Representation Analysis</h2>
 <p>Gene sets: The <a href="http://www.reactome.org/">Reactome pathway database</a>.</p>
 <p>ADNP : 137 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>ARID1B : 59 significant Reactome pathways</th>
-</tr>
-</thead>
 <tbody>
 <tr class="odd">
-<td>ASH1L : 13 significant Reactome pathways</td>
+<td>ARID1B : 59 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
-<p>CHD2 : 48 significant Reactome pathways</p>
+<p>ASH1L : 13 significant Reactome pathways</p>
+<!-- -->
 <table style="width:17%;">
 <colgroup>
 <col width="16%" />
 </colgroup>
-<thead>
-<tr class="header">
-<th>PTEN : 46 significant Reactome pathways</th>
+<tbody>
+<tr class="odd">
+<td>CHD2 : 48 significant Reactome pathways</td>
 </tr>
-</thead>
+<tr class="even">
+<td><!-- --></td>
+</tr>
+</tbody>
+</table>
+<p>PTEN : 46 significant Reactome pathways</p>
+<!-- -->
+<table style="width:17%;">
+<colgroup>
+<col width="16%" />
+</colgroup>
 <tbody>
 <tr class="odd">
 <td>SETD5 : 41 significant Reactome pathways</td>
+</tr>
+<tr class="even">
+<td><!-- --></td>
 </tr>
 </tbody>
 </table>
@@ -1511,6 +1866,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')
