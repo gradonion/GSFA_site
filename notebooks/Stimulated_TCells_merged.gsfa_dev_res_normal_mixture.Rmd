@@ -131,8 +131,12 @@ print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed
 ### Estimate of Factor ~ Perturbation Associations ($\beta$)
 
 ```{r fig.width=9, fig.height=7}
+reorder_KO <- c("ARID1A", "CBLB", "CD5", "RASA2", "SOCS1", "TCEB2", "CD3D", "LCP2",
+                "BTLA", "C10orf54", "CDKN1B", "DGKA", "DGKZ", "HAVCR2", "LAG3", "MEF2D",
+                "PDCD1", "STAT6", "TMEM222", "TNFRSF9", "NonTarget")
+
 dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
-                 marker_names = colnames(all_KOs.G_mat))
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO)
 ```
 
 ### Factor ~ KO Posterior Association
@@ -168,17 +172,17 @@ grid.arrange(p1, p2, nrow = 1)
 
 ### Correlation btw Factors
 
-```{r}
+```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
                            name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)",
                            corr_type = "pearson",
                            label_size = 10)
 ```
 
-```{r}
+```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
                            corr_type = "jaccard",
-                           name_1 = "Binarized Gene Loadings (PIP > 0.95)")
+                           name_1 = "Binarized Gene Loadings - F (PIP > 0.95)")
 ```
 
 ## Alternative Initializations and Chain Convergence
