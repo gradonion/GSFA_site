@@ -504,18 +504,15 @@ print_enrich_ORA_tb <- function(enrich_list,
       if (list_type == "per_marker"){
         caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
       }
-      print(caption_text)
-      knitr::kable(signif_tb, caption = caption_text) %>%
-        kable_styling() %>%
-        scroll_box(width = "100%", height = '400px')
-      # cat(caption_text)
-      # cat("\n")
-      # print(signif_tb %>%
-      #         kable(escape = FALSE, format = "html") %>%
-      #         kable_styling() %>%
-      #         column_spec(column = 2, width = "12em; display: inline-block;") %>%
-      #         column_spec(column = 7, width = "50em; display: inline-block;") %>%
-      #         scroll_box(width = "100%", height = '400px'))
+
+      cat(caption_text)
+      cat("\n")
+      print(signif_tb %>%
+              kable(escape = FALSE, format = "html") %>%
+              kable_styling() %>%
+              column_spec(column = 2, width = "12em; display: inline-block;") %>%
+              column_spec(column = 7, width = "50em; display: inline-block;") %>%
+              scroll_box(width = "100%", height = '400px'))
       cat("\n")
       cat("------------")
       cat("\n")

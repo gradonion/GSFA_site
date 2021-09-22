@@ -9,10 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
 
-<title>Guided Sparse Factor Analysis Project</title>
+<title></title>
 
 <script src="site_libs/jquery-3.5.1/jquery-3.5.1.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -332,186 +331,707 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Guided Sparse Factor Analysis Project</h1>
-<h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
 
 </div>
 
 
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<div id="motivation" class="section level3">
-<h3>Motivation</h3>
-<p>Genetic perturbation often regulates the expression of a network of genes via <em>trans</em> effect.</p>
-<div id="current-computational-approaches-to-detect-trans-genetic-effects-include" class="section level4">
-<h4>Current computational approaches to detect <em>trans</em> genetic effects include:</h4>
-<ul>
-<li>Per-gene association analysis such as <em>trans</em>-eQTL analysis and differential expression analysis, but bears huge multiple testing burden;<br />
+<!DOCTYPE html>
+<html>
+<head>
+<p><meta charset="utf-8" /> <meta name="generator" content="pandoc" /> <meta http-equiv="X-UA-Compatible" content="IE=EDGE" /></p>
+<p><meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" /></p>
+<title>
+Guided Sparse Factor Analysis Project
+</title>
+<script src="site_libs/jquery-3.5.1/jquery-3.5.1.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" /> <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+<!-- tabsets -->
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+<!-- code folding -->
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+</head>
+<body>
+<div class="container-fluid main-container">
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+
+</div>
+</div>
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container">
+<pre><code>&lt;div class=&quot;navbar-header&quot;&gt;
+  &lt;button type=&quot;button&quot; class=&quot;navbar-toggle collapsed&quot; data-toggle=&quot;collapse&quot; data-target=&quot;#navbar&quot;&gt;
+    &lt;span class=&quot;icon-bar&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;icon-bar&quot;&gt;&lt;/span&gt;
+    &lt;span class=&quot;icon-bar&quot;&gt;&lt;/span&gt;
+  &lt;/button&gt;
+  &lt;a class=&quot;navbar-brand&quot; href=&quot;index.html&quot;&gt;GSFA&lt;/a&gt;
+&lt;/div&gt;
+&lt;div id=&quot;navbar&quot; class=&quot;navbar-collapse collapse&quot;&gt;
+  &lt;ul class=&quot;nav navbar-nav&quot;&gt;
+    &lt;li&gt;</code></pre>
+<a href="index.html">Home</a>
 </li>
-<li>Sparse factor analysis which takes advantage of &quot;gene modules&quot;, but subsequent analyses are necessary to interpret the biological meaning of factors.</li>
+<pre><code>  &lt;/ul&gt;
+  &lt;ul class=&quot;nav navbar-nav navbar-right&quot;&gt;
+    
+  &lt;/ul&gt;
+&lt;/div&gt;&lt;!--/.nav-collapse --&gt;</code></pre>
+</div>
+<!--/.container -->
+</div>
+<!--/.navbar -->
+<div id="header">
+<h1 class="title toc-ignore">
+Guided Sparse Factor Analysis Project
+</h1>
+<h4 class="author">
+Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)
+</h4>
+</div>
+<div id="introduction" class="section level2">
+<h2>
+Introduction
+</h2>
+<div id="motivation" class="section level3">
+<h3>
+Motivation
+</h3>
+<p>
+Genetic perturbation often regulates the expression of a network of genes via <em>trans</em> effect.
+</p>
+<div id="current-computational-approaches-to-detect-trans-genetic-effects-include" class="section level4">
+<h4>
+Current computational approaches to detect <em>trans</em> genetic effects include:
+</h4>
+<ul>
+<li>
+Per-gene association analysis such as <em>trans</em>-eQTL analysis and differential expression analysis, but bears huge multiple testing burden;<br />
+</li>
+<li>
+Sparse factor analysis which takes advantage of &quot;gene modules&quot;, but subsequent analyses are necessary to interpret the biological meaning of factors.
+</li>
 </ul>
 </div>
 <div id="our-approach-to-detect-the-effect-of-genetic-perturbation" class="section level4">
-<h4>Our approach to detect the effect of genetic perturbation:</h4>
+<h4>
+Our approach to detect the effect of genetic perturbation:
+</h4>
 <ul>
-<li>Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.</li>
+<li>
+Identify genetically controlled factors that are correlated with the perturbation in a joint statistical framework.
+</li>
 </ul>
-<p>We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditions (<em>e.g.</em> genotype, CRISPR perturbation).</p>
+<p>
+We developed GSFA (Guided Sparse Factor Analysis), a factor analysis model that can infer unobserved intermediate factors given observed gene expression levels, with the advantage of inferred factors being sparse and their correlation with given sample-level conditions (<em>e.g.</em> genotype, CRISPR perturbation).
+</p>
 </div>
 </div>
 <div id="gsfa-model" class="section level3">
-<h3>GSFA Model</h3>
-<p><img src="figs/GSFA_model_illustration.png" width="100%" /></p>
-<p>Given a matrix <span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span> that holds the normalizd expression levels of <span class="math inline">\(P\)</span> genes in <span class="math inline">\(N\)</span> samples, and a guide matrix <span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span> that holds <span class="math inline">\(M\)</span> types of sample-level conditions:</p>
-<p><span class="math inline">\(Y = ZW^T+E\)</span>, where <span class="math inline">\(Z \in \mathbb{R}^{N \times K}\)</span>, <span class="math inline">\(W \in \mathbb{R}^{P \times K}\)</span>, <span class="math inline">\(E_{ij} \sim N(0,\psi_j)\)</span>,</p>
-<p><span class="math inline">\(Z = G \beta + \Phi\)</span>, where <span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span>, <span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span>.</p>
-<p>Both <span class="math inline">\(W\)</span> and <span class="math inline">\(\beta\)</span> have spike-and-slab priors.</p>
-<p>Gibbs sampling is used to infer the model parameters from data.</p>
+<h3>
+GSFA Model
+</h3>
+<p>
+<img src="figs/GSFA_model_illustration.png" width="100%" />
+</p>
+<p>
+Given a matrix <span class="math inline"><span class="math inline">\(Y \in \mathbb{R}^{N \times P}\)</span></span> that holds the normalizd expression levels of <span class="math inline"><span class="math inline">\(P\)</span></span> genes in <span class="math inline"><span class="math inline">\(N\)</span></span> samples, and a guide matrix <span class="math inline"><span class="math inline">\(G \in \mathbb{R}^{N \times M}\)</span></span> that holds <span class="math inline"><span class="math inline">\(M\)</span></span> types of sample-level conditions:
+</p>
+<p>
+<span class="math inline"><span class="math inline">\(Y = ZW^T+E\)</span></span>, where <span class="math inline"><span class="math inline">\(Z \in \mathbb{R}^{N \times K}\)</span></span>, <span class="math inline"><span class="math inline">\(W \in \mathbb{R}^{P \times K}\)</span></span>, <span class="math inline"><span class="math inline">\(E_{ij} \sim N(0,\psi_j)\)</span></span>,
+</p>
+<p>
+<span class="math inline"><span class="math inline">\(Z = G \beta + \Phi\)</span></span>, where <span class="math inline"><span class="math inline">\(\beta \in \mathbb{R}^{M \times K}\)</span></span>, <span class="math inline"><span class="math inline">\(\Phi_{ik} \overset{i.i.d.}{\sim} N(0,1)\)</span></span>.
+</p>
+<p>
+Both <span class="math inline"><span class="math inline">\(W\)</span></span> and <span class="math inline"><span class="math inline">\(\beta\)</span></span> have spike-and-slab priors.
+</p>
+<p>
+Gibbs sampling is used to infer the model parameters from data.
+</p>
 </div>
 </div>
 <div id="simulations" class="section level2">
-<h2>Simulations</h2>
+<h2>
+Simulations
+</h2>
 <div id="single-guide-multiple-factors" class="section level3">
-<h3>Single guide, multiple factors</h3>
+<h3>
+Single guide, multiple factors
+</h3>
 <ul>
-<li><a href="Simulation_single_marker.beta_0.1_0.6.html"><span class="math inline">\(\beta\)</span> = 0.1 to 0.6</a></li>
+<li>
+<a href="Simulation_single_marker.beta_0.1_0.6.html"><span class="math inline"><span class="math inline">\(\beta\)</span></span> = 0.1 to 0.6</a>
+</li>
 </ul>
 </div>
 <div id="multiple-guides-multiple-factors" class="section level3">
-<h3>Multiple guides, multiple factors</h3>
+<h3>
+Multiple guides, multiple factors
+</h3>
 <ul>
-<li><a href="Simulation_count_data.beta_0.1_0.6.html">Count data, <span class="math inline">\(\beta\)</span> = 0.1 to 0.6, N=400, P=500</a>;</li>
-<li><a href="Simulation_multi_markers_n_factors.beta_0.1_0.6.html"><span class="math inline">\(\beta\)</span> = 0.1 to 0.6, N=400, P=500</a>;</li>
-<li><a href="Simulation_multi_markers_n_factors.beta_0.2_1.html"><span class="math inline">\(\beta\)</span> = 0.2 to 1, N=400, P=500</a>;</li>
-<li><a href="Simulation_realistic_settings.html"><span class="math inline">\(\beta\)</span> = 0.1 to 0.6, N=4000, P=6000</a>;</li>
+<li>
+<a href="Simulation_count_data.beta_0.1_0.6.html">Count data, <span class="math inline"><span class="math inline">\(\beta\)</span></span> = 0.1 to 0.6, N=400, P=500</a>;
+</li>
+<li>
+<a href="Simulation_multi_markers_n_factors.beta_0.1_0.6.html"><span class="math inline"><span class="math inline">\(\beta\)</span></span> = 0.1 to 0.6, N=400, P=500</a>;
+</li>
+<li>
+<a href="Simulation_multi_markers_n_factors.beta_0.2_1.html"><span class="math inline"><span class="math inline">\(\beta\)</span></span> = 0.2 to 1, N=400, P=500</a>;
+</li>
+<li>
+<a href="Simulation_realistic_settings.html"><span class="math inline"><span class="math inline">\(\beta\)</span></span> = 0.1 to 0.6, N=4000, P=6000</a>;
+</li>
 </ul>
 </div>
 </div>
 <div id="applications" class="section level2">
-<h2>Applications</h2>
-<p>We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.</p>
+<h2>
+Applications
+</h2>
+<p>
+We applied GSFA to several published data sets of large-scale gene expression data with sample-level perturbations.
+</p>
 <div id="luhmes-crop-seq-study" class="section level3">
-<h3>LUHMES CROP-seq Study</h3>
+<h3>
+LUHMES CROP-seq Study
+</h3>
 <div id="source-and-reference" class="section level4">
-<h4>Source and Reference</h4>
-<p><a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.</p>
+<h4>
+Source and Reference
+</h4>
+<p>
+<a href="https://genome.cshlp.org/content/30/9/1317.full">High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation</a>, GEO accession: GSE142078.
+</p>
 </div>
 <div id="cells" class="section level4">
-<h4>Cells</h4>
-<p>Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)</p>
+<h4>
+Cells
+</h4>
+<p>
+Lund human mesencephalic (LUHMES) neural progenitor cells. (Cells were sequenced in 3 batches.)
+</p>
 </div>
 <div id="perturbations" class="section level4">
-<h4>Perturbations</h4>
-<p>CRISPR <strong>knock-down</strong> of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.</p>
+<h4>
+Perturbations
+</h4>
+<p>
+CRISPR <strong>knock-down</strong> of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+</p>
 </div>
 <div id="analyses" class="section level4">
-<h4>Analyses</h4>
+<h4>
+Analyses
+</h4>
 <ul>
-<li><a href="LUHMES_overview.html">Data overview</a>;</li>
-<li><a href="LUHMES_merged_new.gsfa_dev_res_normal_mixture.html">GSFA, normal-mixture prior on W</a>;</li>
-<li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, spike-and-slab prior on W, 4 confounding factors corrected</a>;</li>
-<li><a href="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html">Enrichment analysis on GSFA result (spike-and-slab)</a>;</li>
-<li><a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>;</li>
-<li><a href="LUHMES_merged_new.permutation_detect_01.html">Permutation results</a>;</li>
-<li><a href="LUHMES_merged.gsfa_all_markers_detect_01.html">(GSFA, 3 confounding factors corrected)</a>;</li>
-<li><a href="LUHMES_merged_new.music.html">MUSIC topic modeling result</a></li>
+<li>
+<a href="LUHMES_overview.html">Data overview</a>;
+</li>
+<li>
+<a href="LUHMES_merged_new.gsfa_dev_res_normal_mixture.html">GSFA, normal-mixture prior on W</a>;
+</li>
+<li>
+<a href="LUHMES_merged_new.gsfa_all_markers_detect_01.html">GSFA, spike-and-slab prior on W, 4 confounding factors corrected</a>;
+</li>
+<li>
+<a href="LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html">Enrichment analysis on GSFA result (spike-and-slab)</a>;
+</li>
+<li>
+<a href="LUHMES_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>;
+</li>
+<li>
+<a href="LUHMES_merged_new.permutation_detect_01.html">Permutation results</a>;
+</li>
+<li>
+<a href="LUHMES_merged.gsfa_all_markers_detect_01.html">(GSFA, 3 confounding factors corrected)</a>;
+</li>
+<li>
+<a href="LUHMES_merged_new.music.html">MUSIC topic modeling result</a>
+</li>
 </ul>
 </div>
 </div>
 <div id="primary-human-t-cell-crop-seq-study" class="section level3">
-<h3>Primary Human T Cell CROP-seq Study</h3>
+<h3>
+Primary Human T Cell CROP-seq Study
+</h3>
 <div id="source-and-reference-1" class="section level4">
-<h4>Source and Reference</h4>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/">Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function</a>, GEO accession: GSE119450.</p>
+<h4>
+Source and Reference
+</h4>
+<p>
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/">Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function</a>, GEO accession: GSE119450.
+</p>
 </div>
 <div id="cells-1" class="section level4">
-<h4>Cells</h4>
-<p>Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.</p>
+<h4>
+Cells
+</h4>
+<p>
+Primary human CD8+ T cells from two healthy donors, with T cell receptor (TCR) stimulation.
+</p>
 </div>
 <div id="perturbations-1" class="section level4">
-<h4>Perturbations</h4>
-<p>CRISPR <strong>knock-out</strong> of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.</p>
+<h4>
+Perturbations
+</h4>
+<p>
+CRISPR <strong>knock-out</strong> of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.
+</p>
 </div>
 <div id="analyses-1" class="section level4">
-<h4>Analyses</h4>
+<h4>
+Analyses
+</h4>
 <ul>
-<li><a href="All_TCells_clustering.html">Clustering analysis of all cells, similar to reference paper</a>;<br />
+<li>
+<a href="All_TCells_clustering.html">Clustering analysis of all cells, similar to reference paper</a>;<br />
 </li>
-<li><a href="Stimulated_TCells_overview.html">Stimulated T cells data overview</a>;<br />
-Stimulated T cells pooled over 2 donors, batch effect corrected<br />
-<a href="Stimulated_TCells_merged.gsfa_dev_res_normal_mixture.html">GSFA, normal-mixture prior on W</a>;<br />
-<a href="Stimulated_TCells_merged.gsfa_all_genes_detect_01.html">GSFA, spike-and-slab prior on W</a>;<br />
-<a href="Stimulated_TCells_merged.enrichment_gsfa_detect_01.html">Enrichment analysis on GSFA result (spike-and-slab)</a>;<br />
+<li>
+<a href="Stimulated_TCells_overview.html">Stimulated T cells data overview</a>;<br /> Stimulated T cells pooled over 2 donors, batch effect corrected<br /> <a href="Stimulated_TCells_merged.gsfa_dev_res_normal_mixture.html">GSFA, normal-mixture prior on W</a>;<br /> <a href="Stimulated_TCells_merged.gsfa_all_genes_detect_01.html">GSFA, spike-and-slab prior on W</a>;<br /> <a href="Stimulated_TCells_merged.enrichment_gsfa_detect_01.html">Enrichment analysis on GSFA result (spike-and-slab)</a>;<br />
 </li>
-<li><a href="Unstimulated_TCells_overview.html">Un-stimulated T cells data overview</a>;<br />
-Unstimulated T cells pooled over 2 donors, batch effect corrected<br />
-<a href="Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html">GSFA, spike-and-slab prior on W</a>;</li>
+<li>
+<a href="Unstimulated_TCells_overview.html">Un-stimulated T cells data overview</a>;<br /> Unstimulated T cells pooled over 2 donors, batch effect corrected<br /> <a href="Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html">GSFA, spike-and-slab prior on W</a>;
+</li>
 </ul>
 </div>
 </div>
 <div id="mcf10a-crop-seq-study" class="section level3">
-<h3>MCF10A CROP-seq Study</h3>
+<h3>
+MCF10A CROP-seq Study
+</h3>
 <div id="source-and-reference-2" class="section level4">
-<h4>Source and Reference</h4>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.</p>
+<h4>
+Source and Reference
+</h4>
+<p>
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5882576/">On the design of CRISPR-based single cell molecular screens</a>, GEO accession: GSE108699.
+</p>
 </div>
 <div id="cells-2" class="section level4">
-<h4>Cells</h4>
-<p>MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;</p>
+<h4>
+Cells
+</h4>
+<p>
+MCF10A cells (normal human breast epithelial cells) with exposure to a DNA damaging agent, doxorubicin;
+</p>
 </div>
 <div id="perturbations-2" class="section level4">
-<h4>Perturbations</h4>
-<p>CRISPR <strong>knock-out</strong> of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;<br />
-guide RNA readout measured on the single-cell level.</p>
+<h4>
+Perturbations
+</h4>
+<p>
+CRISPR <strong>knock-out</strong> of 29 tumor-suppressor genes (TP53, ...), 1 non-targeting control;<br /> guide RNA readout measured on the single-cell level.
+</p>
 </div>
 <div id="analyses-2" class="section level4">
-<h4>Analyses</h4>
+<h4>
+Analyses
+</h4>
 <ul>
-<li><a href="MCF10A_overview.html">Data overview</a>;</li>
-<li><a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;</li>
-<li><a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;</li>
-<li><a href="MCF10A_permutation_detect_01_singleton.html">Permutation results for detection 10%, singleton</a>;</li>
-<li><a href="MCF10A_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.</li>
+<li>
+<a href="MCF10A_overview.html">Data overview</a>;
+</li>
+<li>
+<a href="MCF10A_gsfa_all_markers_detect_01_singleton.html">GSFA, NTC condition regressed out, singleton cells only</a>;
+</li>
+<li>
+<a href="MCF10A_gsfa_all_markers_detect_01_noNTC.html">GSFA, NTC condition regressed out</a>;
+</li>
+<li>
+<a href="MCF10A_permutation_detect_01_singleton.html">Permutation results for detection 10%, singleton</a>;
+</li>
+<li>
+<a href="MCF10A_lfsr.html">Gene discovery using LFSR, and comparison with DGE</a>.
+</li>
 </ul>
 </div>
 </div>
 <div id="tcga-brca-somatic-mutation-study" class="section level3">
-<h3>TCGA BRCA Somatic Mutation Study</h3>
+<h3>
+TCGA BRCA Somatic Mutation Study
+</h3>
 <div id="references" class="section level4">
-<h4>References</h4>
-<p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/">Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics</a>.</p>
+<h4>
+References
+</h4>
+<p>
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/">Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics</a>.
+</p>
 </div>
 <div id="data-sources" class="section level4">
-<h4>Data sources</h4>
-<p><a href="http://firebrowse.org/?cohort=BRCA&amp;download_dialog=true">FireBrowse TCGA BRCA Archives</a>.</p>
+<h4>
+Data sources
+</h4>
+<p>
+<a href="http://firebrowse.org/?cohort=BRCA&amp;download_dialog=true">FireBrowse TCGA BRCA Archives</a>.
+</p>
 <ul>
-<li>mRNA-seq file &quot;illuminahiseq_rnaseqv2-RSEM_genes_normalized&quot;;<br />
+<li>
+mRNA-seq file &quot;illuminahiseq_rnaseqv2-RSEM_genes_normalized&quot;;<br />
 </li>
-<li>Mutation annotation file &quot;Mutation_Packager_Oncotated_Calls&quot;;<br />
+<li>
+Mutation annotation file &quot;Mutation_Packager_Oncotated_Calls&quot;;<br />
 </li>
-<li>Clinical file &quot;Clinical_Pick_Tier1&quot;.</li>
+<li>
+Clinical file &quot;Clinical_Pick_Tier1&quot;.
+</li>
 </ul>
 </div>
 <div id="samples" class="section level4">
-<h4>Samples</h4>
-<p>TCGA breast invasive carcinoma (BRCA) tumor samples (confined to female, Caucasian, and with somatic mutation annotation).</p>
+<h4>
+Samples
+</h4>
+<p>
+TCGA breast invasive carcinoma (BRCA) tumor samples (confined to female, Caucasian, and with somatic mutation annotation).
+</p>
 </div>
 <div id="perturbation" class="section level4">
-<h4>Perturbation</h4>
-<p>Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).</p>
+<h4>
+Perturbation
+</h4>
+<p>
+Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP53, TTN, GATA3, CDH1, MAP3K1, MAP2K4).
+</p>
 </div>
 <div id="analyses-3" class="section level4">
-<h4>Analyses</h4>
+<h4>
+Analyses
+</h4>
 <ul>
-<li><a href="TCGA_BRCA_somatic_overview.html">Data overview</a>;</li>
-<li><a href="TCGA_BRCA_top5_lof_missense.gsfa_rsem.html">GSFA, female Caucasian only, missense + LOF mutations, RSEM normalized</a>;</li>
-<li><a href="TCGA_BRCA_top5_lof_missense.gsfa_tmm.html">GSFA, female Caucasian only, missense + LOF mutations, TMM normalized</a>;</li>
-<li><a href="TCGA_BRCA_selected_7_mutations.gsfa_rsem.html">GSFA, female Caucasian only, merged mutations</a>;</li>
-<li><a href="TCGA_BRCA_selected_7_mutations.gsfa_rsem_subtype_corrected.html">GSFA, female Caucasian only, merged mutations, corrected for subtype</a>;</li>
+<li>
+<a href="TCGA_BRCA_somatic_overview.html">Data overview</a>;
+</li>
+<li>
+<a href="TCGA_BRCA_top5_lof_missense.gsfa_rsem.html">GSFA, female Caucasian only, missense + LOF mutations, RSEM normalized</a>;
+</li>
+<li>
+<a href="TCGA_BRCA_top5_lof_missense.gsfa_tmm.html">GSFA, female Caucasian only, missense + LOF mutations, TMM normalized</a>;
+</li>
+<li>
+<a href="TCGA_BRCA_selected_7_mutations.gsfa_rsem.html">GSFA, female Caucasian only, merged mutations</a>;
+</li>
+<li>
+<a href="TCGA_BRCA_selected_7_mutations.gsfa_rsem_subtype_corrected.html">GSFA, female Caucasian only, merged mutations, corrected for subtype</a>;
+</li>
 </ul>
 </div>
 </div>
 </div>
+</div>
+</div>
+</div>
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+<!-- code folding -->
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+</html>
 
 
 

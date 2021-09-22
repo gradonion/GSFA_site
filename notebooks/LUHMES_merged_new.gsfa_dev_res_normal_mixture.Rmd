@@ -223,68 +223,6 @@ cat("\n\n")
 
 # Gene Set Enrichment Analysis by Factor
 
-```{r}
-print_enrich_ORA_tb <- function(enrich_list,
-                                fdr_cutoff = 0.05, FC_cutoff = 2,
-                                print_index = NULL,
-                                enrich_type = "GO terms",
-                                list_type = c("per_factor", "per_marker"),
-                                convert_genes = FALSE,
-                                gene_map = NULL){
-  if (is.null(print_index)){
-    print_index <- 1:length(enrich_list)
-  }
-  signif_num <- rep(0, length(enrich_list))
-  for (i in 1:length(enrich_list)){
-    if (is.null(enrich_list[[i]])){ next }
-    signif_tb <- enrich_list[[i]] %>%
-      filter(enrichmentRatio >= FC_cutoff, FDR <= fdr_cutoff)
-    if (nrow(signif_tb) == 0){ next }
-    signif_tb <- signif_tb %>%
-      mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
-      mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
-      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio, userId) %>%
-      arrange(-enrichmentRatio) %>%
-      dplyr::rename(enrichRatio = enrichmentRatio, geneIDs = userId)
-    signif_tb$enrichRatio <- signif(signif_tb$enrichRatio, digits = 3)
-    signif_tb$pValue <- format(signif_tb$pValue, digits = 3)
-    signif_tb$FDR <- format(signif_tb$FDR, digits = 3)
-    signif_num[i] <- nrow(signif_tb)
-    
-    if (i %in% print_index){
-      if (convert_genes){
-        stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
-        signif_tb <- signif_tb %>% rowwise() %>%
-          mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
-          select(-geneIDs)
-      }
-      if (list_type == "per_factor"){
-        caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
-      }
-      if (list_type == "per_marker"){
-        caption_text <- paste(names(enrich_list)[i], ":", nrow(signif_tb), "significant", enrich_type)
-      }
-      cat(caption_text)
-      cat("\n")
-      print(knitr::kable(signif_tb, caption = caption_text) %>%
-        kable_styling() %>%
-        scroll_box(width = "100%", height = '400px'))
-      # print(signif_tb %>%
-      #         kable(escape = FALSE, format = "html") %>%
-      #         kable_styling() %>%
-      #         column_spec(column = 2, width = "12em; display: inline-block;") %>%
-      #         column_spec(column = 7, width = "50em; display: inline-block;") %>%
-      #         scroll_box(width = "100%", height = '400px'))
-      cat('\n\n<!-- -->\n\n')
-      cat("\n")
-      cat("------------")
-      cat("\n")
-    }
-  }
-  return(signif_num)
-}
-```
-
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
 Backgroud genes: all 6000 genes used in factor analysis;    
 Statistical test: hypergeometric test (over-representation test);    
