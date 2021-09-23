@@ -112,11 +112,16 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
   beta_pm_plot_df <- beta_pm_plot_df %>%
     mutate(PIP = beta_pip_plot_df$PIP,
            Factor = factor(Factor, levels = paste0("Factor ", nrow(beta_pip_df):1)),
-           Perturbation = factor(Perturbation, levels = reorder_markers))
+           Perturbation = factor(Perturbation, levels = reorder_markers)) 
+  beta_pm_plot_df$`Estimated effect size`[beta_pm_plot_df$`Estimated effect size` > 0.8] <- 0.8
+  beta_pm_plot_df$`Estimated effect size`[beta_pm_plot_df$`Estimated effect size` < -0.8] <- -0.8
   plot_out <- ggplot(beta_pm_plot_df) +
     geom_point(aes(x = Perturbation, y = Factor,
                    size = PIP, color = `Estimated effect size`)) +
-    scale_color_gradient2(low = "purple3", mid = "grey90", high = "darkorange1") +
+    scale_color_gradientn(limits = c(-0.8, 0.8),
+                          colours = c("purple3", "purple2", "grey90", "darkorange", "darkorange1"),
+                          breaks = seq(-0.6, 0.6, 0.3)) +
+    # scale_color_gradient2(low = "purple3", mid = "grey90", high = "darkorange1") +
     # scale_color_gradientn(colors = c("purple", "grey90", "darkorange1"),
     #                       values = scales::rescale(c(-0.6, 0, 0.6))) +
     theme_void() +

@@ -173,13 +173,13 @@ grid.arrange(p1, p2, nrow = 1)
 
 ### Correlation btw Factors
 
-```{r}
+```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
                            corr_type = "pearson",
                            name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
 ```
 
-```{r}
+```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
                            corr_type = "jaccard",
                            name_1 = "Binarized Gene Loadings (F.pm > 0.95)")
