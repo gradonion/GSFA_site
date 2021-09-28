@@ -101,6 +101,7 @@ Stimulated T cells pooled over 2 donors, batch effect corrected
 [Enrichment analysis on GSFA result (spike-and-slab)](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
 * [Un-stimulated T cells data overview](Unstimulated_TCells_overview.html);  
 Unstimulated T cells pooled over 2 donors, batch effect corrected  
+[GSFA, normal-mixture prior on W](Unstimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
 [GSFA, spike-and-slab prior on W](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
 
 ### MCF10A CROP-seq Study
