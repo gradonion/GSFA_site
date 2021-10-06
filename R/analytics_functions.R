@@ -89,8 +89,11 @@ make_flash_res_tb <- function(flashier_obj, G){
 
 dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
                              marker_names, reorder_markers = marker_names,
-                             exclude_offset = TRUE, return_dataframe = FALSE){
-  # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices
+                             exclude_offset = TRUE,
+                             return_dataframe = FALSE,
+                             color_lgd_title = "Estimated effect size"){
+  # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices,
+  # Dots will be colored by effect size and sized by PIP value.
   if (exclude_offset){
     beta_pip_matrix <- beta_pip_matrix[, -ncol(beta_pip_matrix)]
     beta_pm_matrix <- beta_pm_matrix[, -ncol(beta_pm_matrix)]
@@ -128,7 +131,8 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
     theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
           axis.text.y = element_text(size = 13),
           legend.title = element_text(size = 13),
-          legend.text = element_text(size = 12))
+          legend.text = element_text(size = 12)) +
+    labs(color = color_lgd_title)
   print(plot_out)
   if (return_dataframe){
     return(beta_pm_plot_df)
@@ -141,10 +145,10 @@ plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = N
                               legend_title = "-log10(Factor~Guide\np value)"){
   # 'heatmap_matrix' has factors in the rows and SNPs in the columns
   # col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
-  col_fun <- circlize::colorRamp2(c(0, 3, 15), c("blue3", "white", "firebrick"))
+  col_fun <- circlize::colorRamp2(c(0, 3, 9), c("blue3", "white", "firebrick"))
   main_lgd <- Legend(col_fun = col_fun,
                      title = legend_title,
-                     at = seq(0, 15, 3),
+                     at = seq(0, 12, 3),
                      title_gp = gpar(fontsize = 12, fontface = "bold"))
   lgd_list <- list(main = main_lgd)
   
