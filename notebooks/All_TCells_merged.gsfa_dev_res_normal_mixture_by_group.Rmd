@@ -116,7 +116,7 @@ For a given GSFA inference result, we can estimate the effect a certain KO condi
 
 ### Stimulated group
 
-# of genes that passed GSFA LFSR < 0.05 under each perturbation:
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 ```{r}
 lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.group1.rds"))
@@ -134,7 +134,7 @@ print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed
 
 ### Unstimulated group
 
-# of genes that passed GSFA LFSR < 0.05 under each perturbation:
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 ```{r}
 lfsr_cutoff <- 0.05
 lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.group0.rds"))
