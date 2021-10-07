@@ -1,6 +1,6 @@
 ---
 title: "Guided Factor Analysis on All CD8+ T Cell CROP-seq Data"
-subtitle: "-- Deviance residual transformed + normal-mixture prior"
+subtitle: "-- Deviance residual transformed + Normal-mixture prior, Donor uncorrected"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -291,7 +291,7 @@ expression_file <-  "processed_data/deviance_residual.all_T_cells_merged_top_6k.
 scaled.gene_exp <- readRDS(paste0(wkdir, expression_file))
 seurat_obj@assays$RNA@scale.data <- scaled.gene_exp
 seurat_obj <- RunPCA(seurat_obj, verbose = F)
-seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca", verbose = F)
+seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca")
 seurat_obj <- RunUMAP(seurat_obj, reduction = "pca", dims = 1:20, verbose = F)
 DimPlot(seurat_obj, reduction = "umap", group.by = "orig.ident")
 ```
@@ -349,12 +349,12 @@ all_moi_df <- data.frame(
                    "HLA", "CD38", "CD69", "CD11a", "CD58", "CD99",
                    "CD62L", "CD103", "CCR4", "CCR5", "CCR6", "CCR9", "CCR10", "CXCR3", "CXCR4", "CLA",
                    "Granzyme A", "Granzyme B", "Perforin", "CD161", "IL-18Ra", "c-Kit", "CD130",
-                   "CD45RA", "CCR7", "CD95"),
+                   "CD45RA", "CCR7", "CD95", "MKI67"),
   gene_name = c("CD27", "CD28", "IL7R", "PDCD1", "IL2RB", "IL2RG", "KLRG1",
                 "HLA-DRB1", "CD38", "CD69", "ITGAL", "CD58", "CD99",
                 "SELL", "ITGAE", "CCR4", "CCR5", "CCR6", "CCR9", "CCR10", "CXCR3", "CXCR4", "SELPLG",
                 "GZMA", "GZMB", "PRF1", "KLRB1", "IL18R1", "KIT", "IL6ST",
-                "PTPRC", "CCR7", "FAS")
+                "PTPRC", "CCR7", "FAS", "MKI67")
 )
 ```
 
@@ -373,6 +373,12 @@ interest_pip_mat <- gene_pips[interest_df$gene_name, ]
 dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
                  marker_names = interest_df$protein_name,
                  exclude_offset = F, color_lgd_title = "Gene loading")
+```
+
+```{r}
+knitr::kable(interest_df %>% filter(protein_name != gene_name),
+             caption = "Protein-gene name mapping:") %>%
+  kable_styling() %>% scroll_box(width = '100%', height = '400px')
 ```
 
 # Gene Set Enrichment Analysis by Factor
