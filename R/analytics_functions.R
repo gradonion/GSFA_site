@@ -90,6 +90,7 @@ make_flash_res_tb <- function(flashier_obj, G){
 dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
                              marker_names, reorder_markers = marker_names,
                              exclude_offset = TRUE,
+                             inverse_factors = TRUE,
                              return_dataframe = FALSE,
                              color_lgd_title = "Estimated effect size"){
   # Both 'beta_pip_matrix' and 'beta_pm_matrix' should be factor by guide/marker matrices,
@@ -100,12 +101,14 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
   }
   rownames(beta_pip_matrix) <- 1:nrow(beta_pip_matrix)
   colnames(beta_pip_matrix) <- marker_names
+  beta_pip_matrix <- beta_pip_matrix[, reorder_markers]
   beta_pip_df <- as.data.frame(beta_pip_matrix)
   beta_pip_df$Factor <- paste0("Factor ", 1:nrow(beta_pip_df))
   beta_pip_plot_df <- reshape2::melt(beta_pip_df, value.name = "PIP")
   
   rownames(beta_pm_matrix) <- 1:nrow(beta_pm_matrix)
   colnames(beta_pm_matrix) <- marker_names
+  beta_pm_matrix <- beta_pm_matrix[, reorder_markers]
   beta_pm_df <- as.data.frame(beta_pm_matrix)
   beta_pm_df$Factor <- paste0("Factor ", 1:nrow(beta_pm_df))
   beta_pm_plot_df <- reshape2::melt(beta_pm_df, id.var = "Factor",
@@ -114,8 +117,14 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
   # beta_pm_plot_df$PIP <- beta_pip_plot_df$PIP
   beta_pm_plot_df <- beta_pm_plot_df %>%
     mutate(PIP = beta_pip_plot_df$PIP,
-           Factor = factor(Factor, levels = paste0("Factor ", nrow(beta_pip_df):1)),
-           Perturbation = factor(Perturbation, levels = reorder_markers)) 
+           Perturbation = factor(Perturbation, levels = reorder_markers))
+  if (inverse_factors){
+    beta_pm_plot_df <- beta_pm_plot_df %>%
+      mutate(Factor = factor(Factor, levels = paste0("Factor ", nrow(beta_pip_df):1)))
+  } else {
+    beta_pm_plot_df <- beta_pm_plot_df %>%
+      mutate(Factor = factor(Factor, levels = paste0("Factor ", 1:nrow(beta_pip_df))))
+  }
   beta_pm_plot_df$`Estimated effect size`[beta_pm_plot_df$`Estimated effect size` > 0.8] <- 0.8
   beta_pm_plot_df$`Estimated effect size`[beta_pm_plot_df$`Estimated effect size` < -0.8] <- -0.8
   plot_out <- ggplot(beta_pm_plot_df) +
@@ -129,14 +138,66 @@ dotplot_beta_PIP <- function(beta_pip_matrix, beta_pm_matrix,
     #                       values = scales::rescale(c(-0.6, 0, 0.6))) +
     theme_void() +
     theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
+          axis.text.y = element_text(size = 13, hjust = 1),
+          legend.title = element_text(size = 13),
+          legend.text = element_text(size = 12),
+          plot.margin = margin(10, 10, 10, 12)) +
+    labs(color = color_lgd_title)
+  return(plot_out)
+}
+
+dotplot_effectsize <- function(effect_matrix, lfsr_matrix,
+                               reorder_markers = colnames(effect_matrix),
+                               color_lgd_title = "Estimated effect size",
+                               size_lgd_title = "LFSR"){
+  # Both inputs should be gene by guide/marker matrices,
+  # Dots will be colored by effect size and sized by 1-LFSR value.
+  lfsr_binning <- function(lfsr){
+    if (lfsr <= 0.05){
+      return("0 - 0.05")
+    } else if (lfsr <= 0.25){
+      return("0.05 - 0.25")
+    } else {
+      return("> 0.25")
+    }
+  }
+  
+  lfsr_matrix <- lfsr_matrix[, reorder_markers]
+  effect_matrix <- effect_matrix[, reorder_markers]
+  
+  pip_df <- as.data.frame(lfsr_matrix)
+  pip_df$gene <- rownames(lfsr_matrix)
+  pip_plot_df <- reshape2::melt(pip_df, variable.name = "Perturbation",
+                                value.name = "LFSR")
+  
+  effect_df <- as.data.frame(effect_matrix)
+  effect_df$gene <- rownames(effect_matrix)
+  effect_plot_df <- reshape2::melt(effect_df, variable.name = "Perturbation",
+                                   value.name = "Effect_size")
+  
+  combined_plot_df <- effect_plot_df %>%
+    mutate(LFSR = pip_plot_df$LFSR,
+           gene = factor(gene, levels = rownames(effect_matrix)),
+           Perturbation = factor(Perturbation, levels = reorder_markers))
+  combined_plot_df$Effect_size[combined_plot_df$Effect_size> 0.2] <- 0.2
+  combined_plot_df$Effect_size[combined_plot_df$Effect_size< -0.2] <- -0.2
+  combined_plot_df <- combined_plot_df %>%
+    rowwise() %>%
+    mutate(LFSR_bin = lfsr_binning(LFSR)) %>%
+    mutate(LFSR_bin = factor(LFSR_bin, levels = c("> 0.25", "0.05 - 0.25", "0 - 0.05")))
+  plot_out <- ggplot(combined_plot_df) +
+    geom_point(aes(x = Perturbation, y = gene,
+                   size = LFSR_bin, color = Effect_size)) +
+    scale_color_gradientn(limits = c(-0.2, 0.2),
+                          colours = c("blue3", "blue", "grey90", "red", "red3"),
+                          breaks = seq(-0.1, 0.1, 0.1)) +
+    theme_void() +
+    theme(axis.text.x = element_text(size = 13, angle = 90, hjust = 1),
           axis.text.y = element_text(size = 13),
           legend.title = element_text(size = 13),
           legend.text = element_text(size = 12)) +
-    labs(color = color_lgd_title)
-  print(plot_out)
-  if (return_dataframe){
-    return(beta_pm_plot_df)
-  }
+    labs(color = color_lgd_title, size = size_lgd_title)
+  return(plot_out)
 }
 
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,
@@ -213,7 +274,7 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
       if (corr_type == "pearson"){
         corr_mat[i, j] <- cor(vec_1, vec_2, method = "pearson")
       } else if (corr_type == "jaccard"){
-        corr_mat[i, j] <- sum(vec_1 * vec_2) / sum(vec_1 + vec_2 > 0)
+        corr_mat[i, j] <- sum(vec_1 * vec_2) / sum((vec_1 + vec_2) > 0)
       } else {
         corr_mat[i, j] <- sum(vec_1 * vec_2) / sum(vec_1)
       }
@@ -403,7 +464,7 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
     enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
     signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
       filter(FoldChange >= FC_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
+      dplyr::select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
       arrange(-FoldChange)
     signif_tb$FoldChange <- signif(signif_tb$FoldChange, digits = 3)
     signif_tb$pvalue <- format(signif_tb$pvalue, digits = 3)
@@ -428,6 +489,35 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
   return(signif_num)
 }
 
+barplot_top_enrich_terms <- function(enrich_df, fdr_cutoff = 0.05, FC_cutoff = 2,
+                                     terms_of_interest = NULL,
+                                     top_num = 5){
+  enrich_df <- enrich_df %>%
+    filter(FDR < fdr_cutoff, enrichmentRatio >= FC_cutoff) %>%
+    filter(size >= 20) %>%
+    arrange(-enrichmentRatio)
+  if (is.null(terms_of_interest)){
+    top_terms_df <- enrich_df %>% slice(1:top_num)
+  } else {
+    top_terms_df <- enrich_df %>% filter(description %in% terms_of_interest)
+  }
+  top_terms_df$description_short <- str_wrap(top_terms_df$description, width = 25)
+  top_terms_df$description_short <- factor(top_terms_df$description_short, 
+                                     levels = top_terms_df$description_short)
+  top_terms_df$pValue[top_terms_df$pValue < 1e-10] <- 1e-10
+  
+  plot_out <- ggplot(top_terms_df) +
+    geom_bar(aes(x = description_short, y = enrichmentRatio, fill = -log10(pValue)),
+             stat="identity") +
+    coord_flip() +
+    scale_y_continuous(limits = c(0, 10)) +
+    scale_fill_gradientn(limits = c(2, 10),
+                         colors = c("blue", "red"),
+                         breaks = c(2, 6, 10)) +
+    theme(axis.title.y = element_blank())
+  return(plot_out)
+}
+
 plot_top_enrich_terms <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
                                   top_num = 5, plot = T){
   signif_num <- rep(0, length(enrich_list))
@@ -447,7 +537,7 @@ plot_top_enrich_terms <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff =
     enrich_df <- enrich_df %>% mutate(FoldChange = (tg_1/tg_2) / (bg_1/bg_2))
     signif_tb <- enrich_df %>% filter(qvalue < qvalue_cutoff) %>%
       filter(FoldChange >= FC_cutoff) %>%
-      select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
+      dplyr::select(ID, Description, GeneRatio, BgRatio, FoldChange, pvalue, qvalue, GS_size) %>%
       arrange(-FoldChange) %>%
       mutate(index = paste0("Topic ", i))
     signif_num[i] <- nrow(signif_tb)
@@ -492,7 +582,7 @@ print_enrich_ORA_tb <- function(enrich_list,
     signif_tb <- signif_tb %>%
       mutate(GeneRatio = paste(overlap, size, sep = "/")) %>%
       mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
-      select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio, userId) %>%
+      dplyr::select(GeneSet, description, enrichmentRatio, pValue, FDR, GeneRatio, userId) %>%
       arrange(-enrichmentRatio) %>%
       dplyr::rename(enrichRatio = enrichmentRatio, geneIDs = userId)
     signif_tb$enrichRatio <- signif(signif_tb$enrichRatio, digits = 3)
@@ -505,7 +595,7 @@ print_enrich_ORA_tb <- function(enrich_list,
         stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
         signif_tb <- signif_tb %>% rowwise() %>%
           mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
-          select(-geneIDs)
+          dplyr::select(-geneIDs)
       }
       if (list_type == "per_factor"){
         caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
@@ -548,7 +638,7 @@ print_enrich_GSEA_tb <- function(enrich_list,
     if (nrow(signif_tb) == 0){ next }
     signif_tb <- signif_tb %>%
       mutate(GeneSet = paste0("[", geneSet, "](", link, ")")) %>%
-      select(GeneSet, description, normalizedEnrichmentScore, pValue, FDR, size, leadingEdgeNum, userId) %>%
+      dplyr::select(GeneSet, description, normalizedEnrichmentScore, pValue, FDR, size, leadingEdgeNum, userId) %>%
       arrange(-normalizedEnrichmentScore) %>%
       dplyr::rename(NES = normalizedEnrichmentScore, numLeadGenes = leadingEdgeNum, geneIDs = userId)
     signif_tb$NES <- signif(signif_tb$NES, digits = 3)
@@ -561,7 +651,7 @@ print_enrich_GSEA_tb <- function(enrich_list,
         stopifnot(is.data.frame(gene_map) & c("ID", "Name") %in% names(gene_map))
         signif_tb <- signif_tb %>% rowwise() %>%
           mutate(geneSymbols = convert_IDs_to_Symbols(geneIDs, gene_map)) %>%
-          select(-geneIDs)
+          dplyr::select(-geneIDs)
       }
       if (list_type == "per_factor"){
         caption_text <- paste("Factor", i, ":", nrow(signif_tb), "significant", enrich_type)
