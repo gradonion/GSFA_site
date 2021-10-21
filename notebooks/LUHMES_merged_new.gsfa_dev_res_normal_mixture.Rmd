@@ -26,7 +26,6 @@ theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
 library(gridExtra)
 library(ComplexHeatmap)
 library(kableExtra)
-library(clusterProfiler)
 
 # set default chunk output
 knitr::opts_chunk$set(echo = FALSE,
@@ -61,8 +60,6 @@ print_signif_tb <- function(signif_num, caption_text){
 wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
 gsfa_folder <- "gsfa_output_detect_01/dev_res_normal_mixture/"
 guide <- "All"
-pip_col_fun <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
-                                    colors = c("black", "purple", "gold"))
 ```
 
 # Single cell expression data
@@ -90,8 +87,6 @@ all_KOs.G_mat <- metadata[, 4:18]
 KO_names <- colnames(all_KOs.G_mat)
 ```
 
-# Guided results
-
 Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
 
 ```{r}
@@ -102,46 +97,30 @@ if (guide == "no_NTC"){
 nmarkers <- ncol(all_KOs.G_mat)
 ```
 
-In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations.
+In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations. SVD Initialization.
 
-## SVD Initialization
 ```{r svd_tb}
 All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
 stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
-### Local False Sign Rate (LFSR)
+# Factor ~ Perturbation Association
 
-For a given GSFA inference result, we can estimate the effect a certain KO condition $m$ has on the expression of gene $j$ by computing the LFSR of $\beta_{m\cdot} \cdot W_{j\cdot}$.
+## Estimate of Factor ~ Perturbation Associations ($\beta$)
 
-```{r}
-lfsr_cutoff <- 0.05
-lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
-print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
-```
-
-Number of genes that passed t-test FDR < 0.05 under each perturbation:
-```{r ttest_DE}
-fdr_cutoff <- 0.05
-DE_list <- readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.merged_detect_01.corrected_new.rds"))
-DE_signif_counts <- sapply(DE_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
-print_signif_tb(DE_signif_counts, paste0("Welch's t-test, # of genes that passed FDR cutoff of 0.05:"))
-```
-
-### Estimate of Factor ~ Perturbation Associations ($\beta$)
-
-```{r fig.width=9, fig.height=7}
+```{r fig.width=9, fig.height=4}
 reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
-                "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
                 "Nontargeting")
 dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma_pm), t(All_KOs.gibbs_PM$beta_pm),
-                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO)
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO,
+                 inverse_factors = F) +
+  coord_flip()
 ```
 
-### Factor ~ Perturbation Association P Values
-```{r fig.width=10}
+## Factor ~ Perturbation Association P Values
+```{r fig.width=10, include=FALSE}
 heatmap_matrix <- All_KOs.gibbs_res_tb %>% select(starts_with("pval"))
 rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
 colnames(heatmap_matrix) <- colnames(all_KOs.G_mat)
@@ -176,49 +155,310 @@ grid.arrange(p1, p2, nrow = 1)
 ```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
                            corr_type = "pearson",
-                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)")
+                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)",
+                           label_size = 10)
 ```
 
-```{r fig.width=7, fig.height=5}
+```{r  fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
                            corr_type = "jaccard",
-                           name_1 = "Binarized Gene Loadings (F.pm > 0.95)")
+                           name_1 = "Binarized Gene Loadings (F.pm > 0.95)",
+                           label_size = 10)
 ```
 
-## Alternative Initializations and Chain Convergence
+# Factor Interpretation
 
-Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.
+## Factor by gene loading
 
 ```{r}
-rand_1.gibbs_PM <- 
-  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_01.restart.PM.rds"))
-rand_2.gibbs_PM <-
-  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.rand_02.restart.PM.rds"))
+expression_file <- "processed_data/deviance_residual.merged_top_6k.corrected_4.scaled.rds"
+scaled.gene_exp <- readRDS(paste0(wkdir, expression_file))
+
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+genes_indx <- match(rownames(scaled.gene_exp), feature.names$ID)
+genes_df <- feature.names[genes_indx, ]
 ```
-
-### Chain mixing and convergence evaluation
-
-```{r show_R_hat_summary}
-converg_mat <-
-  readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.beta_W_converg_mat.2k-3k.rds"))
-knitr::kable(signif(t(apply(converg_mat, 2, summary)), digits = 3)) %>%
-  kable_styling() %>% scroll_box(width = '100%')
-```
-
-### Difference btw methods in factor estimation
-
-For a pair of $Z$ estimations from 2 inference methods, $Z_1, Z_2$, we quantify the pairwise estimation difference as $||Z_1Z_1^T - Z_2Z_2^T||_F/N$, where $||\cdot||$ is the Frobenius norm of a matrix, and $N$ is the number of rows (samples) in $Z$.
 
 ```{r}
-cat("Guided SVD vs Rand_01:",
-    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_1.gibbs_PM$Z_pm) %>% signif(digits = 3))
-cat("\n\n")
-cat("Guided SVD vs Rand_02:",
-    ZZT_mean_diff(All_KOs.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
-cat("\n\n")
-cat("Rand_01 vs Rand_02:",
-    ZZT_mean_diff(rand_1.gibbs_PM$Z_pm, rand_2.gibbs_PM$Z_pm) %>% signif(digits = 3))
-cat("\n\n")
+gene_loadings <- All_KOs.gibbs_PM$W_pm
+rownames(gene_loadings) <- genes_df$Name
+colnames(gene_loadings) <- paste0("Factor ", 1:20)
+
+gene_pips <- All_KOs.gibbs_PM$F_pm
+rownames(gene_pips) <- genes_df$Name
+colnames(gene_pips) <- paste0("Factor ", 1:20)
+```
+
+Neuron progenitor (NPC): NES, TP53, CDK4  
+Post-mitotic neuron: MAP2, DCX  
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
+```{r list_of_marker_genes}
+all_moi_df1 <- data.frame(
+  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "MAP2", "DCX", "GAD1", "GAD2", "SLC17A6", "DAT1",
+  "FOXG1", "BRN2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM"),
+  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "MAP2", "DCX", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
+  "FOXG1", "POU3F2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM")
+)
+interest_df1 <- all_moi_df1[all_moi_df1$gene_name %in% genes_df$Name, ]
+```
+
+```{r fig.width=9, fig.height=4}
+interest_mat <- gene_loadings[interest_df1$gene_name, ]
+interest_pip_mat <- gene_pips[interest_df1$gene_name, ]
+dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
+                 marker_names = interest_df1$gene_name,
+                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
+  coord_flip()
+```
+
+ITM2C: negative regulation of neuron projection development  
+MAP1B: highly expressed during neural development in actively extending axons
+ZEB2: a transcription factor that regulates neuron development 
+```{r list_of_neuron_proj_genes}
+all_moi_df2 <- data.frame(
+  protein_name = c("DPYSL3", "HSPA5", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "MAP1B", "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
+  gene_name = c("DPYSL3", "HSPA5", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "MAP1B", "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
+)
+interest_df2 <- all_moi_df2[all_moi_df2$gene_name %in% genes_df$Name, ]
+```
+
+```{r fig.width=9, fig.height=6}
+interest_mat <- gene_loadings[interest_df2$gene_name, ]
+interest_pip_mat <- gene_pips[interest_df2$gene_name, ]
+dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
+                 marker_names = interest_df2$gene_name,
+                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
+  coord_flip()
+```
+
+## Selected factor GO enrichment
+
+```{r}
+enrich_res <- readRDS(paste0(wkdir, gsfa_folder,
+                             "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.cutoff_0.95.rds"))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 4
+terms_of_interest <- c("regulation of ion transmembrane transport",
+                       "regulation of trans-synaptic signaling",
+                       "axon development",
+                       "regulation of neuron projection development")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 9
+terms_of_interest <- c("actin filament organization",
+                       "cell fate commitment",
+                       "regulation of neuron projection development",
+                       "regulation of cell morphogenesis")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 15
+terms_of_interest <- c("neuromuscular process",
+                       "regulation of metal ion transport",
+                       "regulation of transporter activity",
+                       "positive regulation of secretion")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+```{r fig.height=1.8, fig.width=7}
+factor_indx <- 16
+terms_of_interest <- c("developmental growth involved in morphogenesis",
+                       "axon development")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest, 
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+# DEG Interpretation
+
+## Number of DEGs detected under different methods
+
+```{r}
+fdr_cutoff <- 0.05
+lfsr_cutoff <- 0.05
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+# print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+```{r deseq}
+library(DESeq2)
+deseq_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  deseq_list[[m]] <- res
+}
+deseq_signif_counts <- sapply(deseq_list, function(x){filter(x, padj < fdr_cutoff) %>% nrow()})
+```
+
+```{r edger}
+edger_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  edger_list[[m]] <- readRDS(fname)
+}
+edger_signif_counts <- sapply(edger_list, function(x){filter(x, FDR < fdr_cutoff) %>% nrow()})
+```
+
+```{r mast}
+mast_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/MAST/dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  mast_list[[m]] <- readRDS(fname)
+}
+mast_list_signif_counts <- sapply(mast_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+```
+
+```{r dge_comparison_merge}
+dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
+                                GSFA = lfsr_signif_num,
+                                edgeR = edger_signif_counts,
+                                DESeq2 = deseq_signif_counts,
+                                MAST = mast_list_signif_counts)
+                                # t.test = DE_signif_counts)
+```
+
+```{r fig.width=12, fig.height=5.5}
+dge_plot_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                              variable.name = "Method", value.name = "Num_DEGs")
+ggplot(dge_plot_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_text(aes(label = Num_DEGs), position=position_dodge(width=0.9), vjust=-0.25) +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Knock-Out Target",
+       y = "Number of DEGs + 1",
+       title = "Number of DEGs detected using different methods\n(LFSR or FDR cutoff at 0.05)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13))
+```
+
+## Perturbation effect on gene markers
+
+```{r}
+interest_df <- rbind(interest_df1, interest_df2)
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
+stopifnot(rownames(lfsr_mat) == genes_df$ID)
+rownames(lfsr_mat) <- genes_df$Name
+
+lfsr_cutoff <- 0.05
+num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+
+effect_size_mat <- matrix(nrow = nrow(interest_df),
+                          ncol = length(signif_markers))
+rownames(effect_size_mat) <- interest_df$protein_name
+colnames(effect_size_mat) <- signif_markers
+
+beta1_mat <- All_KOs.gibbs_PM$beta_pm
+rownames(beta1_mat) <- c(colnames(lfsr_mat), "offset")
+gamma1_mat <- All_KOs.gibbs_PM$Gamma_pm
+rownames(gamma1_mat) <- c(colnames(lfsr_mat), "offset")
+
+for (m in signif_markers){
+  effect_size_mat[, m] <-
+    colSums(beta1_mat[m, ] * t(gene_loadings[interest_df$gene_name, ]))
+}
+```
+
+```{r dotplot_gene_effect1, fig.width=5, fig.height=4}
+selected_lfsr_mat <- lfsr_mat[interest_df1$gene_name, signif_markers]
+rownames(selected_lfsr_mat) <- interest_df1$protein_name
+dotplot_effectsize(effect_size_mat[interest_df1$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1))
+```
+
+```{r dotplot_gene_effect2, fig.width=5, fig.height=6}
+selected_lfsr_mat <- lfsr_mat[interest_df2$gene_name, signif_markers]
+dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1))
+```
+
+## DEG GO enrichment
+```{r}
+enrich_res <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_marker.lfsr_0.05.rds"))
+```
+
+```{r}
+signif_GO_list <- list()
+for (i in names(enrich_res)) {
+  signif_GO_list[[i]] <- enrich_res[[i]] %>%
+    filter(enrichmentRatio > 2) %>%
+    dplyr::select(geneSet, description, size, enrichmentRatio, pValue) %>%
+    mutate(target = i)
+}
+signif_term_df <- do.call(rbind, signif_GO_list) %>%
+  group_by(geneSet, description, size) %>%
+  summarise(pValue = min(pValue)) %>%
+  ungroup()
+```
+
+```{r}
+enrich_table <- data.frame(matrix(nrow = nrow(signif_term_df),
+                                  ncol = length(enrich_res)),
+                           row.names = signif_term_df$geneSet)
+colnames(enrich_table) <- names(enrich_res)
+for (i in 1:ncol(enrich_table)){
+  m <- colnames(enrich_table)[i]
+  enrich_df <- enrich_res[[m]] %>% filter(enrichmentRatio > 2)
+  enrich_table[enrich_df$geneSet, i] <- enrich_df$enrichmentRatio
+}
+signif_term_df$degree <- rowSums(!is.na(enrich_table))
+
+ordered_signif_term_df <- signif_term_df %>%
+  filter(degree > 0, size >= 20) %>%
+  arrange(-degree)
+ordered_enrich_table <- enrich_table[ordered_signif_term_df$geneSet, ]
+rownames(ordered_enrich_table) <- ordered_signif_term_df$description
+```
+
+```{r GO_term_heatmap, fig.height=11, fig.width=9}
+interest_enrich_table <- ordered_enrich_table
+interest_enrich_table[is.na(interest_enrich_table)] <- 0
+abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
+                                        colors = c("grey95", "#77d183", "#255566"))
+map <- Heatmap(interest_enrich_table,
+               name = "Fold of Enrichment",
+               col = abs_FC_colormap,
+               row_title = NULL, column_title = NULL,
+               cluster_rows = T, cluster_columns = F,
+               show_row_dend = F, show_column_dend = F,
+               show_heatmap_legend = T,
+               row_names_gp = gpar(fontsize = 10.5),
+               column_names_rot = 45,
+               width = unit(10, "cm"))
+draw(map, heatmap_legend_side = "right")
 ```
 
 # Gene Set Enrichment Analysis by Factor

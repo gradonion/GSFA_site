@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-09-23" />
+<meta name="date" content="2021-10-21" />
 
 <title>Guided Factor Analysis on LUHMES CROP-seq Data</title>
 
@@ -338,7 +338,7 @@ div.tocify {
 <h1 class="title toc-ignore">Guided Factor Analysis on LUHMES CROP-seq Data</h1>
 <h3 class="subtitle">-- Deviance residual transformed + 4 covariates corrected</h3>
 <h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
-<h4 class="date">2021-09-23</h4>
+<h4 class="date">2021-10-21</h4>
 
 </div>
 
@@ -357,716 +357,77 @@ Cells from 3 batches were merged together into 1 analysis. All cells have only a
 <p>Normalization:<br />
 Deviance residual transformation.<br />
 <strong>Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.</strong></p>
-</div>
-<div id="guided-results" class="section level1">
-<h1><span class="header-section-number">2</span> Guided results</h1>
 <p>Here, our &quot;guide&quot;, <span class="math inline">\(G\)</span> matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.</p>
-<p>In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations.</p>
-<div id="svd-initialization" class="section level2">
-<h2><span class="header-section-number">2.1</span> SVD Initialization</h2>
-<div id="local-false-sign-rate-lfsr" class="section level3">
-<h3><span class="header-section-number">2.1.1</span> Local False Sign Rate (LFSR)</h3>
-<p>For a given GSFA inference result, we can estimate the effect a certain KO condition <span class="math inline">\(m\)</span> has on the expression of gene <span class="math inline">\(j\)</span> by computing the LFSR of <span class="math inline">\(\beta_{m\cdot} \cdot W_{j\cdot}\)</span>.</p>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA, # of genes that passed LFSR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ADNP
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ASH1L
-</td>
-<td style="text-align:left;">
-CHD2
-</td>
-<td style="text-align:left;">
-CHD8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-772
-</td>
-<td style="text-align:left;">
-338
-</td>
-<td style="text-align:left;">
-334
-</td>
-<td style="text-align:left;">
-769
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CTNND2
-</td>
-<td style="text-align:left;">
-DYRK1A
-</td>
-<td style="text-align:left;">
-HDAC5
-</td>
-<td style="text-align:left;">
-MECP2
-</td>
-<td style="text-align:left;">
-MYT1L
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-130
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-Nontargeting
-</td>
-<td style="text-align:left;">
-POGZ
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-RELN
-</td>
-<td style="text-align:left;">
-SETD5
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-906
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-370
-</td>
-</tr>
-</tbody>
-</table>
+<p>In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations. SVD Initialization.</p>
 </div>
-Number of genes that passed t-test FDR &lt; 0.05 under each perturbation:
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-Welch's t-test, # of genes that passed FDR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ADNP
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ASH1L
-</td>
-<td style="text-align:left;">
-CHD2
-</td>
-<td style="text-align:left;">
-CHD8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-72
-</td>
-<td style="text-align:left;">
-12
-</td>
-<td style="text-align:left;">
-24
-</td>
-<td style="text-align:left;">
-192
-</td>
-<td style="text-align:left;">
-7
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CTNND2
-</td>
-<td style="text-align:left;">
-DYRK1A
-</td>
-<td style="text-align:left;">
-HDAC5
-</td>
-<td style="text-align:left;">
-MECP2
-</td>
-<td style="text-align:left;">
-MYT1L
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-3
-</td>
-<td style="text-align:left;">
-2
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-Nontargeting
-</td>
-<td style="text-align:left;">
-POGZ
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-RELN
-</td>
-<td style="text-align:left;">
-SETD5
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-5
-</td>
-<td style="text-align:left;">
-11
-</td>
-<td style="text-align:left;">
-235
-</td>
-<td style="text-align:left;">
-1
-</td>
-<td style="text-align:left;">
-21
-</td>
-</tr>
-</tbody>
-</table>
+<div id="factor-perturbation-association" class="section level1">
+<h1><span class="header-section-number">2</span> Factor ~ Perturbation Association</h1>
+<div id="estimate-of-factor-perturbation-associations-beta" class="section level2">
+<h2><span class="header-section-number">2.1</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h2>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-3-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
-</div>
-<div id="estimate-of-factor-perturbation-associations-beta" class="section level3">
-<h3><span class="header-section-number">2.1.2</span> Estimate of Factor ~ Perturbation Associations (<span class="math inline">\(\beta\)</span>)</h3>
-<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-4-1.png" width="864" style="display: block; margin: auto;" /></p>
-</div>
-<div id="factor-perturbation-association-p-values" class="section level3">
-<h3><span class="header-section-number">2.1.3</span> Factor ~ Perturbation Association P Values</h3>
+<div id="factor-perturbation-association-p-values" class="section level2">
+<h2><span class="header-section-number">2.2</span> Factor ~ Perturbation Association P Values</h2>
 <p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
 <div id="beta-pip-vs-p-value" class="section level3">
-<h3><span class="header-section-number">2.1.4</span> Beta PIP vs P-Value</h3>
-<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<h3><span class="header-section-number">2.2.1</span> Beta PIP vs P-Value</h3>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="correlation-btw-factors" class="section level3">
-<h3><span class="header-section-number">2.1.5</span> Correlation btw Factors</h3>
+<h3><span class="header-section-number">2.2.2</span> Correlation btw Factors</h3>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="alternative-initializations-and-chain-convergence" class="section level2">
-<h2><span class="header-section-number">2.2</span> Alternative Initializations and Chain Convergence</h2>
-<p>Other than initializing GSFA using truncated SVD, we also ran 2 chains with random initialization.</p>
-<div id="chain-mixing-and-convergence-evaluation" class="section level3">
-<h3><span class="header-section-number">2.2.1</span> Chain mixing and convergence evaluation</h3>
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-Min.
-</th>
-<th style="text-align:right;">
-1st Qu.
-</th>
-<th style="text-align:right;">
-Median
-</th>
-<th style="text-align:right;">
-Mean
-</th>
-<th style="text-align:right;">
-3rd Qu.
-</th>
-<th style="text-align:right;">
-Max.
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ADNP
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.19
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:right;">
-1.17
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-ASH1L
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.04
-</td>
-<td style="text-align:right;">
-1.33
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-CHD2
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.48
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-CHD8
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.06
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-CTNND2
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-DYRK1A
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.06
-</td>
-<td style="text-align:right;">
-1.07
-</td>
-<td style="text-align:right;">
-1.97
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-HDAC5
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-MECP2
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-MYT1L
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Nontargeting
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.04
-</td>
-<td style="text-align:right;">
-1.19
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-POGZ
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.19
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-RELN
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.10
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-SETD5
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.02
-</td>
-<td style="text-align:right;">
-1.03
-</td>
-<td style="text-align:right;">
-1.39
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-offset
-</td>
-<td style="text-align:right;">
-0.999
-</td>
-<td style="text-align:right;">
-1.00
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.01
-</td>
-<td style="text-align:right;">
-1.25
-</td>
-</tr>
-</tbody>
-</table>
+</div>
+<div id="factor-interpretation" class="section level1">
+<h1><span class="header-section-number">3</span> Factor Interpretation</h1>
+<div id="factor-by-gene-loading" class="section level2">
+<h2><span class="header-section-number">3.1</span> Factor by gene loading</h2>
+<p>Neuron progenitor (NPC): NES, TP53, CDK4<br />
+Post-mitotic neuron: MAP2, DCX<br />
+Glutamatergic neuron (excitatory): SLC17A6<br />
+Cortical neuron: BRN2 (POU3F2)<br />
+Developing striatal neurons: EBF1<br />
+Subtypes of inhibitory neurons: SST<br />
+Subtypes of extitatory neurons: NEFM</p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-11-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p>ITM2C: negative regulation of neuron projection development<br />
+MAP1B: highly expressed during neural development in actively extending axons ZEB2: a transcription factor that regulates neuron development</p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-12-1.png" width="864" style="display: block; margin: auto;" /></p>
+</div>
+<div id="selected-factor-go-enrichment" class="section level2">
+<h2><span class="header-section-number">3.2</span> Selected factor GO enrichment</h2>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="difference-btw-methods-in-factor-estimation" class="section level3">
-<h3><span class="header-section-number">2.2.2</span> Difference btw methods in factor estimation</h3>
-<p>For a pair of <span class="math inline">\(Z\)</span> estimations from 2 inference methods, <span class="math inline">\(Z_1, Z_2\)</span>, we quantify the pairwise estimation difference as <span class="math inline">\(||Z_1Z_1^T - Z_2Z_2^T||_F/N\)</span>, where <span class="math inline">\(||\cdot||\)</span> is the Frobenius norm of a matrix, and <span class="math inline">\(N\)</span> is the number of rows (samples) in <span class="math inline">\(Z\)</span>.</p>
-<p>Guided SVD vs Rand_01: 0.396</p>
-<p>Guided SVD vs Rand_02: 0.288</p>
-<p>Rand_01 vs Rand_02: 0.284</p>
+<div id="deg-interpretation" class="section level1">
+<h1><span class="header-section-number">4</span> DEG Interpretation</h1>
+<div id="number-of-degs-detected-under-different-methods" class="section level2">
+<h2><span class="header-section-number">4.1</span> Number of DEGs detected under different methods</h2>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-19-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
+<div id="perturbation-effect-on-gene-markers" class="section level2">
+<h2><span class="header-section-number">4.2</span> Perturbation effect on gene markers</h2>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/dotplot_gene_effect1-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/dotplot_gene_effect2-1.png" width="480" style="display: block; margin: auto;" /></p>
+</div>
+<div id="deg-go-enrichment" class="section level2">
+<h2><span class="header-section-number">4.3</span> DEG GO enrichment</h2>
+<p><img src="LUHMES_merged_new.gsfa_dev_res_normal_mixture_files/figure-html/GO_term_heatmap-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="gene-set-enrichment-analysis-by-factor" class="section level1">
-<h1><span class="header-section-number">3</span> Gene Set Enrichment Analysis by Factor</h1>
+<h1><span class="header-section-number">5</span> Gene Set Enrichment Analysis by Factor</h1>
 <p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
 Backgroud genes: all 6000 genes used in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq\)</span> 2 and test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown below.</p>
 <div id="go-slim-over-representation-analysis" class="section level2">
-<h2><span class="header-section-number">3.1</span> GO Slim Over-Representation Analysis</h2>
+<h2><span class="header-section-number">5.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
 Factor 1 : 12 significant GO terms
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
@@ -8584,12 +7945,12 @@ Signif_GO_terms
 </table>
 </div>
 <div id="factors-of-interest" class="section level3">
-<h3><span class="header-section-number">3.1.1</span> Factors of interest</h3>
+<h3><span class="header-section-number">5.1.1</span> Factors of interest</h3>
 <p>4, 9, 15, 16</p>
 </div>
 </div>
 <div id="reactome-pathway-over-representation-analysis" class="section level2">
-<h2><span class="header-section-number">3.2</span> Reactome Pathway Over-Representation Analysis</h2>
+<h2><span class="header-section-number">5.2</span> Reactome Pathway Over-Representation Analysis</h2>
 <p>Gene sets: The <a href="http://www.reactome.org/">Reactome pathway database</a>.</p>
 Factor 1 : 165 significant Reactome pathways
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
@@ -30855,13 +30216,13 @@ Signif_GO_terms
 </div>
 </div>
 <div id="gene-set-enrichment-analysis-by-perturbation" class="section level1">
-<h1><span class="header-section-number">4</span> Gene Set Enrichment Analysis by Perturbation</h1>
+<h1><span class="header-section-number">6</span> Gene Set Enrichment Analysis by Perturbation</h1>
 <p>Target genes: Genes w/ LFSR &lt; 0.05 under each perturbation marker gene;<br />
 Backgroud genes: all 6000 genes used in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq\)</span> 2 and test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown below.</p>
 <div id="go-slim-over-representation-analysis-1" class="section level2">
-<h2><span class="header-section-number">4.1</span> GO Slim Over-Representation Analysis</h2>
+<h2><span class="header-section-number">6.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
 ADNP : 25 significant GO terms
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
@@ -34538,7 +33899,7 @@ Signif_GO_terms
 </div>
 </div>
 <div id="reactome-pathway-over-representation-analysis-1" class="section level2">
-<h2><span class="header-section-number">4.2</span> Reactome Pathway Over-Representation Analysis</h2>
+<h2><span class="header-section-number">6.2</span> Reactome Pathway Over-Representation Analysis</h2>
 <p>Gene sets: The <a href="http://www.reactome.org/">Reactome pathway database</a>.</p>
 ADNP : 137 significant Reactome pathways
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">

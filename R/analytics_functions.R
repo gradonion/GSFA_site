@@ -307,7 +307,7 @@ plot_pairwise.corr_heatmap <- function(input_mat_1, input_mat_2 = NULL,
     legend_name <- ifelse(corr_type == "jaccard",
                           "Jaccard Index", "% of Shared Non-Zero Genes")
     if (is.null(color_vec)){
-      colormap <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
+      colormap <- circlize::colorRamp2(breaks = c(0, 0.3, 1),
                                        colors = c("black", "purple", "gold"))
     } else {
       colormap <- circlize::colorRamp2(breaks = c(0, 0.5, 1),
@@ -491,7 +491,10 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
 
 barplot_top_enrich_terms <- function(enrich_df, fdr_cutoff = 0.05, FC_cutoff = 2,
                                      terms_of_interest = NULL,
-                                     top_num = 5){
+                                     top_num = 5,
+                                     str_wrap_length = 25,
+                                     FC_max = 8,
+                                     pval_max = 10){
   enrich_df <- enrich_df %>%
     filter(FDR < fdr_cutoff, enrichmentRatio >= FC_cutoff) %>%
     filter(size >= 20) %>%
@@ -501,20 +504,21 @@ barplot_top_enrich_terms <- function(enrich_df, fdr_cutoff = 0.05, FC_cutoff = 2
   } else {
     top_terms_df <- enrich_df %>% filter(description %in% terms_of_interest)
   }
-  top_terms_df$description_short <- str_wrap(top_terms_df$description, width = 25)
+  top_terms_df$description_short <- str_wrap(top_terms_df$description, width = str_wrap_length)
   top_terms_df$description_short <- factor(top_terms_df$description_short, 
                                      levels = top_terms_df$description_short)
-  top_terms_df$pValue[top_terms_df$pValue < 1e-10] <- 1e-10
-  
+  top_terms_df$pValue[top_terms_df$pValue < 10^(-pval_max)] <- 10^(-pval_max)
+  top_terms_df$enrichmentRatio[top_terms_df$enrichmentRatio > FC_max] <- FC_max
   plot_out <- ggplot(top_terms_df) +
     geom_bar(aes(x = description_short, y = enrichmentRatio, fill = -log10(pValue)),
              stat="identity") +
     coord_flip() +
-    scale_y_continuous(limits = c(0, 10)) +
-    scale_fill_gradientn(limits = c(2, 10),
+    scale_y_continuous(limits = c(0, FC_max)) +
+    scale_fill_gradientn(limits = c(2, pval_max),
                          colors = c("blue", "red"),
-                         breaks = c(2, 6, 10)) +
-    theme(axis.title.y = element_blank())
+                         breaks = seq(2, pval_max, 2)) +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_text(size = 13))
   return(plot_out)
 }
 
