@@ -104,7 +104,6 @@ In each case, Gibbs sampling was conducted for 3000 iterations, and the posterio
 ```{r svd_tb}
 All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.PM.rds"))
 stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
-All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
 ## Monocle Pseudotime Trajectory
@@ -134,17 +133,12 @@ Neuronal markers (MAP2 and DCX) increase along the pseudotime trajectory, wherea
 
 Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
 Post-mitotic neuron: MAP2, DCX, STMN2  
-Glutamatergic neuron (excitatory): SLC17A6  
-Cortical neuron: BRN2 (POU3F2)  
-Developing striatal neurons: EBF1  
-Subtypes of inhibitory neurons: SST  
-Subtypes of extitatory neurons: NEFM
 
 ```{r}
 combined_obj <- readRDS(paste0(wkdir, "processed_data/seurat_obj.merged_scaled_detect_01.corrected_new.rds"))
 expression_matrix <- combined_obj@assays$RNA@scale.data
 
-feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219577_Run3_genes.tsv.gz"),
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
                                   header = FALSE), stringsAsFactors = FALSE)
 feature.names <- feature.names[match(rownames(expression_matrix), feature.names$V1), ]
 names(feature.names) <- c("ID", "Name")
@@ -155,6 +149,31 @@ stopifnot(identical(rownames(feature.names), rownames(expression_matrix)))
 
 ```{r fig.width=12, fig.height=12}
 marker_genes <- c("MAP2", "DCX", "STMN2", "NES", "TP53", "CDK4")
+plot.lst <- list()
+for (m in marker_genes){
+  traj_plot$data[[m]] <-
+    expression_matrix[feature.names$ID[match(m, feature.names$Name)], ]
+  p <- ggplot(traj_plot$data,
+              aes_string(x = "data_dim_1", y = "data_dim_2", color = m)) +
+    geom_point(size = 0.3) +
+    scale_color_gradient2(low = scales::muted("blue"), high = scales::muted("red"), mid = "grey90") +
+    # scale_color_gradientn(colors = c("grey90", "purple3")) +
+    labs(x = "Component 1", y = "Component 2", title = m,
+         color = "Scaled expression")
+  plot.lst[[m]] <- p
+}
+args <- c(plot.lst, list(ncol = 2))
+do.call(grid.arrange, args)
+```
+
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
+```{r fig.width=12, fig.height=8}
+marker_genes <- c("SLC17A6", "POU3F2", "EBF1", "NEFM")
 plot.lst <- list()
 for (m in marker_genes){
   traj_plot$data[[m]] <-
@@ -337,7 +356,7 @@ barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of
   labs(title = paste0("Factor ", factor_indx))
 ```
 
-```{r fig.height=2.4, fig.width=7}
+```{r fig.height=2, fig.width=7}
 factor_indx <- 15
 terms_of_interest <- c("monoamine transport",
                        "muscle organ development")
@@ -481,6 +500,93 @@ ZEB2 to DPYSL3: neuron maturation markers
 grid.arrange(early_p2, late_p2, nrow = 1)
 ```
 
+## DEG GO enrichment
+```{r}
+enrich_folder <- paste0(wkdir, gsfa_folder, "WebGestalt_ORA/")
+signif_term_clusters <- readRDS(paste0(enrich_folder, "go_bp.by_marker.signif_term_clusters.rds"))
+signif_term_df <- signif_term_clusters$signif_term_df
+
+abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
+                                        colors = c("grey95", "#77d183", "#255566"))
+```
+
+### Early stage cells
+```{r}
+enrich_res <- readRDS(paste0(enrich_folder,
+                             "All.gibbs_obj_k20.svd.go_bp.by_marker.group0.lfsr_0.05.rds"))
+targets <- names(enrich_res)
+enrich_table <- data.frame(matrix(nrow = nrow(signif_term_df),
+                                  ncol = length(targets)),
+                           row.names = signif_term_df$geneSet)
+colnames(enrich_table) <- targets
+for (i in 1:ncol(enrich_table)){
+  m <- colnames(enrich_table)[i]
+  enrich_df <- enrich_res[[m]]
+  enrich_table[enrich_df$geneSet, i] <- enrich_df$enrichmentRatio
+}
+signif_term_df$degree <- rowSums(!is.na(enrich_table))
+
+ordered_signif_term_df <- signif_term_df %>%
+  filter(degree > 0, size >= 20) %>%
+  arrange(group, -degree)
+ordered_enrich_table <- enrich_table[ordered_signif_term_df$geneSet, ]
+rownames(ordered_enrich_table) <- ordered_signif_term_df$description
+```
+
+```{r Early_GO_term_heatmap, fig.height=8, fig.width=8}
+interest_enrich_table <- ordered_enrich_table
+interest_enrich_table[is.na(interest_enrich_table)] <- 0
+map <- Heatmap(interest_enrich_table,
+               name = "Fold of Enrichment",
+               col = abs_FC_colormap,
+               row_title = NULL, column_title = NULL,
+               cluster_rows = F, cluster_columns = F,
+               show_row_dend = F, show_column_dend = F,
+               show_heatmap_legend = T,
+               row_names_gp = gpar(fontsize = 10.5),
+               column_names_rot = 45,
+               width = unit(8, "cm"))
+draw(map, heatmap_legend_side = "right")
+```
+
+### Late stage cells
+```{r}
+enrich_res <- readRDS(paste0(enrich_folder,
+                             "All.gibbs_obj_k20.svd.go_bp.by_marker.group1.lfsr_0.05.rds"))
+targets <- names(enrich_res)
+enrich_table <- data.frame(matrix(nrow = nrow(signif_term_df),
+                                  ncol = length(targets)),
+                           row.names = signif_term_df$geneSet)
+colnames(enrich_table) <- targets
+for (i in 1:ncol(enrich_table)){
+  m <- colnames(enrich_table)[i]
+  enrich_df <- enrich_res[[m]]
+  enrich_table[enrich_df$geneSet, i] <- enrich_df$enrichmentRatio
+}
+signif_term_df$degree <- rowSums(!is.na(enrich_table))
+
+ordered_signif_term_df <- signif_term_df %>%
+  filter(degree > 0, size >= 20) %>%
+  arrange(group, -degree)
+ordered_enrich_table <- enrich_table[ordered_signif_term_df$geneSet, ]
+rownames(ordered_enrich_table) <- ordered_signif_term_df$description
+```
+
+```{r Late_GO_term_heatmap, fig.height=13, fig.width=8}
+interest_enrich_table <- ordered_enrich_table
+interest_enrich_table[is.na(interest_enrich_table)] <- 0
+map <- Heatmap(interest_enrich_table,
+               name = "Fold of Enrichment",
+               col = abs_FC_colormap,
+               row_title = NULL, column_title = NULL,
+               cluster_rows = F, cluster_columns = F,
+               show_row_dend = F, show_column_dend = F,
+               show_heatmap_legend = T,
+               row_names_gp = gpar(fontsize = 10.5),
+               column_names_rot = 45,
+               width = unit(8, "cm"))
+draw(map, heatmap_legend_side = "right")
+```
 # Gene Set Enrichment Analysis by Factor
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
