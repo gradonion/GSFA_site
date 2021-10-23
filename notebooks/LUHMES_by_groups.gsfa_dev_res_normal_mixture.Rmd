@@ -1,0 +1,470 @@
+---
+title: "Guided Factor Analysis on LUHMES CROP-seq Data"
+subtitle: "-- Deviance residual transformed + normal-mixture prior + by-stage estimation"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+print_signif_tb <- function(signif_num, caption_text){
+  if (length(signif_num) < 15){
+    signif_num <- c(signif_num, rep(NA, 15 - length(signif_num)))
+  }
+  signif_num <- t(data.frame(KO = names(signif_num),
+                             Num_genes = signif_num,
+                             row.names = NULL))
+  knitr::kable(rbind(signif_num[, 1:5], signif_num[, 6:10], signif_num[, 11:15]),
+                     caption = caption_text) %>%
+    kable_styling() %>% scroll_box(width = '100%')
+}
+
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/LUHMES/"
+gsfa_folder <- "gsfa_output_detect_01/by_groups_normal_mixture/"
+guide <- "All"
+```
+
+# Single cell expression data
+
+Source:   
+[High-throughput single-cell functional elucidation of neurodevelopmental disease-associated genes reveals convergent mechanisms altering neuronal differentiation](https://genome.cshlp.org/content/30/9/1317.full), GEO accession: GSE142078.
+
+Perturbations:    
+CRISPR knock-down of 14 autism spectrum disorder (ASD)–associated genes (3 gRNAs per gene) + 5 non-targeting gRNAs.
+
+Cells:    
+Lund human mesencephalic (LUHMES) neural progenitor cell line.   
+Cells from 3 batches were merged together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 8708 cells.
+
+Genes:    
+**Top 6000 genes ranked by the multinomial deviance statistics were kept.**
+
+Normalization:    
+Deviance residual transformation.   
+**Batch effect, unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, "processed_data/merged_metadata.rds"))
+all_KOs.G_mat <- metadata[, 4:18]
+KO_names <- colnames(all_KOs.G_mat)
+```
+
+Here, our "guide", $G$ matrix, consists of 15 types (14 genes + NTC) of gene-level knock-down conditions across cells.
+
+```{r}
+if (guide == "no_NTC"){
+  KO_names <- KO_names[KO_names != "Nontargeting"]
+  all_KOs.G_mat <- all_KOs.G_mat[, KO_names]
+}
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations. SVD Initialization.
+
+```{r svd_tb}
+All_KOs.gibbs_PM <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.PM.rds"))
+stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
+All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
+```
+
+# Factor ~ Perturbation Association
+
+## Early stage cells
+
+```{r fig.width=9, fig.height=4}
+reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
+                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                "Nontargeting")
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma0_pm), t(All_KOs.gibbs_PM$beta0_pm),
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO,
+                 inverse_factors = F) +
+  coord_flip()
+```
+
+## Late stage cells
+
+```{r fig.width=9, fig.height=4}
+reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
+                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
+                "Nontargeting")
+dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma1_pm), t(All_KOs.gibbs_PM$beta1_pm),
+                 marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO,
+                 inverse_factors = F) +
+  coord_flip()
+```
+
+## Correlation wihin Factors
+
+```{r fig.width=7, fig.height=5}
+plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)",
+                           label_size = 10)
+```
+
+```{r  fig.width=7, fig.height=5}
+plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
+                           corr_type = "jaccard",
+                           name_1 = "Binarized Gene Loadings (F.pm > 0.95)",
+                           label_size = 10)
+```
+
+# Factor Interpretation
+
+## Factor by gene loading
+
+```{r}
+expression_file <- "processed_data/deviance_residual.merged_top_6k.corrected_4.scaled.rds"
+scaled.gene_exp <- readRDS(paste0(wkdir, expression_file))
+
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+genes_indx <- match(rownames(scaled.gene_exp), feature.names$ID)
+genes_df <- feature.names[genes_indx, ]
+```
+
+```{r}
+gene_loadings <- All_KOs.gibbs_PM$W_pm
+rownames(gene_loadings) <- genes_df$Name
+colnames(gene_loadings) <- paste0("Factor ", 1:20)
+
+gene_pips <- All_KOs.gibbs_PM$F_pm
+rownames(gene_pips) <- genes_df$Name
+colnames(gene_pips) <- paste0("Factor ", 1:20)
+```
+
+Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
+Post-mitotic neuron: MAP2, DCX, STMN2  
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
+```{r list_of_marker_genes}
+all_moi_df1 <- data.frame(
+  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "DAT1",
+  "FOXG1", "BRN2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM"),
+  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
+  "FOXG1", "POU3F2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM")
+)
+interest_df1 <- all_moi_df1[all_moi_df1$gene_name %in% genes_df$Name, ]
+```
+
+```{r fig.width=9, fig.height=4}
+interest_mat <- gene_loadings[interest_df1$gene_name, ]
+interest_pip_mat <- gene_pips[interest_df1$gene_name, ]
+dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
+                 marker_names = interest_df1$gene_name,
+                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
+  coord_flip()
+```
+
+SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
+ZEB2 to DPYSL3: neuron maturation markers  
+```{r list_of_neuron_proj_genes}
+all_moi_df2 <- data.frame(
+  protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
+  gene_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
+)
+interest_df2 <- all_moi_df2[all_moi_df2$gene_name %in% genes_df$Name, ]
+```
+
+```{r fig.width=9, fig.height=6}
+interest_mat <- gene_loadings[interest_df2$gene_name, ]
+interest_pip_mat <- gene_pips[interest_df2$gene_name, ]
+dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
+                 marker_names = interest_df2$gene_name,
+                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
+  coord_flip()
+```
+
+## Selected factor GO enrichment
+
+```{r}
+enrich_res <- readRDS(paste0(wkdir, gsfa_folder,
+                             "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.cutoff_0.95.rds"))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 4
+terms_of_interest <- c("regulation of metal ion transport",
+                       "regulation of trans-synaptic signaling",
+                       "axon development",
+                       "regulation of neuron projection development")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 9
+terms_of_interest <- c("actin filament-based movement",
+                       "cell fate commitment",
+                       "sodium ion transport",
+                       "axon development")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+```{r fig.height=2.4, fig.width=7}
+factor_indx <- 15
+terms_of_interest <- c("monoamine transport",
+                       "muscle organ development")
+barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of_interest,
+                         size_cutoff = 10, str_wrap_length = 35, pval_max = 8, FC_max = 6) +
+  labs(title = paste0("Factor ", factor_indx))
+```
+
+# DEG Interpretation
+
+## Number of DEGs detected under different methods
+
+### Early stage cells
+
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
+```{r}
+lfsr_cutoff <- 0.05
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.lfsr_mat.group0.rds"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+### Late stage cells
+
+Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
+```{r}
+lfsr_cutoff <- 0.05
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.lfsr_mat.group1.rds"))
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+## Perturbation effect on gene markers
+
+```{r Early stage cells}
+interest_df <- rbind(interest_df1, interest_df2)
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.lfsr_mat.group0.rds"))
+stopifnot(rownames(lfsr_mat) == genes_df$ID)
+rownames(lfsr_mat) <- genes_df$Name
+
+lfsr_cutoff <- 0.05
+num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+
+effect_size_mat <- matrix(nrow = nrow(interest_df),
+                          ncol = length(signif_markers))
+rownames(effect_size_mat) <- interest_df$protein_name
+colnames(effect_size_mat) <- signif_markers
+
+beta_mat <- All_KOs.gibbs_PM$beta0_pm
+rownames(beta_mat) <- c(colnames(lfsr_mat), "offset")
+
+for (m in signif_markers){
+  effect_size_mat[, m] <-
+    colSums(beta_mat[m, ] * t(gene_loadings[interest_df$gene_name, ]))
+}
+```
+
+```{r fig.width=5, fig.height=4}
+selected_lfsr_mat <- lfsr_mat[interest_df1$gene_name, signif_markers]
+rownames(selected_lfsr_mat) <- interest_df1$protein_name
+early_p1 <- dotplot_effectsize(effect_size_mat[interest_df1$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1)) +
+  labs(title = "Early Stage")
+```
+
+```{r fig.width=5, fig.height=6}
+selected_lfsr_mat <- lfsr_mat[interest_df2$gene_name, signif_markers]
+early_p2 <- dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1)) +
+  labs(title = "Early Stage")
+```
+
+```{r Late stage cells}
+interest_df <- rbind(interest_df1, interest_df2)
+lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.lfsr_mat.group1.rds"))
+stopifnot(rownames(lfsr_mat) == genes_df$ID)
+rownames(lfsr_mat) <- genes_df$Name
+
+lfsr_cutoff <- 0.05
+num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+
+effect_size_mat <- matrix(nrow = nrow(interest_df),
+                          ncol = length(signif_markers))
+rownames(effect_size_mat) <- interest_df$protein_name
+colnames(effect_size_mat) <- signif_markers
+
+beta_mat <- All_KOs.gibbs_PM$beta0_pm
+rownames(beta_mat) <- c(colnames(lfsr_mat), "offset")
+
+for (m in signif_markers){
+  effect_size_mat[, m] <-
+    colSums(beta_mat[m, ] * t(gene_loadings[interest_df$gene_name, ]))
+}
+```
+
+```{r fig.width=5, fig.height=4}
+selected_lfsr_mat <- lfsr_mat[interest_df1$gene_name, signif_markers]
+rownames(selected_lfsr_mat) <- interest_df1$protein_name
+late_p1 <- dotplot_effectsize(effect_size_mat[interest_df1$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1)) +
+  labs(title = "Late Stage")
+```
+
+```{r fig.width=5, fig.height=6}
+selected_lfsr_mat <- lfsr_mat[interest_df2$gene_name, signif_markers]
+late_p2 <- dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
+                   selected_lfsr_mat,
+                   reorder_markers = signif_markers,
+                   color_lgd_title = "Summarized effect") +
+  theme(axis.text.y = element_text(hjust = 1)) +
+  labs(title = "Late Stage")
+```
+
+Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
+Post-mitotic neuron: MAP2, DCX, STMN2  
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
+```{r dotplot_gene_effect1, fig.width=10, fig.height=4}
+grid.arrange(early_p1, late_p1, nrow = 1)
+```
+
+SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
+ZEB2 to DPYSL3: neuron maturation markers 
+
+```{r dotplot_gene_effect2, fig.width=10, fig.height=6}
+grid.arrange(early_p2, late_p2, nrow = 1)
+```
+
+# Gene Set Enrichment Analysis by Factor
+
+Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
+Backgroud genes: all 6000 genes used in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
+```{r}
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+names(feature.names) <- c("ID", "Name")
+```
+
+## GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+```{r go_bp}
+gsfa.Web_ORA_go_bp <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.cutoff_0.95.rds"))
+signif_num <- print_enrich_ORA_tb(gsfa.Web_ORA_go_bp, enrich_type = "GO terms",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Factors of interest
+
+4, 9, 15
+
+# Gene Set Enrichment Analysis by Perturbation
+
+Target genes: Genes w/ LFSR < 0.05 under each perturbation marker gene;    
+Backgroud genes: all 6000 genes used in factor analysis;    
+Statistical test: hypergeometric test (over-representation test);    
+Only GO terms/pathways that satisfy fold change $\geq$ 2 and test FDR $<$ 0.05 are shown below.
+
+## GO Slim Over-Representation Analysis
+
+Gene sets: [Gene ontology](http://www.geneontology.org/) "Biological Process" (non-redundant).
+
+### Early stage cells
+```{r go_bp_by_marker.group0}
+Web_ORA_go_bp.by_marker <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_marker.group0.lfsr_0.05.rds"))
+signif_num <- print_enrich_ORA_tb(Web_ORA_go_bp.by_marker,
+                                  enrich_type = "GO terms", list_type = "per_marker",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Marker = names(Web_ORA_go_bp.by_marker),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+### Late stage cells
+```{r go_bp_by_marker.group1}
+Web_ORA_go_bp.by_marker <-
+  readRDS(paste0(wkdir, gsfa_folder,
+                 "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_marker.group1.lfsr_0.05.rds"))
+signif_num <- print_enrich_ORA_tb(Web_ORA_go_bp.by_marker,
+                                  enrich_type = "GO terms", list_type = "per_marker",
+                                  convert_genes = T, gene_map = feature.names)
+signif_num.df <- t(data.frame(Marker = names(Web_ORA_go_bp.by_marker),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```

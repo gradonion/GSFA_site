@@ -490,6 +490,7 @@ print_enrich_tb <- function(enrich_list, qvalue_cutoff = 0.05, FC_cutoff = 2,
 }
 
 barplot_top_enrich_terms <- function(enrich_df, fdr_cutoff = 0.05, FC_cutoff = 2,
+                                     size_cutoff = 20,
                                      terms_of_interest = NULL,
                                      top_num = 5,
                                      str_wrap_length = 25,
@@ -497,7 +498,7 @@ barplot_top_enrich_terms <- function(enrich_df, fdr_cutoff = 0.05, FC_cutoff = 2
                                      pval_max = 10){
   enrich_df <- enrich_df %>%
     filter(FDR < fdr_cutoff, enrichmentRatio >= FC_cutoff) %>%
-    filter(size >= 20) %>%
+    filter(size >= size_cutoff) %>%
     arrange(-enrichmentRatio)
   if (is.null(terms_of_interest)){
     top_terms_df <- enrich_df %>% slice(1:top_num)
