@@ -444,12 +444,23 @@ interest_enrich_table <- ordered_enrich_table
 interest_enrich_table[is.na(interest_enrich_table)] <- 0
 abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
                                         colors = c("grey95", "#77d183", "#255566"))
+right_annot <- rowAnnotation(Cluster = ordered_signif_term_df$group,
+                             col = list(Cluster = signif_term_clusters$colormap),
+                             annotation_legend_param = list(
+                               Cluster = list(
+                                 title = "Cluster",
+                                 at = signif_term_clusters$clustermap$group,
+                                 labels = signif_term_clusters$clustermap$name
+                               )
+                             ),
+                             show_legend = F)
 map <- Heatmap(interest_enrich_table,
                name = "Fold of Enrichment",
                col = abs_FC_colormap,
                row_title = NULL, column_title = NULL,
-               cluster_rows = T, cluster_columns = F,
+               cluster_rows = F, cluster_columns = F,
                show_row_dend = F, show_column_dend = F,
+               right_annotation = right_annot,
                show_heatmap_legend = T,
                row_names_gp = gpar(fontsize = 10.5),
                column_names_rot = 45,
