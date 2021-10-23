@@ -15,6 +15,8 @@ requireNamespace("pander", quietly = TRUE)
 library(data.table)
 library(Matrix)
 library(tidyverse)
+library(Seurat)
+library(monocle)
 library(ggplot2)
 theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
                              axis.title = element_text(size = 14),
@@ -105,6 +107,78 @@ stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
+## Monocle Pseudotime Trajectory
+
+We attempted to reproduce the pseudotime trajectory of cells as reported in the [original paper](https://pubmed.ncbi.nlm.nih.gov/32887689/#&gid=article-figures&pid=figure-3-uid-2).
+```{r}
+cds <- readRDS(paste0(wkdir, "processed_data/monocle_pseudotime.merged_scaled_detect_01.corrected_new.rds"))
+traj_plot <- plot_cell_trajectory(cds, color_by = "State", cell_size = 0.6)
+```
+
+```{r fig.height=5}
+state_cols <- c(RColorBrewer::brewer.pal(6, "YlOrRd")[2:6], RColorBrewer::brewer.pal(9, "RdPu")[7:9], "#000000")
+state_cols <- state_cols[length(state_cols):1]
+ggplot(traj_plot$data,
+       aes_string(x = "data_dim_1", y = "data_dim_2", color = "sample_state")) +
+  geom_point(size = 0.3) +
+  scale_color_manual(values = state_cols) +
+  guides(colour = guide_legend(override.aes = list(size = 2))) +
+  labs(x = "Component 1", y = "Component 2", 
+       color = "Pseudotime state",
+       title = "Pseudotime Trajectory (More Differentiated <-- Less Differentiated)")
+```
+
+## Marker Gene Expression in Pseudotime
+
+Neuronal markers (MAP2 and DCX) increase along the pseudotime trajectory, whereas progenitor markers (TP53 and CDK4) decrease, consistent with Fig 3B of original paper.
+
+Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
+Post-mitotic neuron: MAP2, DCX, STMN2  
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
+```{r}
+combined_obj <- readRDS(paste0(wkdir, "processed_data/seurat_obj.merged_scaled_detect_01.corrected_new.rds"))
+expression_matrix <- combined_obj@assays$RNA@scale.data
+
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219577_Run3_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+feature.names <- feature.names[match(rownames(expression_matrix), feature.names$V1), ]
+names(feature.names) <- c("ID", "Name")
+rownames(feature.names) <- feature.names$ID
+
+stopifnot(identical(rownames(feature.names), rownames(expression_matrix)))
+```
+
+```{r fig.width=12, fig.height=12}
+marker_genes <- c("MAP2", "DCX", "STMN2", "NES", "TP53", "CDK4")
+plot.lst <- list()
+for (m in marker_genes){
+  traj_plot$data[[m]] <-
+    expression_matrix[feature.names$ID[match(m, feature.names$Name)], ]
+  p <- ggplot(traj_plot$data,
+              aes_string(x = "data_dim_1", y = "data_dim_2", color = m)) +
+    geom_point(size = 0.3) +
+    scale_color_gradient2(low = scales::muted("blue"), high = scales::muted("red"), mid = "grey90") +
+    # scale_color_gradientn(colors = c("grey90", "purple3")) +
+    labs(x = "Component 1", y = "Component 2", title = m,
+         color = "Scaled expression")
+  plot.lst[[m]] <- p
+}
+args <- c(plot.lst, list(ncol = 2))
+do.call(grid.arrange, args)
+```
+
+**We separate the cells into 2 groups:**
+
+Early stage: 2523 cells in pseudotime state 1 - 3
+Late stage: 6185 cells in pseudotime satte 4 - 9
+
+We modified GSFA so that the associations ($\beta$) between factors and perturbations are estimated for early and late stage cells separately.
+
 # Factor ~ Perturbation Association
 
 ## Early stage cells
@@ -131,19 +205,32 @@ dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma1_pm), t(All_KOs.gibbs_PM$beta1_pm),
   coord_flip()
 ```
 
-## Correlation wihin Factors
+## Correlation within Factors
 
 ```{r fig.width=7, fig.height=5}
 plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
                            corr_type = "pearson",
-                           name_1 = "Pairwise Correlation in Sample Loadings - Z (GSFA)",
+                           name_1 = "Sample Loadings - Z (GSFA)",
                            label_size = 10)
 ```
 
-```{r  fig.width=7, fig.height=5}
+```{r  fig.width=7, fig.height=5, eval=F, include=F}
 plot_pairwise.corr_heatmap(input_mat_1 = (All_KOs.gibbs_PM$F_pm > 0.95) * 1,
                            corr_type = "jaccard",
                            name_1 = "Binarized Gene Loadings (F.pm > 0.95)",
+                           label_size = 10)
+```
+
+### Correlation with factors inferred using all cells
+
+```{r fig.width=7, fig.height=5}
+all_cells.gibbs_PM <- readRDS(paste0(wkdir, "gsfa_output_detect_01/dev_res_normal_mixture/",
+                                     guide, ".gibbs_obj_k20.svd.restart.PM.rds"))
+plot_pairwise.corr_heatmap(input_mat_1 = All_KOs.gibbs_PM$Z_pm,
+                           input_mat_2 = all_cells.gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Sample Loadings - Z (all cells inference)",
+                           name_2 = "Sample Loadings - Z (by stage inference)",
                            label_size = 10)
 ```
 
@@ -201,6 +288,7 @@ dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(inter
 
 SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
 ZEB2 to DPYSL3: neuron maturation markers  
+(Obtained frm Fig 4E of original paper.)
 ```{r list_of_neuron_proj_genes}
 all_moi_df2 <- data.frame(
   protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
