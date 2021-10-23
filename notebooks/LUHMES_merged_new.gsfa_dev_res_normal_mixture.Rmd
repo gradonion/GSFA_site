@@ -191,8 +191,8 @@ rownames(gene_pips) <- genes_df$Name
 colnames(gene_pips) <- paste0("Factor ", 1:20)
 ```
 
-Neuron progenitor (NPC): NES, TP53, CDK4  
-Post-mitotic neuron: MAP2, DCX  
+Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
+Post-mitotic neuron: MAP2, DCX, STMN2  
 Glutamatergic neuron (excitatory): SLC17A6  
 Cortical neuron: BRN2 (POU3F2)  
 Developing striatal neurons: EBF1  
@@ -201,9 +201,9 @@ Subtypes of extitatory neurons: NEFM
 
 ```{r list_of_marker_genes}
 all_moi_df1 <- data.frame(
-  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "MAP2", "DCX", "GAD1", "GAD2", "SLC17A6", "DAT1",
+  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "DAT1",
   "FOXG1", "BRN2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM"),
-  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "MAP2", "DCX", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
+  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
   "FOXG1", "POU3F2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM")
 )
 interest_df1 <- all_moi_df1[all_moi_df1$gene_name %in% genes_df$Name, ]
@@ -218,15 +218,14 @@ dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(inter
   coord_flip()
 ```
 
-ITM2C: negative regulation of neuron projection development  
-MAP1B: highly expressed during neural development in actively extending axons
-ZEB2: a transcription factor that regulates neuron development 
+SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
+ZEB2 to DPYSL3: neuron maturation markers  
 ```{r list_of_neuron_proj_genes}
 all_moi_df2 <- data.frame(
-  protein_name = c("DPYSL3", "HSPA5", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "MAP1B", "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
-  gene_name = c("DPYSL3", "HSPA5", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "MAP1B", "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
+  protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
+  gene_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
 )
 interest_df2 <- all_moi_df2[all_moi_df2$gene_name %in% genes_df$Name, ]
 ```
@@ -394,6 +393,9 @@ dotplot_effectsize(effect_size_mat[interest_df1$protein_name, ],
   theme(axis.text.y = element_text(hjust = 1))
 ```
 
+SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
+
+ZEB2 to DPYSL3: neuron maturation markers  
 ```{r dotplot_gene_effect2, fig.width=5, fig.height=6}
 selected_lfsr_mat <- lfsr_mat[interest_df2$gene_name, signif_markers]
 dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
