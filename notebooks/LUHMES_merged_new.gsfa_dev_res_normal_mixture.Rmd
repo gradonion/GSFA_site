@@ -406,46 +406,40 @@ dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
 ```
 
 ## DEG GO enrichment
+
+```{r}
+enrich_folder <- paste0(wkdir, gsfa_folder, "WebGestalt_ORA/")
+signif_term_clusters <- readRDS(paste0(enrich_folder, "go_bp.by_marker.signif_term_clusters.rds"))
+signif_term_df <- signif_term_clusters$signif_term_df
+
+abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
+                                        colors = c("grey95", "#77d183", "#255566"))
+```
+
 ```{r}
 enrich_res <-
   readRDS(paste0(wkdir, gsfa_folder,
                  "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_marker.lfsr_0.05.rds"))
-```
-
-```{r}
-signif_GO_list <- list()
-for (i in names(enrich_res)) {
-  signif_GO_list[[i]] <- enrich_res[[i]] %>%
-    filter(enrichmentRatio > 2) %>%
-    dplyr::select(geneSet, description, size, enrichmentRatio, pValue) %>%
-    mutate(target = i)
-}
-signif_term_df <- do.call(rbind, signif_GO_list) %>%
-  group_by(geneSet, description, size) %>%
-  summarise(pValue = min(pValue)) %>%
-  ungroup()
-```
-
-```{r}
+targets <- names(enrich_res)
 enrich_table <- data.frame(matrix(nrow = nrow(signif_term_df),
-                                  ncol = length(enrich_res)),
+                                  ncol = length(targets)),
                            row.names = signif_term_df$geneSet)
-colnames(enrich_table) <- names(enrich_res)
+colnames(enrich_table) <- targets
 for (i in 1:ncol(enrich_table)){
   m <- colnames(enrich_table)[i]
-  enrich_df <- enrich_res[[m]] %>% filter(enrichmentRatio > 2)
+  enrich_df <- enrich_res[[m]]
   enrich_table[enrich_df$geneSet, i] <- enrich_df$enrichmentRatio
 }
 signif_term_df$degree <- rowSums(!is.na(enrich_table))
 
 ordered_signif_term_df <- signif_term_df %>%
   filter(degree > 0, size >= 20) %>%
-  arrange(-degree)
+  arrange(group, -degree)
 ordered_enrich_table <- enrich_table[ordered_signif_term_df$geneSet, ]
 rownames(ordered_enrich_table) <- ordered_signif_term_df$description
 ```
 
-```{r GO_term_heatmap, fig.height=11, fig.width=9}
+```{r GO_term_heatmap, fig.height=12, fig.width=9}
 interest_enrich_table <- ordered_enrich_table
 interest_enrich_table[is.na(interest_enrich_table)] <- 0
 abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
