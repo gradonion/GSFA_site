@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-10-23" />
+<meta name="date" content="2021-10-30" />
 
 <title>Guided Factor Analysis on LUHMES CROP-seq Data</title>
 
@@ -338,7 +338,7 @@ div.tocify {
 <h1 class="title toc-ignore">Guided Factor Analysis on LUHMES CROP-seq Data</h1>
 <h3 class="subtitle">-- Deviance residual transformed + normal-mixture prior + by-stage estimation</h3>
 <h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
-<h4 class="date">2021-10-23</h4>
+<h4 class="date">2021-10-30</h4>
 
 </div>
 
@@ -367,7 +367,7 @@ Deviance residual transformation.<br />
 <div id="marker-gene-expression-in-pseudotime" class="section level2">
 <h2><span class="header-section-number">1.2</span> Marker Gene Expression in Pseudotime</h2>
 <p>Neuronal markers (MAP2 and DCX) increase along the pseudotime trajectory, whereas progenitor markers (TP53 and CDK4) decrease, consistent with Fig 3B of original paper.</p>
-<p>Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1<br />
+<p>Neuron progenitor (NPC): TP53, CDK4, NEUROD1, NES?<br />
 Post-mitotic neuron: MAP2, DCX, STMN2</p>
 <p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <p>Glutamatergic neuron (excitatory): SLC17A6<br />
@@ -404,6 +404,214 @@ Subtypes of extitatory neurons: NEFM</p>
 <h1><span class="header-section-number">3</span> Factor Interpretation</h1>
 <div id="factor-by-gene-loading" class="section level2">
 <h2><span class="header-section-number">3.1</span> Factor by gene loading</h2>
+<p>Neuronal cell markers obtained from <a href="https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers">Neuronal and Glial Cell Marker Atlas</a>:</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+protein_name
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+gene_name
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N-Cadherin
+</td>
+<td style="text-align:left;">
+CDH2
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Nestin
+</td>
+<td style="text-align:left;">
+NES
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tenascin C
+</td>
+<td style="text-align:left;">
+TNC
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NeuroD1
+</td>
+<td style="text-align:left;">
+NEUROD1
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Doublecortin
+</td>
+<td style="text-align:left;">
+DCX
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+b3-Tubulin
+</td>
+<td style="text-align:left;">
+TUBB3
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP2
+</td>
+<td style="text-align:left;">
+MAP2
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NeuN
+</td>
+<td style="text-align:left;">
+RBFOX3
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-H
+</td>
+<td style="text-align:left;">
+NEFH
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-L
+</td>
+<td style="text-align:left;">
+NEFL
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-M
+</td>
+<td style="text-align:left;">
+NEFM
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NSE
+</td>
+<td style="text-align:left;">
+ENO2
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tau
+</td>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+UCHL1
+</td>
+<td style="text-align:left;">
+UCHL1
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VGLUT1/2
+</td>
+<td style="text-align:left;">
+SLC17A7
+</td>
+<td style="text-align:left;">
+Glutamate
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GIRK2
+</td>
+<td style="text-align:left;">
+KCNJ6
+</td>
+<td style="text-align:left;">
+Dopamin
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Somatostatin
+</td>
+<td style="text-align:left;">
+SST
+</td>
+<td style="text-align:left;">
+Interneurons
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-16-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1<br />
 Post-mitotic neuron: MAP2, DCX, STMN2<br />
 Glutamatergic neuron (excitatory): SLC17A6<br />
@@ -411,17 +619,17 @@ Cortical neuron: BRN2 (POU3F2)<br />
 Developing striatal neurons: EBF1<br />
 Subtypes of inhibitory neurons: SST<br />
 Subtypes of extitatory neurons: NEFM</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-15-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-17-1.png" width="864" style="display: block; margin: auto;" /></p>
 <p>SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation<br />
 ZEB2 to DPYSL3: neuron maturation markers<br />
 (Obtained frm Fig 4E of original paper.)</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-16-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-18-1.png" width="864" style="display: block; margin: auto;" /></p>
 </div>
 <div id="selected-factor-go-enrichment" class="section level2">
 <h2><span class="header-section-number">3.2</span> Selected factor GO enrichment</h2>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="deg-interpretation" class="section level1">
@@ -697,6 +905,214 @@ Num_genes
 </div>
 <div id="perturbation-effect-on-gene-markers" class="section level2">
 <h2><span class="header-section-number">4.2</span> Perturbation effect on gene markers</h2>
+<p>Neuronal cell markers obtained from <a href="https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers">Neuronal and Glial Cell Marker Atlas</a>:</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+protein_name
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+gene_name
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+N-Cadherin
+</td>
+<td style="text-align:left;">
+CDH2
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Nestin
+</td>
+<td style="text-align:left;">
+NES
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tenascin C
+</td>
+<td style="text-align:left;">
+TNC
+</td>
+<td style="text-align:left;">
+Radial Glia
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NeuroD1
+</td>
+<td style="text-align:left;">
+NEUROD1
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Doublecortin
+</td>
+<td style="text-align:left;">
+DCX
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+b3-Tubulin
+</td>
+<td style="text-align:left;">
+TUBB3
+</td>
+<td style="text-align:left;">
+Immature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP2
+</td>
+<td style="text-align:left;">
+MAP2
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NeuN
+</td>
+<td style="text-align:left;">
+RBFOX3
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-H
+</td>
+<td style="text-align:left;">
+NEFH
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-L
+</td>
+<td style="text-align:left;">
+NEFL
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurofilament-M
+</td>
+<td style="text-align:left;">
+NEFM
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NSE
+</td>
+<td style="text-align:left;">
+ENO2
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tau
+</td>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+UCHL1
+</td>
+<td style="text-align:left;">
+UCHL1
+</td>
+<td style="text-align:left;">
+Mature Neurons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+VGLUT1/2
+</td>
+<td style="text-align:left;">
+SLC17A7
+</td>
+<td style="text-align:left;">
+Glutamate
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GIRK2
+</td>
+<td style="text-align:left;">
+KCNJ6
+</td>
+<td style="text-align:left;">
+Dopamin
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Somatostatin
+</td>
+<td style="text-align:left;">
+SST
+</td>
+<td style="text-align:left;">
+Interneurons
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-28-1.png" width="1056" style="display: block; margin: auto;" /></p>
 <p>Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1<br />
 Post-mitotic neuron: MAP2, DCX, STMN2<br />
 Glutamatergic neuron (excitatory): SLC17A6<br />
