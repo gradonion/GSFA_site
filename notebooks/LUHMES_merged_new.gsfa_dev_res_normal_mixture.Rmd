@@ -15,6 +15,8 @@ requireNamespace("pander", quietly = TRUE)
 library(data.table)
 library(Matrix)
 library(tidyverse)
+library(Seurat)
+library(monocle)
 library(ggplot2)
 theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
                              axis.title = element_text(size = 14),
@@ -105,6 +107,66 @@ stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
 All_KOs.gibbs_res_tb <- make_gibbs_res_tb(All_KOs.gibbs_PM, all_KOs.G_mat, compute_pve = F)
 ```
 
+## Monocle Pseudotime Trajectory
+
+We attempted to reproduce the pseudotime trajectory of cells as reported in the [original paper](https://pubmed.ncbi.nlm.nih.gov/32887689/#&gid=article-figures&pid=figure-3-uid-2).
+```{r}
+cds <- readRDS(paste0(wkdir, "processed_data/monocle_pseudotime.merged_scaled_detect_01.corrected_new.rds"))
+traj_plot <- plot_cell_trajectory(cds, color_by = "State", cell_size = 0.6)
+```
+
+```{r fig.height=5}
+state_cols <- c(RColorBrewer::brewer.pal(6, "YlOrRd")[2:6], RColorBrewer::brewer.pal(9, "RdPu")[7:9], "#000000")
+state_cols <- state_cols[length(state_cols):1]
+ggplot(traj_plot$data,
+       aes_string(x = "data_dim_1", y = "data_dim_2", color = "sample_state")) +
+  geom_point(size = 0.3) +
+  scale_color_manual(values = state_cols) +
+  guides(colour = guide_legend(override.aes = list(size = 2))) +
+  labs(x = "Component 1", y = "Component 2", 
+       color = "Pseudotime state",
+       title = "Pseudotime Trajectory (More Differentiated <-- Less Differentiated)")
+```
+
+## Marker Gene Expression in Pseudotime
+
+Neuronal markers (MAP2 and DCX) increase along the pseudotime trajectory, whereas progenitor markers (TP53 and CDK4) decrease, consistent with Fig 3B of original paper.
+
+Neuron progenitor (NPC): TP53, CDK4, NEUROD1, NES?  
+Post-mitotic neuron: MAP2, DCX, STMN2  
+
+```{r}
+combined_obj <- readRDS(paste0(wkdir, "processed_data/seurat_obj.merged_scaled_detect_01.corrected_new.rds"))
+expression_matrix <- combined_obj@assays$RNA@scale.data
+
+feature.names <- data.frame(fread(paste0(wkdir, "GSE142078_raw/GSM4219576_Run2_genes.tsv.gz"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+feature.names <- feature.names[match(rownames(expression_matrix), feature.names$V1), ]
+names(feature.names) <- c("ID", "Name")
+rownames(feature.names) <- feature.names$ID
+
+stopifnot(identical(rownames(feature.names), rownames(expression_matrix)))
+```
+
+```{r fig.width=12, fig.height=16}
+marker_genes <- c("TP53", "CDK4", "NEUROD1", "NES", "MAP2", "DCX", "STMN2")
+plot.lst <- list()
+for (m in marker_genes){
+  traj_plot$data[[m]] <-
+    expression_matrix[feature.names$ID[match(m, feature.names$Name)], ]
+  p <- ggplot(traj_plot$data,
+              aes_string(x = "data_dim_1", y = "data_dim_2", color = m)) +
+    geom_point(size = 0.3) +
+    scale_color_gradient2(low = scales::muted("blue"), high = scales::muted("red"), mid = "grey90") +
+    # scale_color_gradientn(colors = c("grey90", "purple3")) +
+    labs(x = "Component 1", y = "Component 2", title = m,
+         color = "Scaled expression")
+  plot.lst[[m]] <- p
+}
+args <- c(plot.lst, list(ncol = 2))
+do.call(grid.arrange, args)
+```
+
 # Factor ~ Perturbation Association
 
 ## Estimate of Factor ~ Perturbation Associations ($\beta$)
@@ -138,7 +200,7 @@ summ_pvalues(unlist(heatmap_matrix),
 ```
 
 ### Beta PIP vs P-Value
-```{r fig.width=12, fig.height=5}
+```{r fig.width=12, fig.height=5, eval=F, include=F}
 beta_pip_matrix <- t(All_KOs.gibbs_PM$Gamma_pm[-nrow(All_KOs.gibbs_PM$Gamma_pm), ])
 p1 <- qplot(unlist(beta_pip_matrix), -log10(unlist(heatmap_matrix)),
             xlab = "Beta PIP", ylab = "-log10(Association p-value)",
@@ -191,6 +253,28 @@ rownames(gene_pips) <- genes_df$Name
 colnames(gene_pips) <- paste0("Factor ", 1:20)
 ```
 
+Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+
+```{r}
+interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+rownames(interest_df) <- NULL
+knitr::kable(interest_df) %>%
+    kable_styling() %>% scroll_box(width = '100%', height = '400px')
+```
+
+```{r fig.width=9, fig.height=6}
+interest_mat <- gene_loadings[interest_df$gene_name, ]
+interest_pip_mat <- gene_pips[interest_df$gene_name, ]
+dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat),
+                 beta_pm_matrix = t(interest_mat),
+                 marker_names = interest_df$protein_name,
+                 # reorder_markers = interest_df$protein_name[nrow(interest_df):1],
+                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
+  coord_flip()
+```
+
+Markers fron Xin and paper:  
 Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
 Post-mitotic neuron: MAP2, DCX, STMN2  
 Glutamatergic neuron (excitatory): SLC17A6  
@@ -358,51 +442,77 @@ ggplot(dge_plot_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
 ## Perturbation effect on gene markers
 
 ```{r}
-interest_df <- rbind(interest_df1, interest_df2)
-lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.restart.lfsr_mat.rds"))
-stopifnot(rownames(lfsr_mat) == genes_df$ID)
-rownames(lfsr_mat) <- genes_df$Name
-
-lfsr_cutoff <- 0.05
-num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
-signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
-
-effect_size_mat <- matrix(nrow = nrow(interest_df),
+dotplot_gene_perturbation <- function(genes_df, interest_df,
+                                      signif_markers = NULL, lfsr_cutoff = 0.05,
+                                      lfsr_mat, beta_mat, gamma_mat, W_pm){
+  
+  interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+  stopifnot(rownames(lfsr_mat) == genes_df$ID)
+  rownames(lfsr_mat) <- genes_df$Name
+  
+  if (is.null(signif_markers)){
+    num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+    signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
+  }
+  rownames(beta_mat) <- c(colnames(lfsr_mat), "offset")
+  rownames(gamma_mat) <- c(colnames(lfsr_mat), "offset")
+  rownames(W_pm) <- genes_df$Name
+  
+  effect_size_mat <- matrix(nrow = nrow(interest_df),
                           ncol = length(signif_markers))
-rownames(effect_size_mat) <- interest_df$protein_name
-colnames(effect_size_mat) <- signif_markers
-
-beta1_mat <- All_KOs.gibbs_PM$beta_pm
-rownames(beta1_mat) <- c(colnames(lfsr_mat), "offset")
-gamma1_mat <- All_KOs.gibbs_PM$Gamma_pm
-rownames(gamma1_mat) <- c(colnames(lfsr_mat), "offset")
-
-for (m in signif_markers){
-  effect_size_mat[, m] <-
-    colSums(beta1_mat[m, ] * t(gene_loadings[interest_df$gene_name, ]))
+  rownames(effect_size_mat) <- interest_df$protein_name
+  colnames(effect_size_mat) <- signif_markers
+  for (m in signif_markers){
+    effect_size_mat[, m] <-
+      colSums(beta_mat[m, ] * t(W_pm[interest_df$gene_name, ]))
+  }
+  
+  selected_lfsr_mat <- lfsr_mat[interest_df$gene_name, signif_markers]
+  dotplot_effectsize(effect_size_mat,
+                     selected_lfsr_mat,
+                     reorder_markers = signif_markers,
+                     color_lgd_title = "Summarized effect") +
+    theme(axis.text.y = element_text(hjust = 1))
 }
 ```
 
+Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+
+```{r}
+interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+rownames(interest_df) <- NULL
+knitr::kable(interest_df) %>%
+    kable_styling() %>% scroll_box(width = '100%', height = '300px')
+```
+
+```{r fig.width=5, fig.height=6}
+dotplot_gene_perturbation(genes_df, interest_df,
+                          lfsr_mat = lfsr_mat, beta_mat = All_KOs.gibbs_PM$beta_pm,
+                          gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
+```
+
+Markers fron Xin and paper:  
+Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
+Post-mitotic neuron: MAP2, DCX, STMN2  
+Glutamatergic neuron (excitatory): SLC17A6  
+Cortical neuron: BRN2 (POU3F2)  
+Developing striatal neurons: EBF1  
+Subtypes of inhibitory neurons: SST  
+Subtypes of extitatory neurons: NEFM
+
 ```{r dotplot_gene_effect1, fig.width=5, fig.height=4}
-selected_lfsr_mat <- lfsr_mat[interest_df1$gene_name, signif_markers]
-rownames(selected_lfsr_mat) <- interest_df1$protein_name
-dotplot_effectsize(effect_size_mat[interest_df1$protein_name, ],
-                   selected_lfsr_mat,
-                   reorder_markers = signif_markers,
-                   color_lgd_title = "Summarized effect") +
-  theme(axis.text.y = element_text(hjust = 1))
+dotplot_gene_perturbation(genes_df, interest_df1,
+                          lfsr_mat = lfsr_mat, beta_mat = All_KOs.gibbs_PM$beta_pm,
+                          gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
 ```
 
 SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
-
 ZEB2 to DPYSL3: neuron maturation markers  
 ```{r dotplot_gene_effect2, fig.width=5, fig.height=6}
-selected_lfsr_mat <- lfsr_mat[interest_df2$gene_name, signif_markers]
-dotplot_effectsize(effect_size_mat[interest_df2$protein_name, ],
-                   selected_lfsr_mat,
-                   reorder_markers = signif_markers,
-                   color_lgd_title = "Summarized effect") +
-  theme(axis.text.y = element_text(hjust = 1))
+dotplot_gene_perturbation(genes_df, interest_df2,
+                          lfsr_mat = lfsr_mat, beta_mat = All_KOs.gibbs_PM$beta_pm,
+                          gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
 ```
 
 ## DEG GO enrichment
