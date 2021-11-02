@@ -253,10 +253,21 @@ rownames(gene_pips) <- genes_df$Name
 colnames(gene_pips) <- paste0("Factor ", 1:20)
 ```
 
-Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+Neuronal cell markers obtained from papers and [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
 
-```{r}
-interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+```{r list_of_marker_genes_for_plot}
+# interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+interest_df <- data.frame(
+  protein_name = c("Nestin", "Tenascin C", "TP53", "CDK4", "NeuroD1", "Doublecortin",
+                   "STMN2", "MAP2", "NeuN", "Neurofilament-L", "Neurofilament-M",
+                   "UCHL1", "VGLUT2", "GIRK2", "Somatostatin", "EBF1"),
+  gene_name = c("NES", "TNC", "TP53", "CDK4", "NEUROD1", "DCX",
+                "STMN2", "MAP2", "RBFOX3", "NEFL", "NEFM",
+                "UCHL1", "SLC17A6", "KCNJ6", "SST", "EBF1"),
+  type = c("Radial Glia", "Radial Glia", "NPC", "NPC", "Immature Neurons", "Immature, Post-mitotic",
+           "Post-mitotic", "Mature, Post-mitotic", "Mature Neurons", "Mature Neurons", "Mature Neurons",
+           "Mature Neurons", "Glutamate, Excitatory", "Dopamine, Inhibitory", "GABA, Inhibitory", "Cortical")
+)
 interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
 rownames(interest_df) <- NULL
 knitr::kable(interest_df) %>%
@@ -274,47 +285,20 @@ dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat),
   coord_flip()
 ```
 
-Markers fron Xin and paper:  
-Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
-Post-mitotic neuron: MAP2, DCX, STMN2  
-Glutamatergic neuron (excitatory): SLC17A6  
-Cortical neuron: BRN2 (POU3F2)  
-Developing striatal neurons: EBF1  
-Subtypes of inhibitory neurons: SST  
-Subtypes of extitatory neurons: NEFM
-
-```{r list_of_marker_genes}
-all_moi_df1 <- data.frame(
-  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "DAT1",
-  "FOXG1", "BRN2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM"),
-  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
-  "FOXG1", "POU3F2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM")
-)
-interest_df1 <- all_moi_df1[all_moi_df1$gene_name %in% genes_df$Name, ]
-```
-
-```{r fig.width=9, fig.height=4}
-interest_mat <- gene_loadings[interest_df1$gene_name, ]
-interest_pip_mat <- gene_pips[interest_df1$gene_name, ]
-dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
-                 marker_names = interest_df1$gene_name,
-                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
-  coord_flip()
-```
-
+Markers in Fig 4E of original paper (Lalli et al):  
 SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
 ZEB2 to DPYSL3: neuron maturation markers  
 ```{r list_of_neuron_proj_genes}
 all_moi_df2 <- data.frame(
-  protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
-  gene_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
+  protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "SERPINF1"),
+  gene_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "MAPT", "NEFL", "MEF2C", "ZEB2",
+                   "ITM2C", "CNTN2", "ACAP3", "SERPINF1")
 )
 interest_df2 <- all_moi_df2[all_moi_df2$gene_name %in% genes_df$Name, ]
 ```
 
-```{r fig.width=9, fig.height=6}
+```{r fig.width=9, fig.height=5}
 interest_mat <- gene_loadings[interest_df2$gene_name, ]
 interest_pip_mat <- gene_pips[interest_df2$gene_name, ]
 dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
@@ -411,7 +395,13 @@ for (m in KO_names){
   fname <- paste0(wkdir, "processed_data/MAST/dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
   mast_list[[m]] <- readRDS(fname)
 }
-mast_list_signif_counts <- sapply(mast_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+mast_signif_counts <- sapply(mast_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+```
+
+```{r}
+scmageck_res <- readRDS(paste0(wkdir, "scmageck/scmageck_lr.LUHMES.dev_res_top_6k.rds"))
+colnames(scmageck_res$fdr)[colnames(scmageck_res$fdr) == "NegCtrl"] <- "Nontargeting"
+scmageck_signif_counts <- colSums(scmageck_res$fdr[, KO_names] < fdr_cutoff)
 ```
 
 ```{r dge_comparison_merge}
@@ -419,8 +409,8 @@ dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
                                 GSFA = lfsr_signif_num,
                                 edgeR = edger_signif_counts,
                                 DESeq2 = deseq_signif_counts,
-                                MAST = mast_list_signif_counts)
-                                # t.test = DE_signif_counts)
+                                MAST = mast_signif_counts,
+                                scMAGeCK_LR = scmageck_signif_counts)
 ```
 
 ```{r fig.width=12, fig.height=5.5}
@@ -476,12 +466,9 @@ dotplot_gene_perturbation <- function(genes_df, interest_df,
 }
 ```
 
-Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+Neuronal cell markers obtained from papers and [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
 
 ```{r}
-interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
-interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
-rownames(interest_df) <- NULL
 knitr::kable(interest_df) %>%
     kable_styling() %>% scroll_box(width = '100%', height = '300px')
 ```
@@ -492,24 +479,10 @@ dotplot_gene_perturbation(genes_df, interest_df,
                           gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
 ```
 
-Markers fron Xin and paper:  
-Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
-Post-mitotic neuron: MAP2, DCX, STMN2  
-Glutamatergic neuron (excitatory): SLC17A6  
-Cortical neuron: BRN2 (POU3F2)  
-Developing striatal neurons: EBF1  
-Subtypes of inhibitory neurons: SST  
-Subtypes of extitatory neurons: NEFM
-
-```{r dotplot_gene_effect1, fig.width=5, fig.height=4}
-dotplot_gene_perturbation(genes_df, interest_df1,
-                          lfsr_mat = lfsr_mat, beta_mat = All_KOs.gibbs_PM$beta_pm,
-                          gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
-```
-
+Markers in Fig 4E of original paper (Lalli et al):  
 SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
 ZEB2 to DPYSL3: neuron maturation markers  
-```{r dotplot_gene_effect2, fig.width=5, fig.height=6}
+```{r dotplot_gene_effect2, fig.width=5, fig.height=5}
 dotplot_gene_perturbation(genes_df, interest_df2,
                           lfsr_mat = lfsr_mat, beta_mat = All_KOs.gibbs_PM$beta_pm,
                           gamma_mat = All_KOs.gibbs_PM$Gamma_pm, W_pm = All_KOs.gibbs_PM$W_pm)
@@ -543,17 +516,15 @@ for (i in 1:ncol(enrich_table)){
 signif_term_df$degree <- rowSums(!is.na(enrich_table))
 
 ordered_signif_term_df <- signif_term_df %>%
-  filter(degree > 0, size >= 20) %>%
+  filter(degree > 0) %>%
   arrange(group, -degree)
 ordered_enrich_table <- enrich_table[ordered_signif_term_df$geneSet, ]
 rownames(ordered_enrich_table) <- ordered_signif_term_df$description
 ```
 
-```{r GO_term_heatmap, fig.height=12, fig.width=9}
+```{r GO_term_heatmap, fig.height=12, fig.width=9, eval=F, include=F}
 interest_enrich_table <- ordered_enrich_table
 interest_enrich_table[is.na(interest_enrich_table)] <- 0
-abs_FC_colormap <- circlize::colorRamp2(breaks = c(0, 3, 6),
-                                        colors = c("grey95", "#77d183", "#255566"))
 right_annot <- rowAnnotation(Cluster = ordered_signif_term_df$group,
                              col = list(Cluster = signif_term_clusters$colormap),
                              annotation_legend_param = list(
@@ -576,6 +547,65 @@ map <- Heatmap(interest_enrich_table,
                column_names_rot = 45,
                width = unit(10, "cm"))
 draw(map, heatmap_legend_side = "right")
+```
+
+```{r}
+terms_of_interest <- list()
+terms_of_interest[[1]] <- 
+  data.frame(group = 1,
+             description = c("axon development",
+                             "central nervous system neuron differentiation",
+                             "neuron projection guidance",
+                             "regulation of neuron projection development",
+                             "positive regulation of neurogenesis"))
+
+terms_of_interest[[2]] <- 
+  data.frame(group = 2,
+             description = c("regulation of transporter activity",
+                             "regulation of membrane potential",
+                             "regulation of ion transmembrane transport",
+                             "regulation of peptide secretion",
+                             "signal release"))
+
+terms_of_interest[[3]] <- 
+  data.frame(group = 3,
+             description = c("neuropeptide signaling pathway",
+                             "cell communication by electrical coupling",
+                             "regulation of trans-synaptic signaling",
+                             "regulation of neurological system process",
+                             "neural precursor cell proliferation"))
+
+terms_of_interest[[4]] <- 
+  data.frame(group = 4,
+             description = c("RNA catabolic process",
+                             "ribonucleotide metabolic process",
+                             "ribonucleoprotein complex biogenesis",
+                             "mitochondrial respiratory chain complex assembly",
+                             "response to purine-containing compound"))
+
+terms_of_interest_df <- do.call(rbind, terms_of_interest)
+terms_of_interest_df <- left_join(terms_of_interest_df, signif_term_df,
+                                  by = "description") %>%
+  dplyr::rename(group = group.x)
+```
+
+```{r selected_term_heatmap, fig.height=5.5, fig.width=9}
+interest_enrich_table <- ordered_enrich_table[terms_of_interest_df$description,
+                                              colnames(ordered_enrich_table) != "DYRK1A"]
+interest_enrich_table[is.na(interest_enrich_table)] <- 0
+
+map <- Heatmap(abs(interest_enrich_table),
+               name = "Fold of Enrichment",
+               col = abs_FC_colormap,
+               na_col = "grey90",
+               row_title = NULL, column_title = NULL,
+               cluster_rows = F, cluster_columns = F,
+               show_row_dend = F, show_column_dend = F,
+               show_heatmap_legend = T,
+               row_names_gp = gpar(fontsize = 10.5),
+               column_names_rot = 45,
+               width = unit(8, "cm"))
+draw(map, heatmap_legend_side = "bottom")
 ```
 
 # Gene Set Enrichment Analysis by Factor
