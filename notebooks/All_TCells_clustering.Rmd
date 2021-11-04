@@ -1,5 +1,5 @@
 ---
-title: "Overview on Stimulated T Cell CROP-seq Data"
+title: "Clustering on All T Cell CROP-seq Data"
 author: "Yifan Zhou (zhouyf@uchicago.edu)"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output:
@@ -89,12 +89,13 @@ Donors and stimulation status:
 
 ```{r umap_batch, fig.width=7, fig.height=5}
 DimPlot(combined_obj, reduction = "umap", group.by = "orig.ident",
-        cols = c("red3", "steelblue4", "forestgreen", "orchid4"))
+        cols = c("red3", "steelblue4", "forestgreen", "orchid4")) +
+  labs(title = "All T Cells")
 ```
 
 Clustering of cells:
 ```{r umap_cell_clusters, fig.width=7, fig.height=5}
-combined_obj <- FindClusters(combined_obj, resolution = 0.45)
+combined_obj <- FindClusters(combined_obj, resolution = 0.45, verbose = F)
 cluster_plot_df <- DimPlot(combined_obj, reduction = "umap", cols = "Set3")$data
 levels(cluster_plot_df$ident) <- c(8, 1, 6, 2, 5, 4, 3, 7)
 cluster_plot_df$ident <- factor(cluster_plot_df$ident, levels = 1:8)
@@ -147,9 +148,9 @@ num_cells_per_guide <- colSums(combined_meta[, 4:24])
 num_cells.df <- data.frame(locus = names(num_cells_per_guide),
                            count = num_cells_per_guide)
 ggplot(data = num_cells.df, aes(x=locus, y=count)) +
-  geom_bar(stat="identity", width = 0.6) +
-  labs(title = "Cell count per gene knockout target", x = "# of cells", y = "Count") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size =11))
+  geom_bar(stat = "identity", width = 0.6) +
+  labs(title = "Cell count per gene KO target", x = "KO Target", y = "# of cells") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 ```
 
 ## Over/Under-Representation of gRNA Targets in Clusters
@@ -169,18 +170,52 @@ for (m in targets){
                                          combined_meta$seurat_clusters == k))$p.value
   }
 }
+# saveRDS(list(chisq_stdres = chisq_stdres, chisq_pval = chisq_pval),
+#         paste0(wkdir, "processed_data/chisq_test_stats.all_T_cells_merged.rds"))
 ```
 
-```{r chisq_test_pval_heatmap, eval=FALSE, include=FALSE}
-Heatmap(t(-log10(chisq_pval)),
-        name = "chi-square \n-log10(p value)",
+```{r chisq_test_pval_heatmap, fig.height=5.5, fig.width=7}
+Heatmap(t(-log10(chisq_pval) * sign(chisq_stdres)),
+        name = "chi-square polarized\n-log10(p value)",
         cluster_rows = F, cluster_columns = F)
 ```
 
-Number of chi-square tests that passed Bonferroni FWER of 0.05:
+Pairs of associations that passed chi-square test FDR < 0.05:
 
 ```{r}
-sum(unlist(chisq_pval) < 0.05/length(unlist(chisq_pval)))
+chisq_pval_adj <- p.adjust(unlist(chisq_pval), method = "fdr")
+cat(sum(chisq_pval_adj < 0.05))
+cat("\n\n")
+```
+
+```{r}
+chisq_pval_adj <- matrix(chisq_pval_adj, nrow = nrow(chisq_pval))
+rownames(chisq_pval_adj) <- rownames(chisq_pval)
+colnames(chisq_pval_adj) <- colnames(chisq_pval)
+signif_guides <- colnames(chisq_pval_adj)[colSums(chisq_pval_adj < 0.05) > 0]
+cat("Perturbations with significant enrichment or depletion in clusters:\n")
+cat(paste(signif_guides, collapse = ", "))
+```
+
+```{r fig.width=6.5, fig.height=4, eval=F, include=F}
+make_pointwise_cdf <- function(pval_vec, bonf_cutoff = 0.05){
+  pval_thres <- bonf_cutoff / length(pval_vec)
+  neg_pval_vec <- -log10(pval_vec)
+  xvec <- neg_pval_vec[order(neg_pval_vec)] # seq(0, 10, 0.5)
+  cdf_df <- data.frame(neg_pval = xvec,
+                       cdf = sapply(xvec, function(x){mean(neg_pval_vec < x)}))
+  cdf_df <- cdf_df %>% mutate(significant = neg_pval > -log10(pval_thres)) %>%
+    mutate(significant = factor(significant, levels = c(TRUE, FALSE)))
+  return(cdf_df)
+}
+cdf_df <- make_pointwise_cdf(unlist(chisq_pval))
+ggplot(cdf_df, aes(x = neg_pval, y = cdf, color = significant)) +
+  geom_point(size = 0.8) +
+  scale_color_manual(values = c("red", "black")) +
+  labs(x = expression(-log[10]*"(Chi-square p value)"),
+       y = "CDF",
+       color = "Bonferroni < 0.05") +
+  guides(color = guide_legend(override.aes = list(size = 2)))
 ```
 
 ```{r chisq_test_heatmap}
@@ -228,4 +263,116 @@ ggplot(combined_selected_df,
        fill = "Polarized \n-log10(p value)") +
   theme(axis.title.y = element_blank(),
         strip.text = element_text(size = 14))
+```
+
+# Stimulated cells only
+
+```{r load_stim_seurat_preprocessed}
+# stim_obj <- readRDS(paste0(wkdir,
+#                            "processed_data/seurat_obj.stimulated_merged.dev_top6k.corrected_3.rds"))
+# stim_obj <- FindVariableFeatures(stim_obj)
+# stim_obj <- ScaleData(stim_obj,
+#                       vars.to.regress = c("nCount_RNA", "percent_mt"))
+# stim_obj <- RunPCA(stim_obj, verbose = F)
+# stim_obj <- FindNeighbors(stim_obj, reduction = "pca")
+# stim_obj <- RunUMAP(stim_obj, reduction = "pca", dims = 1:20)
+# DimPlot(stim_obj, reduction = "umap", group.by = "orig.ident",
+#         cols = c("steelblue4", "orchid4"))
+# saveRDS(stim_obj,
+#         paste0(wkdir, "processed_data/seurat_obj.stimulated_merged.top2k_var.corrected_2.rds"))
+stim_obj <- readRDS(paste0(wkdir, "processed_data/seurat_obj.stimulated_merged.top2k_var.corrected_2.rds"))
+DimPlot(stim_obj, reduction = "umap", group.by = "orig.ident",
+        cols = c("steelblue4", "orchid4")) +
+  labs(title = "Stimulated Cells")
+```
+
+## Clustering of cells
+```{r stim_cell_clusters, fig.width=7, fig.height=5}
+stim_obj <- FindClusters(stim_obj, resolution = 0.3, verbose = F)
+cluster_plot_df <- DimPlot(stim_obj, reduction = "umap", cols = "Set3")$data
+levels(cluster_plot_df$ident) <- c(5, 1, 2, 4, 3)
+cluster_plot_df$ident <- factor(cluster_plot_df$ident, levels = 1:5)
+label_df <- cluster_plot_df %>% group_by(ident) %>%
+  summarise(xpos = mean(UMAP_1), ypos = mean(UMAP_2))
+ggplot(cluster_plot_df, aes(x = UMAP_1, y = UMAP_2, color = ident)) +
+  geom_point(size = 0.5) +
+  scale_color_brewer(palette = "Set3") +
+  # geom_text(data = label_df, aes(x = xpos, y = ypos, label = ident), color = "black") +
+  labs(x = "UMAP 1", y = "UMAP 2",
+       title = "Clustering of Stimulated T Cells", color = "Cluster") +
+  theme(panel.grid = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 2)))
+```
+
+Expression patterns of marker genes:    
+activation state (IL7R, CCR7), cell cycle (MKI67), and effector function (GZMB) in the reference paper.
+```{r fig.height=8, fig.width=12}
+feature.names <- data.frame(fread(paste0(wkdir, "GSE119450_RAW/D1S/genes.tsv"),
+                                  header = FALSE), stringsAsFactors = FALSE)
+norm.rna <- stim_obj@assays$RNA@data
+marker_genes <- c("IL7R", "CCR7" , "MKI67", "GZMB")
+for (m in marker_genes){
+  gene_id <- feature.names$V1[feature.names$V2 == m]
+  cluster_plot_df[[m]] <- as.numeric(norm.rna[gene_id, ])
+  cluster_plot_df[[m]][cluster_plot_df[[m]] > 3] <- 3
+}
+plot_list <- list()
+for (m in marker_genes){
+  plot_list[[m]] <- ggplot(cluster_plot_df,
+                           aes_string(x = "UMAP_1", y = "UMAP_2", color = m)) +
+    geom_point(size = 0.3) +
+    scale_color_gradientn(colors = c("#91bfdb", "#ffffbf", "#fc8d59")) +
+    labs(x = "UMAP 1", y = "UMAP 2", title = m, color = "log(normalized\nexpression)") +
+    theme(panel.grid = element_blank())
+}
+do.call(grid.arrange, plot_list)
+```
+
+## Over/Under-Representation of gRNA Targets in Clusters
+
+```{r}
+sub_meta <- stim_obj@meta.data
+sub_meta$seurat_clusters <- cluster_plot_df$ident
+targets <- colnames(sub_meta)[4:24]
+chisq_stdres <- matrix(nrow = length(levels(sub_meta$seurat_clusters)),
+                       ncol = length(targets))
+colnames(chisq_stdres) <- targets
+rownames(chisq_stdres) <- paste0("Cluster ", 1:nrow(chisq_stdres))
+chisq_pval <- chisq_stdres
+for (m in targets){
+  test <- chisq.test(table(factor(sub_meta[[m]]), sub_meta$seurat_clusters))
+  chisq_stdres[, m] <- test$stdres[2, ]
+  for (k in 1:nrow(chisq_stdres)){
+    chisq_pval[k, m] <- chisq.test(table(factor(sub_meta[[m]]),
+                                         sub_meta$seurat_clusters == k))$p.value
+  }
+}
+```
+
+```{r fig.height=5.5, fig.width=6}
+Heatmap(t(-log10(chisq_pval) * sign(chisq_stdres)),
+        name = "chi-square polarized\n-log10(p value)",
+        cluster_rows = F, cluster_columns = F)
+```
+
+Pairs of associations that passed chi-square test FDR < 0.05:
+
+```{r}
+chisq_pval_adj <- p.adjust(unlist(chisq_pval), method = "fdr")
+cat(sum(chisq_pval_adj < 0.05))
+cat("\n\n")
+```
+
+```{r}
+chisq_pval_adj <- matrix(chisq_pval_adj, nrow = nrow(chisq_pval))
+rownames(chisq_pval_adj) <- rownames(chisq_pval)
+colnames(chisq_pval_adj) <- colnames(chisq_pval)
+signif_guides <- colnames(chisq_pval_adj)[colSums(chisq_pval_adj < 0.05) > 0]
+cat("Perturbations with significant enrichment or depletion in clusters:\n")
+cat(paste(signif_guides, collapse = ", "))
+```
+
+```{r eval=F, include=F}
+## Percentage of cells w/ guide in each cluster
+colMeans((sub_meta %>% dplyr::filter(seurat_clusters == "4"))[, 4:24])
 ```
