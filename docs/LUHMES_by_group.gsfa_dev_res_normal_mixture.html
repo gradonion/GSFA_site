@@ -11,7 +11,7 @@
 
 <meta name="author" content="Yifan Zhou (zhouyf@uchicago.edu)" />
 
-<meta name="date" content="2021-10-30" />
+<meta name="date" content="2021-11-15" />
 
 <title>Guided Factor Analysis on LUHMES CROP-seq Data</title>
 
@@ -338,7 +338,7 @@ div.tocify {
 <h1 class="title toc-ignore">Guided Factor Analysis on LUHMES CROP-seq Data</h1>
 <h3 class="subtitle">-- Deviance residual transformed + normal-mixture prior + by-stage estimation</h3>
 <h4 class="author">Yifan Zhou (<a href="mailto:zhouyf@uchicago.edu">zhouyf@uchicago.edu</a>)</h4>
-<h4 class="date">2021-10-30</h4>
+<h4 class="date">2021-11-15</h4>
 
 </div>
 
@@ -362,22 +362,23 @@ Deviance residual transformation.<br />
 <div id="monocle-pseudotime-trajectory" class="section level2">
 <h2><span class="header-section-number">1.1</span> Monocle Pseudotime Trajectory</h2>
 <p>We attempted to reproduce the pseudotime trajectory of cells as reported in the <a href="https://pubmed.ncbi.nlm.nih.gov/32887689/#&amp;gid=article-figures&amp;pid=figure-3-uid-2">original paper</a>.</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="marker-gene-expression-in-pseudotime" class="section level2">
 <h2><span class="header-section-number">1.2</span> Marker Gene Expression in Pseudotime</h2>
 <p>Neuronal markers (MAP2 and DCX) increase along the pseudotime trajectory, whereas progenitor markers (TP53 and CDK4) decrease, consistent with Fig 3B of original paper.</p>
 <p>Neuron progenitor (NPC): TP53, CDK4, NEUROD1, NES?<br />
 Post-mitotic neuron: MAP2, DCX, STMN2</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <p>Glutamatergic neuron (excitatory): SLC17A6<br />
 Cortical neuron: BRN2 (POU3F2)<br />
 Developing striatal neurons: EBF1<br />
 Subtypes of inhibitory neurons: SST<br />
 Subtypes of extitatory neurons: NEFM</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-7-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <p><strong>We separate the cells into 2 groups:</strong></p>
-<p>Early stage: 2523 cells in pseudotime state 1 - 3 Late stage: 6185 cells in pseudotime satte 4 - 9</p>
+<p>Early stage: 2523 cells in pseudotime state 1 - 3;<br />
+Late stage: 6185 cells in pseudotime satte 4 - 9.</p>
 <p>We modified GSFA so that the associations (<span class="math inline">\(\beta\)</span>) between factors and perturbations are estimated for early and late stage cells separately.</p>
 </div>
 </div>
@@ -385,18 +386,18 @@ Subtypes of extitatory neurons: NEFM</p>
 <h1><span class="header-section-number">2</span> Factor ~ Perturbation Association</h1>
 <div id="early-stage-cells" class="section level2">
 <h2><span class="header-section-number">2.1</span> Early stage cells</h2>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-8-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-8-1.png" width="816" style="display: block; margin: auto;" /></p>
 </div>
 <div id="late-stage-cells" class="section level2">
 <h2><span class="header-section-number">2.2</span> Late stage cells</h2>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-9-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-9-1.png" width="816" style="display: block; margin: auto;" /></p>
 </div>
 <div id="correlation-within-factors" class="section level2">
 <h2><span class="header-section-number">2.3</span> Correlation within Factors</h2>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div id="correlation-with-factors-inferred-using-all-cells" class="section level3">
 <h3><span class="header-section-number">2.3.1</span> Correlation with factors inferred using all cells</h3>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 </div>
@@ -404,7 +405,7 @@ Subtypes of extitatory neurons: NEFM</p>
 <h1><span class="header-section-number">3</span> Factor Interpretation</h1>
 <div id="factor-by-gene-loading" class="section level2">
 <h2><span class="header-section-number">3.1</span> Factor by gene loading</h2>
-<p>Neuronal cell markers obtained from <a href="https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers">Neuronal and Glial Cell Marker Atlas</a>:</p>
+<p>Cell differentiation markers and neuronal cell type markers:</p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -423,13 +424,24 @@ type
 <tbody>
 <tr>
 <td style="text-align:left;">
-N-Cadherin
+TP53
 </td>
 <td style="text-align:left;">
-CDH2
+TP53
 </td>
 <td style="text-align:left;">
-Radial Glia
+Cell proliferation
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDK4
+</td>
+<td style="text-align:left;">
+CDK4
+</td>
+<td style="text-align:left;">
+Cell proliferation
 </td>
 </tr>
 <tr>
@@ -440,29 +452,7 @@ Nestin
 NES
 </td>
 <td style="text-align:left;">
-Radial Glia
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tenascin C
-</td>
-<td style="text-align:left;">
-TNC
-</td>
-<td style="text-align:left;">
-Radial Glia
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NeuroD1
-</td>
-<td style="text-align:left;">
-NEUROD1
-</td>
-<td style="text-align:left;">
-Immature Neurons
+NPC
 </td>
 </tr>
 <tr>
@@ -473,18 +463,18 @@ Doublecortin
 DCX
 </td>
 <td style="text-align:left;">
-Immature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-b3-Tubulin
+STMN2
 </td>
 <td style="text-align:left;">
-TUBB3
+STMN2
 </td>
 <td style="text-align:left;">
-Immature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
@@ -495,40 +485,139 @@ MAP2
 MAP2
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-NeuN
+DPYSL3
 </td>
 <td style="text-align:left;">
-RBFOX3
+DPYSL3
 </td>
 <td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Neurofilament-H
-</td>
-<td style="text-align:left;">
-NEFH
-</td>
-<td style="text-align:left;">
-Mature Neurons
+Mature neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Neurofilament-L
+HSPA5
+</td>
+<td style="text-align:left;">
+HSPA5
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEFL
 </td>
 <td style="text-align:left;">
 NEFL
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
 </td>
 </tr>
 <tr>
@@ -539,62 +628,18 @@ Neurofilament-M
 NEFM
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Excitatory neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-NSE
+VGLUT2
 </td>
 <td style="text-align:left;">
-ENO2
+SLC17A6
 </td>
 <td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tau
-</td>
-<td style="text-align:left;">
-MAPT
-</td>
-<td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-UCHL1
-</td>
-<td style="text-align:left;">
-UCHL1
-</td>
-<td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-VGLUT1/2
-</td>
-<td style="text-align:left;">
-SLC17A7
-</td>
-<td style="text-align:left;">
-Glutamate
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GIRK2
-</td>
-<td style="text-align:left;">
-KCNJ6
-</td>
-<td style="text-align:left;">
-Dopamin
+Excitatory neuron
 </td>
 </tr>
 <tr>
@@ -605,31 +650,30 @@ Somatostatin
 SST
 </td>
 <td style="text-align:left;">
-Interneurons
+Inhibitory neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EBF1
+</td>
+<td style="text-align:left;">
+EBF1
+</td>
+<td style="text-align:left;">
+Developing striatal neuron
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-16-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p>Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1<br />
-Post-mitotic neuron: MAP2, DCX, STMN2<br />
-Glutamatergic neuron (excitatory): SLC17A6<br />
-Cortical neuron: BRN2 (POU3F2)<br />
-Developing striatal neurons: EBF1<br />
-Subtypes of inhibitory neurons: SST<br />
-Subtypes of extitatory neurons: NEFM</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-17-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p>SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation<br />
-ZEB2 to DPYSL3: neuron maturation markers<br />
-(Obtained frm Fig 4E of original paper.)</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-18-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
 <div id="selected-factor-go-enrichment" class="section level2">
 <h2><span class="header-section-number">3.2</span> Selected factor GO enrichment</h2>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="deg-interpretation" class="section level1">
@@ -638,275 +682,19 @@ ZEB2 to DPYSL3: neuron maturation markers<br />
 <h2><span class="header-section-number">4.1</span> Number of DEGs detected under different methods</h2>
 <div id="early-stage-cells-1" class="section level3">
 <h3><span class="header-section-number">4.1.1</span> Early stage cells</h3>
-Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA, # of genes that passed LFSR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ADNP
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ASH1L
-</td>
-<td style="text-align:left;">
-CHD2
-</td>
-<td style="text-align:left;">
-CHD8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-198
-</td>
-<td style="text-align:left;">
-557
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-348
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CTNND2
-</td>
-<td style="text-align:left;">
-DYRK1A
-</td>
-<td style="text-align:left;">
-HDAC5
-</td>
-<td style="text-align:left;">
-MECP2
-</td>
-<td style="text-align:left;">
-MYT1L
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-158
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-Nontargeting
-</td>
-<td style="text-align:left;">
-POGZ
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-RELN
-</td>
-<td style="text-align:left;">
-SETD5
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-707
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-23-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 <div id="late-stage-cells-1" class="section level3">
 <h3><span class="header-section-number">4.1.2</span> Late stage cells</h3>
-Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:
-<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<caption>
-GSFA, # of genes that passed LFSR cutoff of 0.05:
-</caption>
-<tbody>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-ADNP
-</td>
-<td style="text-align:left;">
-ARID1B
-</td>
-<td style="text-align:left;">
-ASH1L
-</td>
-<td style="text-align:left;">
-CHD2
-</td>
-<td style="text-align:left;">
-CHD8
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-459
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-93
-</td>
-<td style="text-align:left;">
-708
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-CTNND2
-</td>
-<td style="text-align:left;">
-DYRK1A
-</td>
-<td style="text-align:left;">
-HDAC5
-</td>
-<td style="text-align:left;">
-MECP2
-</td>
-<td style="text-align:left;">
-MYT1L
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-KO
-</td>
-<td style="text-align:left;">
-Nontargeting
-</td>
-<td style="text-align:left;">
-POGZ
-</td>
-<td style="text-align:left;">
-PTEN
-</td>
-<td style="text-align:left;">
-RELN
-</td>
-<td style="text-align:left;">
-SETD5
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Num_genes
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-862
-</td>
-<td style="text-align:left;">
-0
-</td>
-<td style="text-align:left;">
-576
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>Number of genes that passed GSFA LFSR &lt; 0.05 under each perturbation:</p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-25-1.png" width="1152" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="perturbation-effect-on-gene-markers" class="section level2">
 <h2><span class="header-section-number">4.2</span> Perturbation effect on gene markers</h2>
-<p>Neuronal cell markers obtained from <a href="https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers">Neuronal and Glial Cell Marker Atlas</a>:</p>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:300px; overflow-x: scroll; width:100%; ">
+<p>Cell differentiation markers and neuronal cell type markers:</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -924,13 +712,24 @@ type
 <tbody>
 <tr>
 <td style="text-align:left;">
-N-Cadherin
+TP53
 </td>
 <td style="text-align:left;">
-CDH2
+TP53
 </td>
 <td style="text-align:left;">
-Radial Glia
+Cell proliferation
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CDK4
+</td>
+<td style="text-align:left;">
+CDK4
+</td>
+<td style="text-align:left;">
+Cell proliferation
 </td>
 </tr>
 <tr>
@@ -941,29 +740,7 @@ Nestin
 NES
 </td>
 <td style="text-align:left;">
-Radial Glia
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tenascin C
-</td>
-<td style="text-align:left;">
-TNC
-</td>
-<td style="text-align:left;">
-Radial Glia
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-NeuroD1
-</td>
-<td style="text-align:left;">
-NEUROD1
-</td>
-<td style="text-align:left;">
-Immature Neurons
+NPC
 </td>
 </tr>
 <tr>
@@ -974,18 +751,18 @@ Doublecortin
 DCX
 </td>
 <td style="text-align:left;">
-Immature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-b3-Tubulin
+STMN2
 </td>
 <td style="text-align:left;">
-TUBB3
+STMN2
 </td>
 <td style="text-align:left;">
-Immature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
@@ -996,40 +773,139 @@ MAP2
 MAP2
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Post-mitotic neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-NeuN
+DPYSL3
 </td>
 <td style="text-align:left;">
-RBFOX3
+DPYSL3
 </td>
 <td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Neurofilament-H
-</td>
-<td style="text-align:left;">
-NEFH
-</td>
-<td style="text-align:left;">
-Mature Neurons
+Mature neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Neurofilament-L
+HSPA5
+</td>
+<td style="text-align:left;">
+HSPA5
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:left;">
+MAP1B
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:left;">
+CRMP1
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:left;">
+CRABP2
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+MAPT
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEFL
 </td>
 <td style="text-align:left;">
 NEFL
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:left;">
+MEF2C
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:left;">
+ZEB2
+</td>
+<td style="text-align:left;">
+Mature neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:left;">
+ITM2C
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:left;">
+CNTN2
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:left;">
+SERPINF1
+</td>
+<td style="text-align:left;">
+Negative regulation of neuron projection
 </td>
 </tr>
 <tr>
@@ -1040,62 +916,18 @@ Neurofilament-M
 NEFM
 </td>
 <td style="text-align:left;">
-Mature Neurons
+Excitatory neuron
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-NSE
+VGLUT2
 </td>
 <td style="text-align:left;">
-ENO2
+SLC17A6
 </td>
 <td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tau
-</td>
-<td style="text-align:left;">
-MAPT
-</td>
-<td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-UCHL1
-</td>
-<td style="text-align:left;">
-UCHL1
-</td>
-<td style="text-align:left;">
-Mature Neurons
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-VGLUT1/2
-</td>
-<td style="text-align:left;">
-SLC17A7
-</td>
-<td style="text-align:left;">
-Glutamate
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GIRK2
-</td>
-<td style="text-align:left;">
-KCNJ6
-</td>
-<td style="text-align:left;">
-Dopamin
+Excitatory neuron
 </td>
 </tr>
 <tr>
@@ -1106,42 +938,52 @@ Somatostatin
 SST
 </td>
 <td style="text-align:left;">
-Interneurons
+Inhibitory neuron
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EBF1
+</td>
+<td style="text-align:left;">
+EBF1
+</td>
+<td style="text-align:left;">
+Developing striatal neuron
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-28-1.png" width="1056" style="display: block; margin: auto;" /></p>
-<p>Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1<br />
-Post-mitotic neuron: MAP2, DCX, STMN2<br />
-Glutamatergic neuron (excitatory): SLC17A6<br />
-Cortical neuron: BRN2 (POU3F2)<br />
-Developing striatal neurons: EBF1<br />
-Subtypes of inhibitory neurons: SST<br />
-Subtypes of extitatory neurons: NEFM</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/dotplot_gene_effect1-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation<br />
-ZEB2 to DPYSL3: neuron maturation markers</p>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/dotplot_gene_effect2-1.png" width="960" style="display: block; margin: auto;" /></p>
+<div id="early-stage-cells-2" class="section level3">
+<h3><span class="header-section-number">4.2.1</span> Early stage cells</h3>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-28-1.png" width="624" style="display: block; margin: auto;" /></p>
+</div>
+<div id="late-stage-cells-2" class="section level3">
+<h3><span class="header-section-number">4.2.2</span> Late stage cells</h3>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/unnamed-chunk-29-1.png" width="624" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 <div id="deg-go-enrichment" class="section level2">
 <h2><span class="header-section-number">4.3</span> DEG GO enrichment</h2>
-<div id="early-stage-cells-2" class="section level3">
+<div id="early-stage-cells-3" class="section level3">
 <h3><span class="header-section-number">4.3.1</span> Early stage cells</h3>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/Early_GO_term_heatmap-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/Early_GO_term_heatmap-1.png" width="768" style="display: block; margin: auto;" /></p>
 </div>
-<div id="late-stage-cells-2" class="section level3">
+<div id="late-stage-cells-3" class="section level3">
 <h3><span class="header-section-number">4.3.2</span> Late stage cells</h3>
-<p><img src="LUHMES_by_groups.gsfa_dev_res_normal_mixture_files/figure-html/Late_GO_term_heatmap-1.png" width="768" style="display: block; margin: auto;" /> # Gene Set Enrichment Analysis by Factor</p>
+<p><img src="LUHMES_by_group.gsfa_dev_res_normal_mixture_files/figure-html/Late_GO_term_heatmap-1.png" width="768" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+</div>
+<div id="gene-set-enrichment-analysis-by-factor" class="section level1">
+<h1><span class="header-section-number">5</span> Gene Set Enrichment Analysis by Factor</h1>
 <p>Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);<br />
 Backgroud genes: all 6000 genes used in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq\)</span> 2 and test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown below.</p>
-</div>
-</div>
 <div id="go-slim-over-representation-analysis" class="section level2">
-<h2><span class="header-section-number">4.4</span> GO Slim Over-Representation Analysis</h2>
+<h2><span class="header-section-number">5.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
 Factor 1 : 7 significant GO terms
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
@@ -6483,22 +6325,22 @@ Signif_GO_terms
 </table>
 </div>
 <div id="factors-of-interest" class="section level3">
-<h3><span class="header-section-number">4.4.1</span> Factors of interest</h3>
+<h3><span class="header-section-number">5.1.1</span> Factors of interest</h3>
 <p>4, 9, 15</p>
 </div>
 </div>
 </div>
 <div id="gene-set-enrichment-analysis-by-perturbation" class="section level1">
-<h1><span class="header-section-number">5</span> Gene Set Enrichment Analysis by Perturbation</h1>
+<h1><span class="header-section-number">6</span> Gene Set Enrichment Analysis by Perturbation</h1>
 <p>Target genes: Genes w/ LFSR &lt; 0.05 under each perturbation marker gene;<br />
 Backgroud genes: all 6000 genes used in factor analysis;<br />
 Statistical test: hypergeometric test (over-representation test);<br />
 Only GO terms/pathways that satisfy fold change <span class="math inline">\(\geq\)</span> 2 and test FDR <span class="math inline">\(&lt;\)</span> 0.05 are shown below.</p>
 <div id="go-slim-over-representation-analysis-1" class="section level2">
-<h2><span class="header-section-number">5.1</span> GO Slim Over-Representation Analysis</h2>
+<h2><span class="header-section-number">6.1</span> GO Slim Over-Representation Analysis</h2>
 <p>Gene sets: <a href="http://www.geneontology.org/">Gene ontology</a> &quot;Biological Process&quot; (non-redundant).</p>
-<div id="early-stage-cells-3" class="section level3">
-<h3><span class="header-section-number">5.1.1</span> Early stage cells</h3>
+<div id="early-stage-cells-4" class="section level3">
+<h3><span class="header-section-number">6.1.1</span> Early stage cells</h3>
 ADNP : 12 significant GO terms
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -8324,8 +8166,8 @@ Signif_GO_terms
 </table>
 </div>
 </div>
-<div id="late-stage-cells-3" class="section level3">
-<h3><span class="header-section-number">5.1.2</span> Late stage cells</h3>
+<div id="late-stage-cells-4" class="section level3">
+<h3><span class="header-section-number">6.1.2</span> Late stage cells</h3>
 ADNP : 69 significant GO terms
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; overflow-x: scroll; width:100%; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">

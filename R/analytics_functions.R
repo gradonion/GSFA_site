@@ -26,8 +26,12 @@ factor_matrix_regression <- function(factors, G_mat){
   return(list(pval = pval_tb, beta = beta_reg_tb))
 }
 
-make_gibbs_res_tb <- function(gibbs_obj, G, compute_pve = TRUE){
+make_gibbs_res_tb <- function(gibbs_obj, G, compute_pve = FALSE, cell_indx = NULL){
   names(gibbs_obj) <- sub(pattern = "[.]", replacement = "_", x = names(gibbs_obj))
+  if (!is.null(cell_indx)){
+    gibbs_obj$Z_pm <- gibbs_obj$Z_pm[cell_indx, ]
+    G <- G[cell_indx, ]
+  }
   K <- ncol(gibbs_obj$Z_pm)
   res_tb <- data.frame(index = 1:K, pi = gibbs_obj$pi_pm[, 1])
   if (compute_pve){
@@ -42,7 +46,6 @@ make_gibbs_res_tb <- function(gibbs_obj, G, compute_pve = TRUE){
     if (length(G) != nrow(gibbs_obj$Z_pm)){
       stop("Number of samples in genotype and in the gibbs object do not match!")
     }
-    # res_tb$beta_pm <- gibbs_obj$beta_pm[, 1]
     res_tb$beta_reg <- rep(NA, K)
     res_tb$pval <- rep(NA, K)
     for (i in 1:K){
@@ -55,8 +58,6 @@ make_gibbs_res_tb <- function(gibbs_obj, G, compute_pve = TRUE){
       stop("Number of samples in genotype and in the gibbs object do not match!")
     }
     res_regress <- factor_matrix_regression(gibbs_obj$Z_pm, G)
-    # tmp_beta_pm <- t(gibbs_obj$beta_pm)
-    # colnames(tmp_beta_pm) <- paste0("beta_pm-", 1:ncol(tmp_beta_pm))
     res_tb <- cbind(res_tb, res_regress$beta, res_regress$pval)
   }
   return(res_tb)

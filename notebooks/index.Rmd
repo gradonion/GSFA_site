@@ -71,7 +71,7 @@ CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3
 * [Data overview](LUHMES_overview.html);
 * [Pseudotime trajectory analysis, similar to reference paper](LUHMES_pseudotime_trajectory.html);
 * [GSFA, normal-mixture prior](LUHMES_merged_new.gsfa_dev_res_normal_mixture.html);
-* [GSFA, normal-mixture prior, cells analyzed by early and late stages](LUHMES_by_groups.gsfa_dev_res_normal_mixture.html);
+* [GSFA, normal-mixture prior, cells analyzed by early and late stages](LUHMES_by_group.gsfa_dev_res_normal_mixture.html);
 * [GSFA, spike-and-slab prior, 4 confounding factors corrected](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
 * [Enrichment analysis on GSFA result (spike-and-slab)](LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html);
 * [Gene discovery using LFSR, and comparison with DGE (spike-and-slab)](LUHMES_lfsr.html);

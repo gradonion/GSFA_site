@@ -111,7 +111,7 @@ stopifnot(nrow(All_KOs.gibbs_PM$beta_pm) == nmarkers + 1)
 We attempted to reproduce the pseudotime trajectory of cells as reported in the [original paper](https://pubmed.ncbi.nlm.nih.gov/32887689/#&gid=article-figures&pid=figure-3-uid-2).
 ```{r}
 cds <- readRDS(paste0(wkdir, "processed_data/monocle_pseudotime.merged_scaled_detect_01.corrected_new.rds"))
-traj_plot <- plot_cell_trajectory(cds, color_by = "State", cell_size = 0.6)
+traj_plot <- plot_cell_trajectory(cds, color_by = "State", cell_size = 0.6) 
 ```
 
 ```{r fig.height=5}
@@ -193,8 +193,8 @@ do.call(grid.arrange, args)
 
 **We separate the cells into 2 groups:**
 
-Early stage: 2523 cells in pseudotime state 1 - 3
-Late stage: 6185 cells in pseudotime satte 4 - 9
+Early stage: 2523 cells in pseudotime state 1 - 3;  
+Late stage: 6185 cells in pseudotime satte 4 - 9.
 
 We modified GSFA so that the associations ($\beta$) between factors and perturbations are estimated for early and late stage cells separately.
 
@@ -202,26 +202,28 @@ We modified GSFA so that the associations ($\beta$) between factors and perturba
 
 ## Early stage cells
 
-```{r fig.width=9, fig.height=4}
-reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
-                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
-                "Nontargeting")
+```{r fig.width=8.5, fig.height=4}
+reorder_KO <- c("ADNP", "CHD2", "PTEN", "SETD5", "ASH1L", "ARID1B", "DYRK1A", "Nontargeting")[8:1]
+                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN"
 dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma0_pm), t(All_KOs.gibbs_PM$beta0_pm),
                  marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO,
                  inverse_factors = F) +
-  coord_flip()
+  coord_flip() +
+  labs(title = "Early Stage") +
+  theme(plot.title = element_text(size = 14, hjust = 0.5))
 ```
 
 ## Late stage cells
 
-```{r fig.width=9, fig.height=4}
-reorder_KO <- c("ADNP", "ARID1B", "ASH1L", "CHD2", "PTEN", "SETD5", "DYRK1A", 
-                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN",
-                "Nontargeting")
+```{r fig.width=8.5, fig.height=4}
+reorder_KO <- c("ADNP", "CHD2", "PTEN", "SETD5", "ASH1L", "ARID1B", "DYRK1A", "Nontargeting")[8:1]
+                # "CHD8", "CTNND2", "HDAC5", "MECP2", "MYT1L", "POGZ", "RELN"
 dotplot_beta_PIP(t(All_KOs.gibbs_PM$Gamma1_pm), t(All_KOs.gibbs_PM$beta1_pm),
                  marker_names = colnames(all_KOs.G_mat), reorder_markers = reorder_KO,
                  inverse_factors = F) +
-  coord_flip()
+  coord_flip() +
+  labs(title = "Late Stage") +
+  theme(plot.title = element_text(size = 14, hjust = 0.5))
 ```
 
 ## Correlation within Factors
@@ -278,72 +280,23 @@ rownames(gene_pips) <- genes_df$Name
 colnames(gene_pips) <- paste0("Factor ", 1:ncol(gene_pips))
 ```
 
-Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+Cell differentiation markers and neuronal cell type markers:
 
 ```{r}
-interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+interest_df <- readRDS(paste0(wkdir, "processed_data/selected_neuronal_markers.rds"))
 interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
 rownames(interest_df) <- NULL
 knitr::kable(interest_df) %>%
     kable_styling() %>% scroll_box(width = '100%', height = '400px')
 ```
 
-```{r fig.width=9, fig.height=6}
+```{r fig.width=8, fig.height=6.5}
 interest_mat <- gene_loadings[interest_df$gene_name, ]
 interest_pip_mat <- gene_pips[interest_df$gene_name, ]
 dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat),
                  beta_pm_matrix = t(interest_mat),
-                 marker_names = interest_df$protein_name,
-                 # reorder_markers = interest_df$protein_name[nrow(interest_df):1],
-                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
-  coord_flip()
-```
-
-Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
-Post-mitotic neuron: MAP2, DCX, STMN2  
-Glutamatergic neuron (excitatory): SLC17A6  
-Cortical neuron: BRN2 (POU3F2)  
-Developing striatal neurons: EBF1  
-Subtypes of inhibitory neurons: SST  
-Subtypes of extitatory neurons: NEFM
-
-```{r list_of_marker_genes}
-all_moi_df1 <- data.frame(
-  protein_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "DAT1",
-  "FOXG1", "BRN2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM"),
-  gene_name = c("VIM", "NES", "SOX2", "TP53", "CDK4", "NEUROD1", "MAP2", "DCX", "STMN2", "GAD1", "GAD2", "SLC17A6", "SLC6A3",
-  "FOXG1", "POU3F2", "EBF1", "SERTAD4", "TBR1", "NPY", "SST", "DLX2", "DLX5", "SATB2", "CBLN2", "CUX2", "NEFM")
-)
-interest_df1 <- all_moi_df1[all_moi_df1$gene_name %in% genes_df$Name, ]
-```
-
-```{r fig.width=9, fig.height=4}
-interest_mat <- gene_loadings[interest_df1$gene_name, ]
-interest_pip_mat <- gene_pips[interest_df1$gene_name, ]
-dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
-                 marker_names = interest_df1$gene_name,
-                 exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
-  coord_flip()
-```
-
-SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
-ZEB2 to DPYSL3: neuron maturation markers  
-(Obtained frm Fig 4E of original paper.)
-```{r list_of_neuron_proj_genes}
-all_moi_df2 <- data.frame(
-  protein_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1"),
-  gene_name = c("DPYSL3", "HSPA5", "MAP1B", "CRMP1", "CRABP2", "CCDC88A", "UBE2V2", "MAPT", "NEFL", "MEF2C", "ZEB2",
-                   "ITM2C", "CNTN2", "ACAP3", "FKBP4", "GSK3B", "EFNA5", "SERPINF1")
-)
-interest_df2 <- all_moi_df2[all_moi_df2$gene_name %in% genes_df$Name, ]
-```
-
-```{r fig.width=9, fig.height=6}
-interest_mat <- gene_loadings[interest_df2$gene_name, ]
-interest_pip_mat <- gene_pips[interest_df2$gene_name, ]
-dotplot_beta_PIP(beta_pip_matrix = t(interest_pip_mat), beta_pm_matrix = t(interest_mat),
-                 marker_names = interest_df2$gene_name,
+                 marker_names = interest_df$gene_name,
+                 reorder_markers = interest_df$gene_name[nrow(interest_df):1],
                  exclude_offset = F, color_lgd_title = "Gene loading", inverse_factors = F) +
   coord_flip()
 ```
@@ -395,9 +348,74 @@ barplot_top_enrich_terms(enrich_res[[factor_indx]], terms_of_interest = terms_of
 Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 ```{r}
 lfsr_cutoff <- 0.05
+fdr_cutoff <- 0.05
 lfsr_mat0 <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.lfsr_mat.group0.rds"))
 lfsr_signif_num <- colSums(lfsr_mat0 < lfsr_cutoff)
-print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+# print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+```{r deseq_0}
+library(DESeq2)
+deseq_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/by_early_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  deseq_list[[m]] <- res
+}
+deseq_signif_counts <- sapply(deseq_list, function(x){filter(x, padj < fdr_cutoff) %>% nrow()})
+```
+
+```{r edger_0}
+edger_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/by_early_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  edger_list[[m]] <- readRDS(fname)
+}
+edger_signif_counts <- sapply(edger_list, function(x){filter(x, FDR < fdr_cutoff) %>% nrow()})
+```
+
+```{r mast_0}
+mast_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/MAST/by_early_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  mast_list[[m]] <- readRDS(fname)
+}
+mast_list_signif_counts <- sapply(mast_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+```
+
+```{r}
+scmageck_res <- readRDS(paste0(wkdir, "scmageck/scmageck_lr.LUHMES_early.dev_res_top_6k.rds"))
+colnames(scmageck_res$fdr)[colnames(scmageck_res$fdr) == "NegCtrl"] <- "Nontargeting"
+scmageck_signif_counts <- colSums(scmageck_res$fdr[, KO_names] < fdr_cutoff)
+```
+
+```{r dge_comparison_merge_0}
+dge_comparison_df <- data.frame(Perturbation = KO_names,
+                                GSFA = lfsr_signif_num,
+                                scMAGeCK = scmageck_signif_counts,
+                                edgeR = edger_signif_counts,
+                                DESeq2 = deseq_signif_counts,
+                                MAST = mast_list_signif_counts)
+dge_comparison_df$Perturbation[dge_comparison_df$Perturbation == "Nontargeting"] <- "NegCtrl"
+```
+
+```{r fig.width=12, fig.height=5.5}
+dge_plot_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                              variable.name = "Method", value.name = "Num_DEGs")
+dge_plot_df$Perturbation <- factor(dge_plot_df$Perturbation,
+                                   levels = c("NegCtrl", KO_names[KO_names!="Nontargeting"]))
+ggplot(dge_plot_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_text(aes(label = Num_DEGs), position=position_dodge(width=0.9), vjust=-0.25) +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Knock-Out Target",
+       y = "Number of DEGs + 1",
+       title = "Number of DEGs detected using different methods\n(Early stage cells, LFSR or FDR cutoff at 0.05)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13))
 ```
 
 ### Late stage cells
@@ -407,20 +425,83 @@ Number of genes that passed GSFA LFSR < 0.05 under each perturbation:
 lfsr_cutoff <- 0.05
 lfsr_mat1 <- readRDS(paste0(wkdir, gsfa_folder, guide, ".gibbs_obj_k20.svd.lfsr_mat.group1.rds"))
 lfsr_signif_num <- colSums(lfsr_mat1 < lfsr_cutoff)
-print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+# print_signif_tb(lfsr_signif_num, paste0("GSFA, # of genes that passed LFSR cutoff of 0.05:"))
+```
+
+```{r deseq_1}
+library(DESeq2)
+deseq_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/by_late_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  deseq_list[[m]] <- res
+}
+deseq_signif_counts <- sapply(deseq_list, function(x){filter(x, padj < fdr_cutoff) %>% nrow()})
+```
+
+```{r edger_1}
+edger_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/by_late_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  edger_list[[m]] <- readRDS(fname)
+}
+edger_signif_counts <- sapply(edger_list, function(x){filter(x, FDR < fdr_cutoff) %>% nrow()})
+```
+
+```{r mast_1}
+mast_list <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/MAST/by_late_dev_top6k/gRNA_", m, ".dev_res_top6k.rds")
+  mast_list[[m]] <- readRDS(fname)
+}
+mast_list_signif_counts <- sapply(mast_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+```
+
+```{r scmageck_1}
+scmageck_res <- readRDS(paste0(wkdir, "scmageck/scmageck_lr.LUHMES_late.dev_res_top_6k.rds"))
+colnames(scmageck_res$fdr)[colnames(scmageck_res$fdr) == "NegCtrl"] <- "Nontargeting"
+scmageck_signif_counts <- colSums(scmageck_res$fdr[, KO_names] < fdr_cutoff)
+```
+
+```{r dge_comparison_merge_1}
+dge_comparison_df <- data.frame(Perturbation = KO_names,
+                                GSFA = lfsr_signif_num,
+                                scMAGeCK = scmageck_signif_counts,
+                                edgeR = edger_signif_counts,
+                                DESeq2 = deseq_signif_counts,
+                                MAST = mast_list_signif_counts)
+dge_comparison_df$Perturbation[dge_comparison_df$Perturbation == "Nontargeting"] <- "NegCtrl"
+```
+
+```{r fig.width=12, fig.height=5.5}
+dge_plot_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                              variable.name = "Method", value.name = "Num_DEGs")
+dge_plot_df$Perturbation <- factor(dge_plot_df$Perturbation,
+                                   levels = c("NegCtrl", KO_names[KO_names!="Nontargeting"]))
+ggplot(dge_plot_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_text(aes(label = Num_DEGs), position=position_dodge(width=0.9), vjust=-0.25) +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Knock-Out Target",
+       y = "Number of DEGs + 1",
+       title = "Number of DEGs detected using different methods\n(Late stage cells, LFSR or FDR cutoff at 0.05)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13))
 ```
 
 ## Perturbation effect on gene markers
 
 ```{r}
-dotplot_gene_perturbation <- function(genes_df, interest_df,
-                                      signif_markers = NULL, lfsr_cutoff = 0.05,
-                                      lfsr_mat, beta_mat, W_pm){
-  
+complexplot_gene_perturbation <- function(genes_df, interest_df,
+                                          signif_markers = NULL, lfsr_cutoff = 0.05,
+                                          lfsr_mat, beta_mat, W_pm){
   interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+  interest_df$type <- factor(interest_df$type, levels = unique(interest_df$type))
   stopifnot(rownames(lfsr_mat) == genes_df$ID)
   rownames(lfsr_mat) <- genes_df$Name
-  
   if (is.null(signif_markers)){
     num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
     signif_markers <- names(num_signif_genes)[which(num_signif_genes > 0)]
@@ -429,97 +510,118 @@ dotplot_gene_perturbation <- function(genes_df, interest_df,
   rownames(W_pm) <- genes_df$Name
   
   effect_size_mat <- matrix(nrow = nrow(interest_df),
-                          ncol = length(signif_markers))
-  rownames(effect_size_mat) <- interest_df$protein_name
+                            ncol = length(signif_markers))
+  rownames(effect_size_mat) <- interest_df$gene_name
   colnames(effect_size_mat) <- signif_markers
   for (m in signif_markers){
     effect_size_mat[, m] <-
       colSums(beta_mat[m, ] * t(W_pm[interest_df$gene_name, ]))
   }
-  
   selected_lfsr_mat <- lfsr_mat[interest_df$gene_name, signif_markers]
-  dotplot_effectsize(effect_size_mat,
-                     selected_lfsr_mat,
-                     reorder_markers = signif_markers,
-                     color_lgd_title = "Summarized effect") +
-    theme(axis.text.y = element_text(hjust = 1))
+  binned_size_mat <- matrix(0.6, 
+                            nrow = nrow(selected_lfsr_mat),
+                            ncol = ncol(selected_lfsr_mat))
+  rownames(binned_size_mat) <- rownames(selected_lfsr_mat)
+  colnames(binned_size_mat) <- colnames(selected_lfsr_mat)
+  binned_size_mat[selected_lfsr_mat <= 0.05] <- 1
+  binned_size_mat[selected_lfsr_mat > 0.25] <- 0.2
+  
+  lgd_list <- list()
+  col_fun <- circlize::colorRamp2(breaks = seq(-0.2, 0.2, 0.1),
+                                  colors = c("blue3", "blue", "grey90", "red", "red3"))
+  lgd_list[["effectsize"]] <- Legend(title = "Summarized effect",
+                                     at = seq(-0.2, 0.2, 0.1),
+                                     col_fun = col_fun)
+  
+  lfsr_tic_values <- c(0.2, 0.6, 1)
+  lfsr_tic_labels <- c("> 0.25", "0.05 - 0.25", "0 - 0.05")
+  
+  lgd_list[["LFSR"]] <- 
+    Legend(title = "LFSR",
+           labels = lfsr_tic_labels,
+           # labels_gp = gpar(fontsize = 14),
+           grid_height = unit(6, "mm"),
+           grid_width = unit(6, "mm"),
+           graphics = list(
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[1] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[2] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[3] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black"))
+           ))
+  
+  marker_colormap <- structure(RColorBrewer::brewer.pal(length(levels(interest_df$type)), "Accent"),
+                               names = levels(interest_df$type))
+  lgd_list[["Marker"]] <-  Legend(title = "Marker annotation",
+                                labels = levels(interest_df$type),
+                                at = levels(interest_df$type),
+                                legend_gp = gpar(fill = marker_colormap))
+  right_annot <- rowAnnotation(Marker = interest_df$type,
+                               col = list(Marker = marker_colormap),
+                               annotation_legend_param = list(
+                                 Marker = list(
+                                   title = "Marker annotation",
+                                   at = levels(interest_df$type),
+                                   labels = levels(interest_df$type)
+                                 )
+                               ),
+                               show_annotation_name = F,
+                               show_legend = F)
+  
+  map1 <- Heatmap(effect_size_mat,
+                  name = "Summarized effect",
+                  col = col_fun,
+                  rect_gp = gpar(type = "none"),
+                  cell_fun = function(j, i, x, y, width, height, fill) {
+                    grid.rect(x = x, y = y, width = width, height = height, 
+                              gp = gpar(col = NA, fill = NA))
+                    grid.circle(x = x, y = y,
+                                r = (binned_size_mat[i, j] + 0.2) * unit(2, "mm"),
+                                gp = gpar(fill = col_fun(effect_size_mat[i, j]), col = NA))
+                  },
+                  border_gp = gpar(col = "black"),
+                  row_title = "Marker genes",
+                  column_title = "Perturbations",
+                  cluster_rows = F, cluster_columns = F,
+                  right_annotation = right_annot,
+                  show_heatmap_legend = F,
+                  row_names_gp = gpar(fontsize = 10.5),
+                  column_names_rot = 45,
+                  column_names_side = "top",
+                  column_title_side = "bottom")
+  draw(map1, annotation_legend_list = lgd_list)
 }
 ```
 
-Neuronal cell markers obtained from [Neuronal and Glial Cell Marker Atlas](https://www.cellsignal.com/pathways/neuronal-and-glial-cell-markers):
+Cell differentiation markers and neuronal cell type markers:
 
 ```{r}
-interest_df <- readRDS(paste0(wkdir, "processed_data/neuronal_cell_type_markers.rds"))
+interest_df <- readRDS(paste0(wkdir, "processed_data/selected_neuronal_markers.rds"))
 interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
 rownames(interest_df) <- NULL
 knitr::kable(interest_df) %>%
-    kable_styling() %>% scroll_box(width = '100%', height = '300px')
+    kable_styling() %>% scroll_box(width = '100%', height = '400px')
 ```
 
+### Early stage cells
 
-```{r}
-early_p0 <-
-  dotplot_gene_perturbation(genes_df, interest_df,
-                            lfsr_mat = lfsr_mat0, beta_mat = All_KOs.gibbs_PM$beta0_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) + 
-  labs(title = "Early Stage")
-
-late_p0 <-
-  dotplot_gene_perturbation(genes_df, interest_df,
-                            lfsr_mat = lfsr_mat1, beta_mat = All_KOs.gibbs_PM$beta1_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) +
-  labs(title = "Late Stage")
+```{r fig.width=6.5, fig.height=6}
+complexplot_gene_perturbation(genes_df, interest_df,
+                            signif_markers = c("ADNP", "CHD2", "PTEN", "SETD5", "ASH1L", "ARID1B", "DYRK1A"),
+                            lfsr_mat = lfsr_mat0,
+                            beta_mat = All_KOs.gibbs_PM$beta0_pm,
+                            W_pm = All_KOs.gibbs_PM$W_pm)
 ```
 
-```{r fig.width=11, fig.height=6}
-grid.arrange(early_p0, late_p0, nrow = 1)
-```
+### Late stage cells
 
-Neuron progenitor (NPC): NES, TP53, CDK4, NEUROD1  
-Post-mitotic neuron: MAP2, DCX, STMN2  
-Glutamatergic neuron (excitatory): SLC17A6  
-Cortical neuron: BRN2 (POU3F2)  
-Developing striatal neurons: EBF1  
-Subtypes of inhibitory neurons: SST  
-Subtypes of extitatory neurons: NEFM
-
-```{r}
-early_p1 <-
-  dotplot_gene_perturbation(genes_df, interest_df1,
-                            lfsr_mat = lfsr_mat0, beta_mat = All_KOs.gibbs_PM$beta0_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) + 
-  labs(title = "Early Stage")
-
-late_p1 <-
-  dotplot_gene_perturbation(genes_df, interest_df1,
-                            lfsr_mat = lfsr_mat1, beta_mat = All_KOs.gibbs_PM$beta1_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) +
-  labs(title = "Late Stage")
-```
-
-```{r dotplot_gene_effect1, fig.width=10, fig.height=4}
-grid.arrange(early_p1, late_p1, nrow = 1)
-```
-
-SERPINF1 to ITM2C: negative regulators of neuron projection and differentiation    
-ZEB2 to DPYSL3: neuron maturation markers 
-
-```{r}
-early_p2 <-
-  dotplot_gene_perturbation(genes_df, interest_df2,
-                            lfsr_mat = lfsr_mat0, beta_mat = All_KOs.gibbs_PM$beta0_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) + 
-  labs(title = "Early Stage")
-
-late_p2 <-
-  dotplot_gene_perturbation(genes_df, interest_df2,
-                            lfsr_mat = lfsr_mat1, beta_mat = All_KOs.gibbs_PM$beta1_pm,
-                            W_pm = All_KOs.gibbs_PM$W_pm) +
-  labs(title = "Late Stage")
-```
-
-```{r dotplot_gene_effect2, fig.width=10, fig.height=6}
-grid.arrange(early_p2, late_p2, nrow = 1)
+```{r fig.width=6.5, fig.height=6}
+complexplot_gene_perturbation(genes_df, interest_df,
+                            signif_markers = c("ADNP", "CHD2", "PTEN", "SETD5", "ASH1L", "ARID1B", "DYRK1A"),
+                            lfsr_mat = lfsr_mat1,
+                            beta_mat = All_KOs.gibbs_PM$beta1_pm,
+                            W_pm = All_KOs.gibbs_PM$W_pm)
 ```
 
 ## DEG GO enrichment
@@ -633,6 +735,7 @@ map <- Heatmap(interest_enrich_table,
                width = unit(8, "cm"))
 draw(map, heatmap_legend_side = "right")
 ```
+
 # Gene Set Enrichment Analysis by Factor
 
 Target genes: Genes w/ non-zero loadings in each factor (PIP cutoff at 0.95);    
