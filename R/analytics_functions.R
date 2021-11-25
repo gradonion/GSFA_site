@@ -204,6 +204,192 @@ dotplot_effectsize <- function(effect_matrix, lfsr_matrix,
   return(plot_out)
 }
 
+complexplot_gene_factor <- function(genes_df, interest_df,
+                                    F_pm, W_pm){
+  interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+  interest_df$type <- factor(interest_df$type, levels = unique(interest_df$type))
+  rownames(F_pm) <- genes_df$Name
+  colnames(F_pm) <- 1:ncol(All_KOs.gibbs_PM$F_pm)
+  rownames(W_pm) <- genes_df$Name
+  colnames(W_pm) <- 1:ncol(All_KOs.gibbs_PM$W_pm)
+  
+  effect_size_mat <- W_pm[interest_df$gene_name, ]
+  pip_mat <- F_pm[interest_df$gene_name, ]
+  
+  lgd_list <- list()
+  col_fun <- circlize::colorRamp2(breaks = seq(-0.6, 0.6, 0.3),
+                                  colors = c("purple3", "purple2", "grey90", "darkorange", "darkorange1"))
+  lgd_list[["effectsize"]] <- Legend(title = "Gene loading",
+                                     title_gp = gpar(fontsize = 13, fontface = "bold"),
+                                     at = seq(-0.6, 0.6, 0.3),
+                                     col_fun = col_fun,
+                                     labels_gp = gpar(fontsize = 12))
+  
+  pip_tic_values <- seq(0.25, 1, 0.25)
+  pip_tic_labels <- c("0.25", "0.50", "0.75", "1.00")
+  
+  lgd_list[["pip"]] <- 
+    Legend(title = "PIP",
+           title_gp = gpar(fontsize = 13, fontface = "bold"),
+           labels = pip_tic_labels,
+           labels_gp = gpar(fontsize = 12),
+           grid_height = unit(6.5, "mm"),
+           grid_width = unit(6, "mm"),
+           graphics = list(
+             function(x, y, w, h) grid.circle(x, y, r = (pip_tic_values[1] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (pip_tic_values[2] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (pip_tic_values[3] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (pip_tic_values[4] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black"))
+           ))
+  
+  marker_colormap <- structure(RColorBrewer::brewer.pal(length(levels(interest_df$type)), "Set3"),
+                               names = levels(interest_df$type))
+  lgd_list[["Marker"]] <-  Legend(title = "Marker annotation",
+                                  title_gp = gpar(fontsize = 13, fontface = "bold"),
+                                  labels = levels(interest_df$type),
+                                  labels_gp = gpar(fontsize = 12),
+                                  at = levels(interest_df$type),
+                                  legend_gp = gpar(fill = marker_colormap))
+  right_annot <- rowAnnotation(Marker = interest_df$type,
+                               col = list(Marker = marker_colormap),
+                               annotation_legend_param = list(
+                                 Marker = list(
+                                   title = "Marker annotation",
+                                   at = levels(interest_df$type),
+                                   labels = levels(interest_df$type)
+                                 )
+                               ),
+                               show_annotation_name = F,
+                               show_legend = F)
+  
+  map1 <- Heatmap(effect_size_mat,
+                  name = "Gene loading",
+                  col = col_fun,
+                  rect_gp = gpar(type = "none"),
+                  cell_fun = function(j, i, x, y, width, height, fill) {
+                    grid.rect(x = x, y = y, width = width, height = height, 
+                              gp = gpar(col = NA, fill = NA))
+                    grid.circle(x = x, y = y,
+                                r = (pip_mat[i, j] + 0.2) * unit(2, "mm"),
+                                gp = gpar(fill = col_fun(effect_size_mat[i, j]), col = NA))
+                  },
+                  border_gp = gpar(col = "black"),
+                  row_title = "Marker genes",
+                  row_title_gp = gpar(fontsize = 16),
+                  column_title = "Factors",
+                  column_title_gp = gpar(fontsize = 16),
+                  cluster_rows = F, cluster_columns = F,
+                  right_annotation = right_annot,
+                  show_heatmap_legend = F,
+                  row_names_gp = gpar(fontsize = 12),
+                  column_names_gp = gpar(fontsize = 12),
+                  column_names_rot = 45,
+                  column_names_side = "top",
+                  column_title_side = "bottom")
+  draw(map1, annotation_legend_list = lgd_list)
+}
+
+complexplot_gene_perturbation <- function(genes_df, interest_df,
+                                          targets = NULL,
+                                          lfsr_mat, effect_mat,
+                                          lfsr_cutoff = 0.05,
+                                          effect_name = "Summarized effect",
+                                          lfsr_name = "LFSR",
+                                          score_break = seq(-0.2, 0.2, 0.1),
+                                          color_break = c("blue3", "blue", "grey90", "red", "red3")){
+  interest_df <- interest_df[interest_df$gene_name %in% genes_df$Name, ]
+  interest_df$type <- factor(interest_df$type, levels = unique(interest_df$type))
+  if (is.null(rownames(effect_mat))){
+    rownames(effect_mat) <- genes_df$Name
+  }
+  if (is.null(colnames(effect_mat))){
+    colnames(effect_mat) <- colnames(lfsr_mat)
+  }
+  if (is.null(targets)){
+    num_signif_genes <- colSums(lfsr_mat < lfsr_cutoff)
+    targets <- names(num_signif_genes)[which(num_signif_genes > 0)]
+  }
+  selected_effect_mat <- effect_mat[interest_df$gene_name, targets]
+  
+  selected_lfsr_mat <- lfsr_mat[interest_df$gene_name, targets]
+  binned_size_mat <- matrix(0.6, 
+                            nrow = nrow(selected_lfsr_mat),
+                            ncol = ncol(selected_lfsr_mat))
+  rownames(binned_size_mat) <- rownames(selected_lfsr_mat)
+  colnames(binned_size_mat) <- colnames(selected_lfsr_mat)
+  binned_size_mat[selected_lfsr_mat <= 0.05] <- 1
+  binned_size_mat[selected_lfsr_mat > 0.25] <- 0.2
+  
+  lgd_list <- list()
+  col_fun <- circlize::colorRamp2(breaks = score_break,
+                                  colors = color_break)
+  lgd_list[["effectsize"]] <- Legend(title = effect_name,
+                                     at = score_break,
+                                     col_fun = col_fun)
+  
+  lfsr_tic_values <- c(0.2, 0.6, 1)
+  lfsr_tic_labels <- c("> 0.25", "0.05 - 0.25", "0 - 0.05")
+  
+  lgd_list[["LFSR"]] <- 
+    Legend(title = lfsr_name,
+           labels = lfsr_tic_labels,
+           grid_height = unit(6, "mm"),
+           grid_width = unit(6, "mm"),
+           graphics = list(
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[1] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[2] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black")),
+             function(x, y, w, h) grid.circle(x, y, r = (lfsr_tic_values[3] + 0.2) * unit(2, "mm"),
+                                              gp = gpar(fill = "black"))
+           ))
+  
+  marker_colormap <- structure(RColorBrewer::brewer.pal(length(levels(interest_df$type)), "Set3"),
+                               names = levels(interest_df$type))
+  lgd_list[["Marker"]] <-  Legend(title = "Marker annotation",
+                                  labels = levels(interest_df$type),
+                                  at = levels(interest_df$type),
+                                  legend_gp = gpar(fill = marker_colormap))
+  right_annot <- rowAnnotation(Marker = interest_df$type,
+                               col = list(Marker = marker_colormap),
+                               annotation_legend_param = list(
+                                 Marker = list(
+                                   title = "Marker annotation",
+                                   at = levels(interest_df$type),
+                                   labels = levels(interest_df$type)
+                                 )
+                               ),
+                               show_annotation_name = F,
+                               show_legend = F)
+  
+  map1 <- Heatmap(selected_effect_mat,
+                  name = effect_name,
+                  col = col_fun,
+                  rect_gp = gpar(type = "none"),
+                  cell_fun = function(j, i, x, y, width, height, fill) {
+                    grid.rect(x = x, y = y, width = width, height = height, 
+                              gp = gpar(col = NA, fill = NA))
+                    grid.circle(x = x, y = y,
+                                r = (binned_size_mat[i, j] + 0.2) * unit(2, "mm"),
+                                gp = gpar(fill = col_fun(selected_effect_mat[i, j]), col = NA))
+                  },
+                  border_gp = gpar(col = "black"),
+                  row_title = "Marker genes",
+                  column_title = "Perturbations",
+                  cluster_rows = F, cluster_columns = F,
+                  right_annotation = right_annot,
+                  show_heatmap_legend = F,
+                  row_names_gp = gpar(fontsize = 10.5),
+                  column_names_rot = 45,
+                  column_names_side = "top",
+                  column_title_side = "bottom")
+  draw(map1, annotation_legend_list = lgd_list)
+}
+
 plot_pval_heatmap <- function(heatmap_matrix, factor_annot = NULL, snp_annot = NULL,
                               row_title = "Factor",
                               column_title = "KO Perturbations",

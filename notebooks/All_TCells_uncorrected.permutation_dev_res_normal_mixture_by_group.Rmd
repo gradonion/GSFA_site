@@ -1,0 +1,276 @@
+---
+title: "Guided Factor Analysis on All CD8+ T Cell CROP-seq Data"
+subtitle: "-- Permutation (Deviance residual transformed + Normal-mixture prior, Donor uncorrected)"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+library(clusterProfiler)
+
+# set default chunk output
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/Stimulated_T_Cells/"
+gsfa_folder <- "gsfa_output_detect_01/all_uncorrected_by_group.normal_mixture/permutation/"
+guide <- "All"
+```
+
+# Single cell expression data
+
+Source:   
+[Genome-wide CRISPR Screens in Primary Human T Cells Reveal Key Regulators of Immune Function](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6689405/), GEO accession: GSE119450.
+
+Perturbations:    
+CRISPR knock-out of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Guide conditions were defined on the target gene level; target genes were either found to regulate T cell responses in the genome-wide screens, or known checkpoint genes.    
+Guide RNAs were introduced into T cells through a novel procedure called sgRNA lentiviral infection with Cas9 protein electroporation (SLICE).
+
+Cells:    
+Primary human CD8+ T cells from two healthy donors, **with and without** T cell receptor (TCR) stimulation.   
+Cells from 2 donors were pooled together into 1 analysis. All cells have only a single type of gRNA readout. Quality control resulted in 24995 cells, including 5533 D1N, 6843 D1S, 5144 D2N, and 7435 D2S cells.
+
+Genes:    
+**Top 6000 genes ranked by the multinomial deviance statistics were kept.**
+
+Normalization:    
+Deviance residual transformation.   
+**Donor batch was not corrected for.**  
+**Unique UMI count, library size, and mitochondria percentage were all corrected for. The corrected and scaled expression data were used as input for subsequent factor analysis.**
+
+```{r load meta data, fig.width=9}
+metadata <- readRDS(paste0(wkdir, "processed_data/metadata.all_T_cells_merged.rds"))
+all_KOs.G_mat <- metadata[, 4:24]
+KO_names <- colnames(all_KOs.G_mat)
+nmarkers <- ncol(all_KOs.G_mat)
+```
+
+**We separate the cells into 2 groups:**
+
+Stimulated: 14278 cells;  
+Unstimulated stage: 10677 cells.
+
+We modified GSFA so that the associations ($\beta$) between factors and perturbations are estimated for stimulated and unstimulated cells separately.
+
+# GSFA Permutation
+
+Within both the stimulated and unstimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then GSFA was performed still using all conditions as guides. Factor-guide association as well as the LFSR of each gene were evaluated as usual.
+
+In total, 10 random permutation rounds like this were conducted.
+
+```{r load PM results}
+gibbs_lst <- list()
+for (i in 1:10){
+  perm_PM <- readRDS(paste0(wkdir, gsfa_folder,
+                            "All.gibbs_obj_k20.perm_", i, ".restart.PM.rds"))
+  gibbs_lst[[i]] <- perm_PM
+}
+```
+
+## Factor ~ KO Association
+
+### Posterior Mean of Beta
+
+```{r fig.width=6, fig.height=4}
+beta0_pm_list <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pm_matrix <- t(perm_PM$beta0_pm[-(nmarkers + 1), ])
+  beta0_pm_list[[i]] <- as.numeric(beta_pm_matrix)
+}
+p0 <- qplot(unlist(beta0_pm_list), xlab = "Beta Estimation",
+      main = paste0("Unstimulated Cells\n", "10 Permutations, 21 Targets x 20 Factors"))
+cat(paste("Unstimulated cells, # of |beta|\'s > 0.05:", sum(abs(unlist(beta0_pm_list)) > 0.05)))
+cat("\n\n")
+```
+
+```{r fig.width=6, fig.height=4}
+beta1_pm_list <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pm_matrix <- t(perm_PM$beta1_pm[-(nmarkers + 1), ])
+  beta1_pm_list[[i]] <- as.numeric(beta_pm_matrix)
+}
+p1 <- qplot(unlist(beta1_pm_list), xlab = "Beta Estimation",
+      main = paste0("Stimulated Cells\n", "10 Permutations, 21 Targets x 20 Factors"))
+cat(paste("Stimulated cells, # of |beta|\'s > 0.05:", sum(abs(unlist(beta1_pm_list)) > 0.05)))
+cat("\n\n")
+```
+
+```{r fig.width=9, fig.height=4}
+grid.arrange(p0, p1, nrow = 1)
+```
+
+### Beta PIP
+```{r fig.width=6, fig.height=4}
+beta0_pip_list <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pip_matrix <- t(perm_PM$Gamma0_pm[-(nmarkers + 1), ])
+  beta0_pip_list[[i]] <- as.numeric(beta_pip_matrix)
+}
+p0 <- qplot(unlist(beta0_pip_list), xlab = "Beta PIP",
+      main = "Unstimulated Cells\n10 Permutations, 21 Targets x 20 Factors")
+cat(paste("Unstimulated cells, # of PIPs > 0.8:", sum(unlist(beta0_pip_list) > 0.8)))
+cat("\n\n")
+```
+
+```{r fig.width=6, fig.height=4}
+beta1_pip_list <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  beta_pip_matrix <- t(perm_PM$Gamma1_pm[-(nmarkers + 1), ])
+  beta1_pip_list[[i]] <- as.numeric(beta_pip_matrix)
+}
+p1 <- qplot(unlist(beta1_pip_list), xlab = "Beta PIP",
+      main = "Stimulated Cells\n10 Permutations, 21 Targets x 20 Factors")
+cat(paste("Stimulated cells, # of PIPs > 0.8:", sum(unlist(beta1_pip_list) > 0.8)))
+cat("\n\n")
+```
+
+```{r fig.width=9, fig.height=4}
+grid.arrange(p0, p1, nrow = 1)
+```
+
+### Factor ~ KO Regression P Value
+
+```{r unstim.pval, fig.width=10, fig.height=5}
+unstim_indx <- endsWith(metadata$orig.ident, "N")
+pval_lst0 <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  gibbs_res_tb <- make_gibbs_res_tb(perm_PM, all_KOs.G_mat, cell_indx = unstim_indx)
+  pval_matrix <- gibbs_res_tb %>% select(starts_with("pval"))
+  pval_lst0[[i]] <- unlist(pval_matrix)
+}
+summ_pvalues(unlist(pval_lst0),
+             title_text = paste0("Unstimulated Cells\n", length(gibbs_lst),
+                                 " Permutations, 20 factors x 21 KOs"))
+```
+
+```{r stim.pval, fig.width=10, fig.height=5}
+stim_indx <- endsWith(metadata$orig.ident, "S")
+pval_lst1 <- list()
+for (i in 1:length(gibbs_lst)){
+  perm_PM <- gibbs_lst[[i]]
+  gibbs_res_tb <- make_gibbs_res_tb(perm_PM, all_KOs.G_mat, cell_indx = stim_indx)
+  pval_matrix <- gibbs_res_tb %>% select(starts_with("pval"))
+  pval_lst1[[i]] <- unlist(pval_matrix)
+}
+summ_pvalues(unlist(pval_lst1),
+             title_text = paste0("Stimulated Cells\n", length(gibbs_lst),
+                                 " Permutations, 20 factors x 21 KOs"))
+```
+
+## LFSR
+
+```{r load LFSR group0 results, fig.width=6, fig.height=4}
+lfsr0_list <- list()
+for (i in 1:length(gibbs_lst)){
+  lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".lfsr_mat.group0.rds"))
+  lfsr0_list[[i]] <- as.numeric(lfsr_mat)
+}
+p0 <- qplot(unlist(lfsr0_list), xlab = "LFSR",
+      main = "Unstimulated Cells\n10 Permutations, 21 Targets x 6000 Genes")
+cat(paste("Unstimulated cells, # of LFSRs < 0.1:", sum(unlist(lfsr0_list) < 0.1)))
+cat("\n\n")
+```
+
+```{r load LFSR group1 results, fig.width=6, fig.height=4}
+lfsr1_list <- list()
+for (i in 1:length(gibbs_lst)){
+  lfsr_mat <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.perm_", i, ".lfsr_mat.group1.rds"))
+  lfsr1_list[[i]] <- as.numeric(lfsr_mat)
+}
+p1 <- qplot(unlist(lfsr1_list), xlab = "LFSR",
+      main = "Stimulated Cells\n10 Permutations, 21 Targets x 6000 Genes")
+cat(paste("Stimulated cells, # of LFSRs < 0.1:", sum(unlist(lfsr1_list) < 0.1)))
+cat("\n\n")
+```
+
+
+```{r fig.width=9, fig.height=4}
+grid.arrange(p0, p1, nrow = 1)
+```
+
+# edgeR Permutation (Stimulated)
+
+Within stimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then edgeR QLF test was performed under each guide.
+
+In total, 10 random permutation rounds like this were conducted.
+
+```{r load edgeR results}
+edger_list <- list()
+for (i in 1:10){
+  perm_lst <- list()
+  for (m in KO_names){
+    res <- readRDS(paste0(wkdir, "processed_data/edgeR_qlf/all_by_stim_dev_6k/perm_",
+                            i, "/gRNA_", m, ".dev_res_top6k.rds"))
+    res$target <- m
+    perm_lst[[m]] <- res
+  }
+  edger_list[[i]] <- do.call(rbind, perm_lst)
+}
+```
+
+```{r fig.width=10, fig.height=5}
+for (i in 1:10){
+  summ_pvalues(edger_list[[i]]$PValue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Permutation ", i, ", 6000 genes x 21 KOs"))
+}
+```
+
+## Original edgeR DGE result
+
+```{r}
+edger_unpermuted <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/edgeR_qlf/all_by_stim_dev_6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res$target <- m
+  edger_unpermuted[[m]] <- res
+}
+edger_unpermuted <- do.call(rbind, edger_unpermuted)
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(edger_unpermuted$PValue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Original, 6000 genes x 21 KOs"))
+```
+

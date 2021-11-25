@@ -69,13 +69,13 @@ CRISPR **knock-down** of 14 autism spectrum disorder (ASD)–associated genes (3
 
 #### Analyses
 * [Data overview](LUHMES_overview.html);
-* [Pseudotime trajectory analysis, similar to reference paper](LUHMES_pseudotime_trajectory.html);
+* [Pseudotime trajectory analysis](LUHMES_pseudotime_trajectory.html);
 * [GSFA, normal-mixture prior](LUHMES_merged_new.gsfa_dev_res_normal_mixture.html);
 * [GSFA, normal-mixture prior, cells analyzed by early and late stages](LUHMES_by_group.gsfa_dev_res_normal_mixture.html);
-* [GSFA, spike-and-slab prior, 4 confounding factors corrected](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
-* [Enrichment analysis on GSFA result (spike-and-slab)](LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html);
-* [Gene discovery using LFSR, and comparison with DGE (spike-and-slab)](LUHMES_lfsr.html);
-* [Permutation results (spike-and-slab)](LUHMES_merged_new.permutation_detect_01.html);
+* (Archived) [GSFA, spike-and-slab prior, 4 confounding factors corrected](LUHMES_merged_new.gsfa_all_markers_detect_01.html);
+* (Archived) [Enrichment analysis on GSFA result (spike-and-slab)](LUHMES_merged_new.gsfa_all_markers_detect_01_enrichment.html);
+* (Archived) [Gene discovery using LFSR, and comparison with DGE (spike-and-slab)](LUHMES_lfsr.html);
+* (Archived) [Permutation results (spike-and-slab)](LUHMES_merged_new.permutation_detect_01.html);
 * [MUSIC topic modeling result](LUHMES_merged_new.music.html)
 
 ### Primary Human T Cell CROP-seq Study
@@ -94,18 +94,19 @@ CRISPR **knock-out** of 20 genes (2 gRNAs per gene) + 8 non-targeting gRNAs. Tar
 
 #### Analyses
 
-* [Clustering analysis of all cells, similar to reference paper](All_TCells_clustering.html);  
-[GSFA, normal-mixture prior, donor not corrected, cells analyzed by group ](All_TCells_uncorrected.gsfa_dev_res_normal_mixture_by_group.html);  
-[GSFA, normal-mixture prior, donor corrected, cells analyzed by group ](All_TCells_donor_corrected.gsfa_dev_res_normal_mixture_by_group.html);  
+* [All T cells data overview, clustering analysis](All_TCells_clustering.html);  
+[GSFA, normal-mixture prior, donor not corrected, all cells analyzed by group ](All_TCells_uncorrected.gsfa_dev_res_normal_mixture_by_group.html);  
+[Permutation results for DGE methods](All_TCells_uncorrected.permutation_dev_res_normal_mixture_by_group.html);  
+(Archived) [GSFA, normal-mixture prior, donor corrected, all cells analyzed by group ](All_TCells_donor_corrected.gsfa_dev_res_normal_mixture_by_group.html);  
 * [Stimulated T cells data overview](Stimulated_TCells_overview.html);  
 Stimulated T cells pooled over 2 donors, batch effect corrected  
-[GSFA, normal-mixture prior](Stimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
-[GSFA, spike-and-slab prior](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);  
-[Enrichment analysis on GSFA result (spike-and-slab)](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
+(Archived) [GSFA, normal-mixture prior](Stimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
+(Archived) [GSFA, spike-and-slab prior](Stimulated_TCells_merged.gsfa_all_genes_detect_01.html);  
+(Archived) [Enrichment analysis on GSFA result (spike-and-slab)](Stimulated_TCells_merged.enrichment_gsfa_detect_01.html);  
 * [Un-stimulated T cells data overview](Unstimulated_TCells_overview.html);  
 Unstimulated T cells pooled over 2 donors, batch effect corrected  
-[GSFA, normal-mixture prior](Unstimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
-[GSFA, spike-and-slab prior](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
+(Archived) [GSFA, normal-mixture prior](Unstimulated_TCells_merged.gsfa_dev_res_normal_mixture.html);  
+(Archived) [GSFA, spike-and-slab prior](Unstimulated_TCells_merged.gsfa_all_genes_detect_01.html);
 
 ### MCF10A CROP-seq Study
 
