@@ -227,6 +227,166 @@ cat("\n\n")
 grid.arrange(p0, p1, nrow = 1)
 ```
 
+# scMAGeCK Permutation (Stimulated)
+
+Within stimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then scMAGeCK-LR test was performed for all guides at once.
+
+In total, 10 random permutation rounds like this were conducted.
+
+**The outputs are empirical p values**, some of them equal to 0 exactly, and had to be replaced with 0.0005 for QQ-plot.
+
+```{r load scmageck results}
+scmageck_list <- list()
+for (i in 1:10){
+  res <- readRDS(paste0(wkdir, "scmageck/scmageck_lr.TCells_stim.perm_", i, ".rds"))
+  res <- reshape2::melt(res$pval, variable.name = "target", value.name = "pvalue")
+  res$pvalue[res$pvalue==0] <- 0.0005 # minimum non-zero value is 0.001
+  scmageck_list[[i]] <- res
+}
+```
+
+```{r fig.width=10, fig.height=5, eval=F, include=F}
+for (i in 1:10){
+  summ_pvalues(scmageck_list[[i]]$pvalue,
+               title_text = paste0("Stimulated Cells\n",
+                                   "Permutation ", i, ", 6000 genes x 21 KOs"))
+}
+```
+
+## Combined from 10 permtutions
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(do.call(rbind, scmageck_list)$pvalue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Original, 6000 genes x 21 KOs"))
+```
+
+## Original scMAGeCK result
+
+```{r}
+scmageck_unpermuted <- readRDS(paste0(wkdir, "scmageck/scmageck_lr.TCells_stim.dev_res_top_6k.rds"))
+scmageck_res <- reshape2::melt(scmageck_unpermuted$pval, variable.name = "target", value.name = "pvalue")
+scmageck_res$pvalue[scmageck_res$pvalue==0] <- 0.0005
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(scmageck_res$pvalue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Original, 6000 genes x 21 KOs"))
+```
+
+# DESeq2 Permutation (Stimulated)
+
+Within stimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then DESeq2 test was performed under each guide.
+
+In total, 10 random permutation rounds like this were conducted.
+
+```{r load deseq2 results}
+deseq_list <- list()
+for (i in 1:10){
+  perm_lst <- list()
+  for (m in KO_names){
+    res <- readRDS(paste0(wkdir, "processed_data/DESeq2/all_by_stim_dev_6k/perm_",
+                            i, "/gRNA_", m, ".dev_res_top6k.rds"))
+    res <- as.data.frame(res@listData, row.names = res@rownames)
+    res$target <- m
+    perm_lst[[m]] <- res
+  }
+  deseq_list[[i]] <- do.call(rbind, perm_lst)
+}
+```
+
+```{r fig.width=10, fig.height=5, eval=F, include=F}
+for (i in 1:10){
+  summ_pvalues(deseq_list[[i]]$pvalue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Permutation ", i, ", 6000 genes x 21 KOs"))
+}
+```
+
+## Combined from 10 permtutions
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(do.call(rbind, deseq_list)$pvalue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "10 Permutations, 6000 genes x 21 KOs"))
+```
+
+## Original DESeq2 DGE result
+
+```{r}
+deseq_unpermuted <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/DESeq2/all_by_stim_dev_6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res <- as.data.frame(res@listData, row.names = res@rownames)
+  res$target <- m
+  deseq_unpermuted[[m]] <- res
+}
+deseq_unpermuted <- do.call(rbind, deseq_unpermuted)
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(deseq_unpermuted$pvalue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Original, 6000 genes x 21 KOs"))
+```
+
+# MAST Permutation (Stimulated)
+
+Within stimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then MAST likelihood ratio test was performed under each guide.
+
+In total, 10 random permutation rounds like this were conducted.
+
+```{r load MAST results}
+mast_list <- list()
+for (i in 1:10){
+  perm_lst <- list()
+  for (m in KO_names){
+    res <- readRDS(paste0(wkdir, "processed_data/MAST/all_by_stim_dev_6k/perm_",
+                            i, "/gRNA_", m, ".dev_res_top6k.rds"))
+    res$target <- m
+    perm_lst[[m]] <- res
+  }
+  mast_list[[i]] <- do.call(rbind, perm_lst)
+}
+```
+
+```{r fig.width=10, fig.height=5, eval=F, include=F}
+for (i in 1:10){
+  summ_pvalues(mast_list[[i]]$pval,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Permutation ", i, ", 6000 genes x 21 KOs"))
+}
+```
+
+## Combined from 10 permtutions
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(do.call(rbind, mast_list)$pval,
+             title_text = paste0("Stimulated Cells\n",
+                                 "10 Permutations, 6000 genes x 21 KOs"))
+```
+
+## Original MAST DGE result
+
+```{r}
+mast_unpermuted <- list()
+for (m in KO_names){
+  fname <- paste0(wkdir, "processed_data/MAST/all_by_stim_dev_6k/gRNA_", m, ".dev_res_top6k.rds")
+  res <- readRDS(fname)
+  res$target <- m
+  mast_unpermuted[[m]] <- res
+}
+mast_unpermuted <- do.call(rbind, mast_unpermuted)
+```
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(mast_unpermuted$pval,
+             title_text = paste0("Stimulated Cells\n",
+                                 "Original, 6000 genes x 21 KOs"))
+```
+
 # edgeR Permutation (Stimulated)
 
 Within stimulated cells, cell labels in the expression data were permuted randomly so that they are no longer correlated with the knock-down conditions. Then edgeR QLF test was performed under each guide.
@@ -247,12 +407,20 @@ for (i in 1:10){
 }
 ```
 
-```{r fig.width=10, fig.height=5}
+```{r fig.width=10, fig.height=5, eval=F, include=F}
 for (i in 1:10){
   summ_pvalues(edger_list[[i]]$PValue,
              title_text = paste0("Stimulated Cells\n",
                                  "Permutation ", i, ", 6000 genes x 21 KOs"))
 }
+```
+
+## Combined from 10 permtutions
+
+```{r fig.width=10, fig.height=5}
+summ_pvalues(do.call(rbind, edger_list)$PValue,
+             title_text = paste0("Stimulated Cells\n",
+                                 "10 Permutations, 6000 genes x 21 KOs"))
 ```
 
 ## Original edgeR DGE result
