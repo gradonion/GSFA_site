@@ -253,7 +253,7 @@ for (i in 1:10){
 }
 ```
 
-## Combined from 10 permtutions
+## Combined from 10 permutations
 
 ```{r fig.width=10, fig.height=5}
 summ_pvalues(do.call(rbind, scmageck_list)$pvalue,
@@ -304,7 +304,7 @@ for (i in 1:10){
 }
 ```
 
-## Combined from 10 permtutions
+## Combined from 10 permutations
 
 ```{r fig.width=10, fig.height=5}
 summ_pvalues(do.call(rbind, deseq_list)$pvalue,
@@ -360,7 +360,7 @@ for (i in 1:10){
 }
 ```
 
-## Combined from 10 permtutions
+## Combined from 10 permutations
 
 ```{r fig.width=10, fig.height=5}
 summ_pvalues(do.call(rbind, mast_list)$pval,
@@ -415,7 +415,7 @@ for (i in 1:10){
 }
 ```
 
-## Combined from 10 permtutions
+## Combined from 10 permutations
 
 ```{r fig.width=10, fig.height=5}
 summ_pvalues(do.call(rbind, edger_list)$PValue,
