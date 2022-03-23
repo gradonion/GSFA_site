@@ -147,8 +147,9 @@ Somatic mutation status of selected frequently mutated driver genes (PIK3CA, TP5
 
 #### Analyses
 * [Data overview](TCGA_BRCA_somatic_overview.html);
-* [GSFA, female Caucasian only, missense + LOF mutations, RSEM normalized](TCGA_BRCA_top5_lof_missense.gsfa_rsem.html);
+* [Newest GSFA, female Caucasian only, missense + LOF mutations, TMM normalized](TCGA_BRCA_top5_lof_missense.gsfa_tmm.top10k_var_new.html);
 * [GSFA, female Caucasian only, missense + LOF mutations, TMM normalized](TCGA_BRCA_top5_lof_missense.gsfa_tmm.html);
+* [GSFA, female Caucasian only, missense + LOF mutations, RSEM normalized](TCGA_BRCA_top5_lof_missense.gsfa_rsem.html);
 * [GSFA, female Caucasian only, merged mutations](TCGA_BRCA_selected_7_mutations.gsfa_rsem.html);
 * [GSFA, female Caucasian only, merged mutations, corrected for subtype](TCGA_BRCA_selected_7_mutations.gsfa_rsem_subtype_corrected.html);
 

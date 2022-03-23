@@ -1,0 +1,445 @@
+---
+title: "Guided Factor Analysis on TCGA BRCA Gene Expression Data"
+subtitle: "-- Normalization: TMM, Guides: LOF and Missense Mutations Separated"
+author: "Yifan Zhou (zhouyf@uchicago.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+requireNamespace("pander", quietly = TRUE)
+library(data.table)
+library(Matrix)
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_bw() + theme(plot.title = element_text(size = 14, hjust = 0.5),
+                             axis.title = element_text(size = 14),
+                             axis.text = element_text(size = 12),
+                             legend.title = element_text(size = 13),
+                             legend.text = element_text(size = 12),
+                             panel.grid.minor = element_blank())
+)
+library(ggrepel)
+library(gridExtra)
+library(ComplexHeatmap)
+library(kableExtra)
+# set default chunk output
+knitr::opts_chunk$set(echo = F,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      tidy = FALSE,
+                      fig.width = 8,
+                      fig.height = 6,
+                      fig.align = "center",
+                      results = "asis")
+
+# formatting of pander tables
+pander::panderOptions('knitr.auto.asis', FALSE)
+pander::panderOptions("table.split.table", Inf)
+```
+
+```{r}
+source("/project2/xinhe/yifan/Factor_analysis/reports/R/analytics_functions.R")
+wkdir <- "/project2/xinhe/yifan/Factor_analysis/TCGA/"
+meta_file <- "processed_data/BRCA_metadata.TMM_samples.female_white_only.top5_lof_mis.rds"
+gsfa_folder <- "gsfa_output_tmm_female_white/new/"
+```
+
+# Data Description
+
+References:
+[Perspective on Oncogenic Processes at the End of the Beginning of Cancer Genomics](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5916814/).
+
+Data source:   
+[FireBrowse TCGA BRCA Archives](http://firebrowse.org/?cohort=BRCA&download_dialog=true).
+
+Samples:    
+TCGA breast invasive carcinoma (BRCA) tumor samples in file "illuminahiseq_rnaseq-gene_expression".   
+To avoid possible confounding due to gender and race, **we confined our study samples to be only from female Caucasian subjects**.    
+In addition, only samples with somatic mutation annotation were kept, resulted in 573 samples.
+
+Genes:    
+**Only the top 10k variable genes in samples of consideration were kept.** (Variance was calculated based on the TMM-normalized log2(CPM) data.)
+
+Normalization:    
+**Raw counts normalized by TMM using edgeR, converted to log2(CPM), then corrected for subject age and tumor purity.** The corrected and scaled expression data were used as input for subsequent factor analysis.
+
+```{r fig.width=6, fig.height=5}
+metadata <- readRDS(paste0(wkdir, meta_file))
+annotated_gene_exp <-
+  readRDS(paste0(wkdir, "processed_data/BRCA_Merge_rnaseq_log2_cpm_TMM_w_somatic_mutations.rds"))
+filtered_gene_exp <- annotated_gene_exp[, metadata$id]
+gene_df <- data.frame(name = rownames(filtered_gene_exp),
+                      mean = rowMeans(filtered_gene_exp),
+                      var = apply(filtered_gene_exp, 1, var),
+                      stringsAsFactors = F)
+# topvar_genes <- gene_df %>% arrange(-var) %>% slice(1:10000) %>% pull(name)
+# gene_df <- gene_df %>% mutate(topvar = name %in% topvar_genes)
+ggplot(gene_df, aes(x = mean, y = var)) +
+  geom_point(size = 0.5) +
+  geom_density2d() +
+  labs(title = "TMM-Normailzed log2(CPM)",
+       x = "Mean per gene", y = "Variance per gene")
+```
+
+Perturbations:    
+Somatic mutation status of selected frequently mutated driver genes (TP53, CDH1, GATA3, MAP3K1, PIK3CA).    
+Mutations were classified into 2 types: missense mutations and loss of function (LOF) mutations.
+
+```{r load meta data, fig.width=6, fig.height=4}
+# metadata <- readRDS(paste0(wkdir, meta_file))
+G_mat <- metadata[, 14:23]
+KO_names <- colnames(G_mat)
+nmarkers <- ncol(G_mat)
+
+num_per_marker <- colSums(G_mat)
+num_per_marker <- data.frame(Mutation = names(num_per_marker),
+                             Num_cells = num_per_marker)
+ggplot(num_per_marker, aes(x = Mutation, y = Num_cells)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Num_cells), 
+            position = position_dodge(width=0.9), vjust = -0.25) +
+  labs(y = "Number of Cells",
+       title = "Number of Cells w/ Each Mutation") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13))
+```
+
+# GSFA results
+
+Here, our "guide", $G$ matrix, consists of the somatic mutation status (missense and LOF separated) of top 5 driver genes across samples.
+
+We specified 20 factors in our model. In each case, Gibbs sampling was conducted for 3000 iterations, and the posterior mean estimates were averaged over the last 1000 iterations.
+
+```{r}
+fit <- readRDS(paste0(wkdir, gsfa_folder, "All.gibbs_obj_k20.svd.seed_92629.package.light.rds"))
+gibbs_PM <- fit$posterior_means
+lfsr_mat <- fit$lfsr[, -ncol(fit$lfsr)]
+KO_names <- colnames(lfsr_mat)
+```
+
+# Factor ~ Perturbation Association
+
+## Perturbation effects on factors
+
+Fisrt of all, we look at the estimated effects of gene perturbations on factors inferred by GSFA. 
+
+Factors from bulk data were originally very dense, so when imposed upon a normal-mixture prior, they all become really sparse:
+
+```{r}
+factor_dens <- colMeans(gibbs_PM$F_pm > 0.95)
+factor_dens <- t(data.frame(Factor = names(factor_dens),
+                            Density = factor_dens,
+                            row.names = NULL))
+print(knitr::kable(rbind(factor_dens[, 1:5], factor_dens[, 6:10])) %>%
+        kable_styling() %>% scroll_box(width = '100%'))
+```
+
+We found that 5 somatic mutations, TP53_LOF, TP53_mis, CDH1_LOF, GATA3_LOF and PIK3CA_mis, has significant effects (PIP > 0.95) on at least 1 of the 20 inferred factors.
+
+Effects of all targets on all factors:
+```{r fig.width=9, fig.height=4.5}
+dotplot_beta_PIP(t(gibbs_PM$Gamma_pm), t(gibbs_PM$beta_pm),
+                 marker_names = KO_names,
+                 inverse_factors = F) +
+  coord_flip()
+```
+
+Here is a closer look at the estimated effects of selected mutations on selected factors:
+
+```{r fig.width=6, fig.height=4}
+targets <- c("TP53_LOF", "TP53_mis", "CDH1_LOF", "GATA3_LOF", "PIK3CA_mis")
+complexplot_perturbation_factor(gibbs_PM$Gamma_pm[-nrow(gibbs_PM$Gamma_pm), ],
+                                gibbs_PM$beta_pm[-nrow(gibbs_PM$beta_pm), ],
+                                marker_names = KO_names,
+                                reorder_markers = targets,
+                                reorder_factors = c(6, 8, 13, 16, 18, 20))
+```
+
+Enriched GO terms of selected factors:
+
+4 (cell/tissue development), 5 (immune activation), 8 (neural development),  
+13 (cell cycle), 16 (immune response), 18 (immune response), 20 (vessel development).
+
+## Factor-perturbation association p values
+
+We can also assess the correlations between each pair of perturbation and inferred factor.  
+The distribution of correlation p values show significant signals.
+
+```{r fig.width=10, fig.height=5}
+gibbs_res_tb <- make_gibbs_res_tb(gibbs_PM, G_mat, compute_pve = F)
+heatmap_matrix <- gibbs_res_tb %>% select(starts_with("pval"))
+rownames(heatmap_matrix) <- 1:nrow(heatmap_matrix)
+colnames(heatmap_matrix) <- colnames(G_mat)
+
+summ_pvalues(unlist(heatmap_matrix),
+             title_text = "GSFA\n(10 Mutations x 20 Factors)")
+```
+
+# Factor Interpretation
+
+## Correlation within factors
+
+Since the GSFA model does not enforce orthogonality among factors, we also need to inspect the pairwise correlation within them to see if there is any redundancy. 
+
+As we can see below, the inferred factors are correlated with each other to some extent, especially among factors 13-20.
+
+```{r fig.width=7, fig.height=5}
+plot_pairwise.corr_heatmap(input_mat_1 = gibbs_PM$Z_pm,
+                           corr_type = "pearson",
+                           name_1 = "Pairwise correlation within factors (Z)",
+                           label_size = 10)
+```
+
+## Gene loading in factors
+
+To understand these latent factors, we inspect within them the loadings (weights) of several marker genes for cell proliferation and T cell activation/resting states.
+
+```{r list_of_marker_genes, echo=F}
+Tcell_df <- data.frame(
+  protein_name = c("IL-7 receptor", "C-C motif chemokine receptor 7", 
+                   "Granzyme B", "Interferon gamma", "CD44", "IL-2 receptor", 
+                   "X-C motif chemokine ligand 1", "GITR", "LFA-1",
+                   "Marker of proliferation Ki-67", "DNA topoisomerase II alpha", "Centromere protein F"),
+  gene_name = c("IL7R", "CCR7", 
+                "GZMB", "IFNG", "CD44", "IL2RA", 
+                "XCL1", "TNFRSF18", "ITGAL",
+                "MKI67", "TOP2A", "CENPF"),
+  type = c(rep("T cell resting state", 2),
+           rep("T cell activation", 7),
+           rep("Cell proliferation", 3))
+)
+# neural_df <- data.frame(
+#   protein_name = c("TP53", "CDK4", "Nestin", 
+#                    "STMN2", "MAP2", "NEFL", "ZEB2",
+#                    "ITM2C", "CNTN2", "DRAXIN", "HDAC2"),
+#   gene_name = c("TP53", "CDK4", "NES", 
+#                 "STMN2", "MAP2", "NEFL", "ZEB2", 
+#                 "ITM2C", "CNTN2", "DRAXIN", "HDAC2"),
+#   type = c(rep("Cell proliferation", 2), "Neural progenitor cell",
+#            rep("Mature neuron", 4),
+#            rep("Negative regulation of neuron projection", 4))
+# )
+interest_df <- rbind(Tcell_df)
+interest_df <- interest_df[interest_df$gene_name %in% rownames(lfsr_mat), ]
+rownames(interest_df) <- NULL
+knitr::kable(interest_df) %>%
+    kable_styling() %>% scroll_box(width = '100%', height = '400px')
+```
+
+We visualize both the gene PIPs (dot size) and gene weights (dot color) in all factors:
+
+```{r fig.width=10, fig.height=5}
+complexplot_gene_factor(genes_df = data.frame(Name = rownames(lfsr_mat)), 
+                        interest_df = interest_df, 
+                        F_pm = gibbs_PM$F_pm, W_pm = gibbs_PM$W_pm)
+```
+
+A closer look at some factors that are associated with mutations:
+
+```{r fig.width=6, fig.height=5}
+complexplot_gene_factor(genes_df = data.frame(Name = rownames(lfsr_mat)), 
+                        interest_df = interest_df, 
+                        gibbs_PM$F_pm, gibbs_PM$W_pm,
+                        reorder_factors = c(6, 13, 16, 18))
+```
+
+## GO enrichment analysis in factors
+
+To further characterize these latent factors, we perform GO (gene ontology) enrichment analysis of genes loaded on the factors using `WebGestalt`.
+
+Foreground genes: genes w/ non-zero loadings in each factor (gene PIP > 0.95);    
+Background genes: all 10k genes used in GSFA;    
+Statistical test: hypergeometric test (over-representation test);  
+Gene sets: GO Slim "Biological Process" (non-redundant).
+
+```{r eval=FALSE}
+## The "WebGestaltR" tool needs Internet connection.
+library(WebGestaltR)
+
+gene_annotations <- readRDS(paste0(wkdir, "expression/BRCA_Merge_rnaseq_gene_map.rds"))
+genes_indx <- match(rownames(lfsr_mat), gene_annotations$SYMBOL)
+mapped_genes_df <- gene_annotations[genes_indx, ]
+mapped_genes_df <- mapped_genes_df %>% rename(ID = ENSEMBL)
+
+enrich_db <- "geneontology_Biological_Process_noRedundant"
+PIP_mat <- gibbs_PM$F_pm
+enrich_res_by_factor <- list()
+for (i in 1:ncol(PIP_mat)){
+  if (sum(PIP_mat[, i] > 0.95) == 0){
+    enrich_res_by_factor[[i]] <- NULL
+  } else {
+  enrich_res_by_factor[[i]] <- 
+    WebGestaltR::WebGestaltR(enrichMethod = "ORA",
+                             organism = "hsapiens",
+                             enrichDatabase = enrich_db,
+                             interestGene = mapped_genes_df[PIP_mat[, i] > 0.95, ]$ID,
+                             interestGeneType = "ensembl_gene_id",
+                             referenceGene = mapped_genes_df$ID,
+                             referenceGeneType = "ensembl_gene_id",
+                             isOutput = F)
+  }
+}
+```
+
+```{r echo=FALSE}
+enrich_res_by_factor <- readRDS(paste0(wkdir, gsfa_folder, 
+                                       "WebGestalt_ORA/All.gibbs_obj_k20.svd.go_bp.by_factor.cutoff_0.95"))
+```
+
+GO terms that passed over-representation test fold change $\geq$ 2 and q value $<$ 0.05:
+
+```{r}
+gene_annotations <- readRDS(paste0(wkdir, "expression/BRCA_Merge_rnaseq_gene_map.rds"))
+gene_annotations <- gene_annotations %>% rename(ID = ENSEMBL, Name = SYMBOL)
+signif_num <- print_enrich_ORA_tb(enrich_res_by_factor, 
+                                  enrich_type = "GO terms",
+                                  convert_genes = T, 
+                                  gene_map = gene_annotations)
+signif_num.df <- t(data.frame(Factor = 1:length(signif_num),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(rbind(signif_num.df),
+             caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+# DEG Interpretation
+
+In GSFA, differential expression analysis can be performed based on the LFSR method. Here we evaluate the specific downstream genes affected by the perturbations detected by GSFA.
+
+We also performed several other differential expression methods for comparison, including Welch's t-test.
+
+## Number of DEGs detected by different methods
+
+```{r}
+fdr_cutoff <- 0.05
+lfsr_cutoff <- 0.05
+```
+
+```{r echo=FALSE}
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+signif_num_tb <- t(data.frame(KO = names(lfsr_signif_num),
+                           Num_genes = lfsr_signif_num,
+                           row.names = NULL))
+knitr::kable(rbind(signif_num_tb[, 1:5], signif_num_tb[, 6:10]),
+             caption = "Number of DEGs detected by GSFA under each mutation:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+```{r ttest}
+ttest_list <- 
+  readRDS(paste0(wkdir, "processed_data/DE_results.custom_ttest.BRCA_TMM.female_white_only.top10k_var.corrected.rds"))
+ttest_signif_counts <- sapply(ttest_list, function(x){filter(x, fdr < fdr_cutoff) %>% nrow()})
+```
+
+```{r dge_comparison_merge}
+dge_comparison_df <- data.frame(Perturbation = names(lfsr_signif_num),
+                                GSFA = lfsr_signif_num,
+                                t.test = ttest_signif_counts)
+```
+
+Number of DEGs detected under each perturbation using different methods:
+
+```{r fig.width=8, fig.height=5}
+dge_plot_df <- reshape2::melt(dge_comparison_df, id.var = "Perturbation",
+                              variable.name = "Method", value.name = "Num_DEGs")
+dge_plot_df$Perturbation <- factor(dge_plot_df$Perturbation,
+                                   levels = KO_names)
+ggplot(dge_plot_df, aes(x = Perturbation, y = Num_DEGs+1, fill = Method)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  geom_text(aes(label = Num_DEGs), 
+            position = position_dodge(width=0.9), vjust = -0.25) +
+  scale_y_log10() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Target gene",
+       y = "Number of DEGs",
+       title = "Number of DEGs detected by different methods") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        legend.position = "bottom",
+        legend.text = element_text(size = 13))
+```
+
+## Perturbation effects on marker genes
+
+To better understand the functions of these mutations, we examined their effects on marker genes for cell proliferation and T cell activation/resting states.
+
+### GSFA
+
+Here are the summarized effects of perturbations on marker genes estimated by GSFA.
+
+As we can see, TP53 loss of function/missense mutations have positive effects on cell proliferation, while CDH1 loss of function and PIK2CA missense mutations have negative effects on cell proliferation.
+
+CDH1 LOF is also positively associated with T cell markers (for both activation and resting states).
+
+```{r fig.width=6, fig.height=5}
+targets <- c("TP53_LOF", "TP53_mis", "CDH1_LOF", "GATA3_LOF", "PIK3CA_mis")
+complexplot_gene_perturbation(genes_df = data.frame(Name = rownames(lfsr_mat)), 
+                              interest_df = interest_df, 
+                              targets = targets,
+                              lfsr_mat = lfsr_mat,
+                              effect_mat = gibbs_PM$W_pm %*%
+                                t(gibbs_PM$beta_pm[-nrow(gibbs_PM$beta_pm), ]), 
+                              score_break = seq(-0.5, 0.5, 0.25))
+```
+
+## GO enrichment in DEGs
+
+We further examine these DEGs for enrichment of relevant biological processes through GO enrichment analysis.
+
+Foreground genes: Genes w/ GSFA LFSR < 0.05 under each perturbation;    
+Background genes: all 10k genes used in GSFA;    
+Statistical test: hypergeometric test (over-representation test);    
+Gene sets: Gene ontology "Biological Process" (non-redundant).
+
+```{r eval=FALSE}
+## The "WebGestaltR" tool needs Internet connection.
+lfsr_signif_num <- colSums(lfsr_mat < lfsr_cutoff)
+targets <- names(lfsr_signif_num)[lfsr_signif_num > 0]
+enrich_db <- "geneontology_Biological_Process_noRedundant"
+enrich_res <- list()
+for (i in targets){
+  print(i)
+  interest_genes <- mapped_genes_df %>% mutate(lfsr = lfsr_mat[, i]) %>%
+    filter(lfsr < lfsr_cutoff) %>% pull(ID)
+  enrich_res[[i]] <- 
+    WebGestaltR::WebGestaltR(enrichMethod = "ORA",
+                             organism = "hsapiens",
+                             enrichDatabase = enrich_db,
+                             interestGene = interest_genes,
+                             interestGeneType = "ensembl_gene_id",
+                             referenceGene = mapped_genes_df$ID,
+                             referenceGeneType = "ensembl_gene_id",
+                             isOutput = F)
+}
+```
+
+```{r echo=FALSE}
+enrich_res <- readRDS(paste0(wkdir, gsfa_folder, 
+                             "All.gibbs_obj_k20.svd.go_bp.by_mutation.lfsr_0.05"))
+```
+
+GO terms that passed over-representation test fold change $\geq$ 2 and q value $<$ 0.05:
+
+```{r}
+gene_annotations <- readRDS(paste0(wkdir, "expression/BRCA_Merge_rnaseq_gene_map.rds"))
+gene_annotations <- gene_annotations %>% rename(ID = ENSEMBL, Name = SYMBOL)
+signif_num <- print_enrich_ORA_tb(enrich_res,
+                                  enrich_type = "GO terms", 
+                                  list_type = "per_marker",
+                                  convert_genes = T, 
+                                  gene_map = gene_annotations)
+signif_num.df <- t(data.frame(Marker = names(enrich_res),
+                              Signif_GO_terms = signif_num,
+                              row.names = NULL))
+knitr::kable(signif_num.df, caption = "Summary:") %>%
+  kable_styling() %>% scroll_box(width = '100%')
+```
+
+
