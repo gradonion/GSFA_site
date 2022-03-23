@@ -137,7 +137,8 @@ factor_dens <- colMeans(gibbs_PM$F_pm > 0.95)
 factor_dens <- t(data.frame(Factor = names(factor_dens),
                             Density = factor_dens,
                             row.names = NULL))
-print(knitr::kable(rbind(factor_dens[, 1:5], factor_dens[, 6:10])) %>%
+print(knitr::kable(rbind(factor_dens[, 1:5], factor_dens[, 6:10],
+                         factor_dens[, 11:15], factor_dens[, 16:20])) %>%
         kable_styling() %>% scroll_box(width = '100%'))
 ```
 
